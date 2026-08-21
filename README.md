@@ -43,7 +43,8 @@ présentation.
 12. [Backend REST](#12-backend-rest)
 13. [Console d'administration](#13-console-dadministration)
 14. [Relances](#14-relances)
-15. [Roadmap](#15-roadmap)
+15. [Déploiement du backend](#15-déploiement-du-backend)
+16. [Roadmap](#16-roadmap)
 
 ---
 
@@ -531,6 +532,24 @@ Nécessite `docker compose up -d` puis le seed. Ignoré sans le drapeau, pour qu
 connexion → organisation → tontine → cotisations → tirage serveur →
 bénéficiaire → versement → cycle suivant.
 
+### Vérification rapide de l'API
+
+```bash
+python backend/scripts/smoke_api.py
+```
+
+Parcourt le chemin critique (connexion, organisation, membres, tontines, cycle
+courant, notifications, rafraîchissement) contre un serveur qui tourne, et sort
+en erreur au premier appel inattendu. Utile pour distinguer en quelques secondes
+une panne de serveur d'un bug applicatif.
+
+Les requêtes portent une en-tête `Origin`, donc le script valide aussi les CORS.
+Pour viser une autre machine — par exemple depuis un téléphone du réseau local :
+
+```bash
+python backend/scripts/smoke_api.py --base-url http://192.168.1.10:8000/api/v1
+```
+
 ---
 
 ## 11. Environnements
@@ -569,6 +588,29 @@ Forcer la démo hors ligne sur n'importe quel environnement :
 
 ```bash
 flutter run --dart-define=KADJANE_USE_MOCK=true
+```
+
+### Origines autorisées (CORS)
+
+Le navigateur envoie une requête de pré-vol `OPTIONS` avant chaque appel : si
+l'origine n'est pas autorisée, le backend répond **400 « Disallowed CORS
+origin »** et l'application affiche « impossible de charger les données ».
+Le serveur tourne pourtant : seule l'origine est refusée.
+
+| Variable | Rôle |
+|---|---|
+| `CORS_ORIGINS` | Liste d'origines exactes, séparées par des virgules |
+| `CORS_ORIGIN_REGEX` | Motif d'origines autorisées, en complément de la liste |
+
+En **développement**, tout port de `localhost` / `127.0.0.1` est accepté d'office :
+`flutter run -d chrome` sert l'application sur un port tiré au hasard à chaque
+lancement, impossible à énumérer à l'avance. Ce repli ne s'applique qu'en
+développement — ailleurs, seules les origines listées passent.
+
+En recette et en production, renseigner un motif maîtrisé :
+
+```bash
+CORS_ORIGIN_REGEX=^https://([a-z0-9-]+\.)?kadjane\.app$
 ```
 
 ---
@@ -727,7 +769,65 @@ message s'adapte automatiquement au niveau d'escalade de chaque destinataire.
 
 ---
 
-## 15. Roadmap
+## 15. Déploiement du backend
+
+L'image `backend/Dockerfile` a deux étapes. **`production` est la dernière** :
+un `docker build` sans `--target` la sélectionne, ce que font les hébergeurs
+manageés. Le développement demande `target: development` (déjà câblé dans
+`docker-compose.yml`), seule étape à embarquer pytest et à tourner en root.
+
+L'étape `production` applique les migrations au démarrage, écoute sur `$PORT`
+et tourne en utilisateur non privilégié.
+
+### Variables à définir chez l'hébergeur
+
+| Variable | Obligatoire | Remarque |
+|---|---|---|
+| `DATABASE_URL` | oui | Fournie par le service PostgreSQL. Le schéma sans pilote (`postgresql://`) est réécrit vers psycopg 3 |
+| `JWT_SECRET` | **oui** | Sans elle, les jetons sont signés avec `dev-secret-change-me` |
+| `ENVIRONMENT` | **oui** | `production`. Sinon le repli CORS localhost, réservé au développement, reste actif |
+| `CORS_ORIGINS` | **oui** | Origines réelles du front. La valeur par défaut ne contient que localhost |
+| `PORT` | non | Injectée par l'hébergeur ; `8000` à défaut |
+| `WEB_CONCURRENCY` | non | Nombre de processus uvicorn ; `1` à défaut |
+| `SEED_PASSWORD` | non | À ne pas définir en production |
+
+Générer le secret :
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+### Premier déploiement
+
+Les migrations créent le schéma, **pas les données** : la base est vide et
+aucun compte n'existe. Pour une Beta, peupler le jeu de démonstration depuis
+le conteneur :
+
+```bash
+python -m app.db.seed
+```
+
+Puis vérifier depuis un poste, en visant l'URL publique :
+
+```bash
+python backend/scripts/smoke_api.py --base-url https://<hôte>/api/v1 --origin https://<front>
+```
+
+### Pièges rencontrés
+
+- **`ModuleNotFoundError: No module named 'psycopg2'`** — l'hébergeur injecte
+  `postgresql://…` sans pilote, que SQLAlchemy traduit par psycopg2, absent de
+  l'image. Normalisé dans `app/core/config.py`.
+- **Déploiement « crashed » sans erreur applicative** — le port est figé au
+  lieu de suivre `$PORT`, et le healthcheck de l'hébergeur échoue.
+- **500 sur toutes les requêtes** — les migrations n'ont pas tourné, le schéma
+  n'existe pas.
+- **400 « Disallowed CORS origin »** — `CORS_ORIGINS` ne contient pas l'origine
+  du front. Voir [§11](#11-environnements).
+
+---
+
+## 16. Roadmap
 
 **Livré (MVP)**
 

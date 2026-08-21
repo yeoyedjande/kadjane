@@ -63,6 +63,11 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 
+# --- Justificatifs téléversés -----------------------------------------------
+# Documents financiers déposés par les membres : ils n'ont rien à faire dans le
+# dépôt. Le dossier est recréé au démarrage par l'application.
+backend/uploads/
+
 # --- Android signing --------------------------------------------------------
 android/key.properties
 *.jks

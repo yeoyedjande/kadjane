@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,23 @@ class Settings(BaseSettings):
 
     # --- Base de données ---
     database_url: str = "postgresql+psycopg://kadjane:kadjane@localhost:5432/kadjane"
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg3(cls, value: str) -> str:
+        """Force le pilote psycopg 3, seul installé (voir `requirements.txt`).
+
+        Les hébergeurs manageés (Railway, Render, Heroku…) injectent un
+        `DATABASE_URL` sans pilote — `postgresql://…`, parfois le `postgres://`
+        historique. SQLAlchemy traduit ces schémas par **psycopg2**, absent de
+        l'image : le conteneur meurt au démarrage sur `ModuleNotFoundError`.
+        On réécrit donc le schéma, sans toucher aux URL qui nomment déjà leur
+        pilote ni à SQLite (utilisé par les tests).
+        """
+        for prefix in ("postgresql://", "postgres://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
 
     # --- Sécurité ---
     jwt_secret: str = "dev-secret-change-me"
