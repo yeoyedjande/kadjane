@@ -230,6 +230,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordMismatch => 'Passwords do not match';
 
   @override
+  String get authChangePassword => 'Change password';
+
+  @override
+  String get authCurrentPassword => 'Current password';
+
+  @override
+  String get authPasswordChanged => 'Password changed';
+
+  @override
+  String get authChangePasswordHint =>
+      'If your administrator gave you a temporary password, this is where you replace it.';
+
+  @override
   String get authInvalidCredentials => 'Invalid credentials';
 
   @override

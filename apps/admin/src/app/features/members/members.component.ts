@@ -84,9 +84,19 @@ export class MembersPage {
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     phone: ['', [Validators.required, Validators.minLength(6)]],
     email: [''],
+    // Facultatif : vide, le backend génère un mot de passe et le renvoie.
+    password: ['', Validators.minLength(8)],
     role: ['member' as OrgRole, Validators.required],
     status: ['active' as MemberStatus, Validators.required],
   });
+
+  /** Accès à remettre au membre, affichés juste après sa création. */
+  readonly credentials = signal<{
+    name: string;
+    phone: string;
+    password: string;
+  } | null>(null);
+  readonly copied = signal(false);
 
   constructor() {
     this.load();
@@ -150,6 +160,36 @@ export class MembersPage {
     this.formOpen.set(true);
   }
 
+  /** Texte prêt à être collé dans un message au membre. */
+  credentialsMessage(): string {
+    const access = this.credentials();
+    if (!access) {
+      return '';
+    }
+    return [
+      `Bonjour ${access.name},`,
+      'Votre accès à Kadjane :',
+      `Identifiant : ${access.phone}`,
+      `Mot de passe : ${access.password}`,
+      'Vous pourrez le modifier depuis l’application.',
+    ].join('\n');
+  }
+
+  async copyCredentials(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.credentialsMessage());
+      this.copied.set(true);
+    } catch {
+      // Presse-papiers refusé (contexte non sécurisé, permission) : le texte
+      // reste visible et sélectionnable à l'écran.
+      this.toast.info('Copie impossible : sélectionnez le texte manuellement.');
+    }
+  }
+
+  dismissCredentials(): void {
+    this.credentials.set(null);
+  }
+
   openEdit(member: Member): void {
     this.editing.set(member);
     this.form.reset({
@@ -174,7 +214,7 @@ export class MembersPage {
     }
 
     const raw = this.form.getRawValue();
-    const payload = {
+    const payload: MemberPayload = {
       firstName: raw.firstName.trim(),
       lastName: raw.lastName.trim(),
       phone: raw.phone.trim(),
@@ -182,6 +222,11 @@ export class MembersPage {
       role: raw.role,
       status: raw.status,
     };
+    // Le mot de passe n'a de sens qu'à la création : une modification ne doit
+    // jamais réinitialiser l'accès d'un membre à son insu.
+    if (!this.editing() && raw.password.trim()) {
+      payload.password = raw.password.trim();
+    }
 
     const existing = this.editing();
     // Un changement de rôle ou de statut engage l'organisation : on confirme.
@@ -265,6 +310,19 @@ export class MembersPage {
             ? `${member.user.firstName} ${member.user.lastName} a été mis à jour.`
             : `${member.user.firstName} ${member.user.lastName} a été ajouté.`,
         );
+        if (!existing) {
+          // Le mot de passe généré n'est lisible qu'ici : la base n'en garde
+          // qu'une empreinte. On l'affiche pour que l'admin le transmette.
+          const password = member.temporaryPassword ?? payload.password ?? null;
+          if (password) {
+            this.credentials.set({
+              name: `${member.user.firstName} ${member.user.lastName}`,
+              phone: member.user.phone,
+              password,
+            });
+            this.copied.set(false);
+          }
+        }
         this.page.set(0);
         this.load();
       },

@@ -73,9 +73,21 @@ def list_members(
 def create_member(
     db: DbSession, context: OrgContext, payload: MemberCreate
 ) -> dict[str, Any]:
+    """Ajoute un membre à l'organisation.
+
+    Quand aucun mot de passe n'est fourni, la réponse porte en plus
+    `temporaryPassword` : c'est **la seule fois** où il est lisible, la base ne
+    conserve qu'une empreinte. L'administrateur le transmet au membre, qui
+    pourra le changer depuis l'application.
+    """
     permission_service.require(context.membership.role_enum, "member.create")
-    member = MemberService(db).create(context.organization_id, payload, context.membership)
-    return success(dump(MemberRead.model_validate(member)))
+    member, temporary_password = MemberService(db).create(
+        context.organization_id, payload, context.membership
+    )
+    body = dump(MemberRead.model_validate(member))
+    if temporary_password is not None:
+        body["temporaryPassword"] = temporary_password
+    return success(body)
 
 
 @router.get(

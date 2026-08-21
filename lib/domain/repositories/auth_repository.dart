@@ -45,6 +45,15 @@ abstract interface class AuthRepository {
     required String newPassword,
   });
 
+  /// Change le mot de passe d'un membre déjà connecté.
+  ///
+  /// Le membre reçoit un mot de passe provisoire de son administrateur : c'est
+  /// par ici qu'il s'en affranchit. Les autres sessions ouvertes tombent.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
   /// Restaure la session depuis le stockage sécurisé (démarrage de l'app).
   Future<AuthSession?> restoreSession();
 

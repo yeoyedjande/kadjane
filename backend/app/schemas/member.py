@@ -24,8 +24,16 @@ class MemberRead(CamelModel):
 
 
 class MemberCreate(CamelModel):
-    """Ajout d'un membre : l'utilisateur est créé s'il n'existe pas encore."""
+    """Ajout d'un membre : l'utilisateur est créé s'il n'existe pas encore.
 
+    `password` est le mot de passe provisoire remis au membre. Omis, un mot de
+    passe est tiré au hasard et renvoyé **une seule fois** dans la réponse de
+    création, pour que l'administrateur puisse le transmettre. Il est ignoré si
+    le numéro correspond à un compte déjà existant : on ne réinitialise pas le
+    mot de passe de quelqu'un en l'ajoutant à une organisation.
+    """
+
+    password: str | None = Field(default=None, min_length=8, max_length=128)
     first_name: str = Field(min_length=1, max_length=120)
     last_name: str = Field(min_length=1, max_length=120)
     phone: str = Field(min_length=4, max_length=32)

@@ -98,8 +98,25 @@ requête. Un échec purge la session et renvoie l'utilisateur vers la connexion.
 | GET | `/organizations/{id}/membership?userId=` | `member` |
 | GET | `/organizations/{id}/officers` | `[member]` |
 | GET | `/organizations/{id}/members?query=&role=&status=&page=&pageSize=` | `paged<member>` |
-| POST | `/organizations/{id}/members` | `member` |
+| POST | `/organizations/{id}/members` | `member` (+ `temporaryPassword`) |
 | DELETE | `/organizations/{id}/members/{memberId}` | `{ "deleted": true }` |
+
+**Accès du membre.** `POST /organizations/{id}/members` accepte un champ
+`password` : le mot de passe provisoire que l'administrateur remet au membre.
+Omis, le backend en génère un et le renvoie dans `temporaryPassword` — **la
+seule fois** où il est lisible, la base n'en gardant qu'une empreinte. Le champ
+est ignoré si le numéro correspond à un compte existant : rejoindre une
+organisation ne réinitialise pas un accès déjà en place.
+
+Le membre change ensuite son mot de passe lui-même :
+
+| Méthode | Route | Réponse |
+|---|---|---|
+| POST | `/auth/password/change` | `{ "changed": true }` |
+
+Corps : `currentPassword`, `newPassword` (8 caractères minimum). Requiert une
+session. Erreurs : `invalid_current_password` (401), `password_unchanged` (401).
+Les autres sessions ouvertes sont fermées.
 | GET | `/members/{id}` | `member` |
 | PUT | `/members/{id}` | `member` |
 | GET | `/members/{id}/stats` | `memberStats` |

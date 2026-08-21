@@ -53,6 +53,7 @@ class AppRoutes {
   static const String reports = '/reports';
   static const String organizationSettings = '/organization';
   static const String profileEdit = '/profile-edit';
+  static const String changePassword = '/change-password';
 
   /// Routes accessibles sans être connecté.
   static const Set<String> publicRoutes = <String>{

@@ -6,6 +6,7 @@ ni stocké, ni renvoyé par l'API.
 
 from __future__ import annotations
 
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
@@ -26,6 +27,17 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(raw, bcrypt.gensalt(rounds=settings.bcrypt_rounds)).decode(
         "utf-8"
     )
+
+
+def generate_temporary_password(length: int = 10) -> str:
+    """Mot de passe provisoire, destiné à être dicté ou recopié.
+
+    L'alphabet écarte les caractères qui se confondent à l'oral comme à
+    l'écrit — `0`/`O`, `1`/`l`/`I` — parce que l'administrateur transmet cet
+    accès de vive voix ou par message.
+    """
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def verify_password(password: str, password_hash: str) -> bool:

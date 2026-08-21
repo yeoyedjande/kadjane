@@ -96,6 +96,22 @@ class MockAuthRepository implements AuthRepository {
   });
 
   @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _db.withLatency(() {
+    if (currentPassword.isEmpty) {
+      throw const AuthException('invalid_current_password');
+    }
+    if (newPassword.length < 8) {
+      throw const ValidationException('password_too_short');
+    }
+    if (currentPassword == newPassword) {
+      throw const AuthException('password_unchanged');
+    }
+  });
+
+  @override
   Future<AuthSession?> restoreSession() async {
     final AuthTokens? tokens = await _tokens.read();
     final String? userId = await _store.getString(StorageKeys.currentUserId);

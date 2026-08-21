@@ -119,6 +119,9 @@ export interface Member {
   status: MemberStatus;
   joinedAt: string;
   memberNumber: string | null;
+  /** Présent uniquement dans la réponse de création, quand le backend a
+   *  généré le mot de passe. Il n'est lisible qu'à cet instant. */
+  temporaryPassword?: string;
 }
 
 export interface MemberPayload {
@@ -128,6 +131,9 @@ export interface MemberPayload {
   email?: string | null;
   role: OrgRole;
   status?: MemberStatus;
+  /** Mot de passe provisoire choisi par l'administrateur. Omis, le backend en
+   *  génère un et le renvoie dans `Member.temporaryPassword`. */
+  password?: string | null;
 }
 
 export interface Tontine {

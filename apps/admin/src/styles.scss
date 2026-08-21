@@ -154,6 +154,21 @@ a:hover { text-decoration: underline; }
 .k-btn--danger { background: var(--k-danger); }
 .k-btn--danger:hover:not(:disabled) { background: #a12a22; }
 
+/* Accès à recopier : le mot de passe provisoire doit se lire caractère par
+   caractère, d'où la police à chasse fixe et l'espacement. */
+.credentials__value {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid var(--k-outline);
+  border-radius: var(--k-radius-sm);
+  background: var(--k-surface-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  user-select: all;
+  word-break: break-all;
+}
+
 /* Action destructive au fil d'un tableau : le rouge plein, répété à chaque
    ligne, écraserait la lecture. On garde le fantôme et on ne teinte que le
    texte, jusqu'au survol. */
