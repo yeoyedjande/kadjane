@@ -79,7 +79,11 @@ void main() {
     'identité, organisation et membres viennent de PostgreSQL',
     () async {
       final AuthSession session = await signIn();
-      expect(session.user.firstName, 'Yedjane');
+      // Identité vérifiée sur la clé de connexion, pas sur le nom affiché :
+      // celui-ci est modifiable depuis l'application, et une base seedée de
+      // longue date dérive du contenu de `app/db/seed.py`.
+      expect(session.user.email, 'yeo@kadjane.app');
+      expect(session.user.phone, '+225 07 00 00 00 01');
 
       final RestOrganizationRepository organizations =
           RestOrganizationRepository(api);

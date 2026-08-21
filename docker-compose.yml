@@ -21,6 +21,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Sans cible explicite, Docker construirait l'étape `production`, dépourvue
+      # de pytest et tournant en utilisateur non privilégié.
+      target: development
     container_name: kadjane-backend
     restart: unless-stopped
     depends_on:
