@@ -1,0 +1,95 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px;
+  background: var(--k-surface);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: var(--k-primary);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.brand h1 {
+  font-size: 26px;
+}
+
+.brand__sub {
+  margin: 2px 0 0;
+  color: var(--k-text-secondary);
+  font-size: 13.5px;
+}
+
+.alert {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--k-radius-sm);
+  background: var(--k-danger-surface);
+  color: var(--k-danger);
+  font-size: 13.5px;
+}
+
+.foot {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--k-text-tertiary);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 64px;
+  background: linear-gradient(150deg, var(--k-green-900), var(--k-primary));
+  color: #eaf5f0;
+}
+
+.hero h2 {
+  max-width: 12ch;
+  color: #fff;
+  font-size: 40px;
+  line-height: 1.15;
+}
+
+.hero p {
+  max-width: 46ch;
+  margin: 0;
+  color: #bcd9cf;
+  font-size: 15px;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero {
+    display: none;
+  }
+
+  .panel {
+    padding: 32px 24px;
+  }
+}

@@ -1,0 +1,62 @@
+<div class="page">
+  <section class="panel">
+    <div class="brand">
+      <span class="brand__mark">K</span>
+      <div>
+        <h1>Kadjane</h1>
+        <p class="brand__sub">Console d'administration</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="k-stack">
+      <label class="k-field">
+        <span class="k-label">Téléphone ou e-mail</span>
+        <input
+          class="k-input"
+          formControlName="identifier"
+          autocomplete="username"
+          placeholder="+225 07 00 00 00 01"
+          [class.is-invalid]="invalid('identifier')"
+        />
+        @if (invalid('identifier')) {
+          <span class="k-error">Saisissez votre téléphone ou votre e-mail.</span>
+        }
+      </label>
+
+      <label class="k-field">
+        <span class="k-label">Mot de passe</span>
+        <input
+          class="k-input"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          [class.is-invalid]="invalid('password')"
+        />
+        @if (invalid('password')) {
+          <span class="k-error">Mot de passe requis.</span>
+        }
+      </label>
+
+      @if (error()) {
+        <p class="alert">{{ error() }}</p>
+      }
+
+      <button type="submit" class="k-btn" [disabled]="loading()">
+        {{ loading() ? 'Connexion…' : 'Se connecter' }}
+      </button>
+    </form>
+
+    <p class="foot">
+      L'accès dépend de votre rôle dans l'organisation. Les autorisations sont
+      vérifiées par le serveur.
+    </p>
+  </section>
+
+  <aside class="hero">
+    <h2>La tontine, en toute transparence.</h2>
+    <p>
+      Pilotez vos associations, vos tontines et vos cotisations. Les tirages
+      sont calculés et scellés côté serveur : personne ne peut les influencer.
+    </p>
+  </aside>
+</div>

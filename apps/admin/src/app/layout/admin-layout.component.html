@@ -1,0 +1,123 @@
+<div class="shell" [class.shell--collapsed]="collapsed()">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark">K</span>
+      @if (!collapsed()) {
+        <span class="brand__text">
+          <strong>Kadjane</strong>
+          <small>Administration</small>
+        </span>
+      }
+    </div>
+
+    <nav class="nav">
+      @for (group of navigation(); track group.section) {
+        @if (!collapsed()) {
+          <p class="nav__section">{{ group.section }}</p>
+        }
+        @for (entry of group.entries; track entry.path) {
+          <a
+            class="nav__link"
+            [class.nav__link--soon]="entry.soon"
+            [routerLink]="entry.path"
+            routerLinkActive="is-active"
+            [title]="entry.label"
+          >
+            <span class="nav__icon">{{ entry.icon }}</span>
+            @if (!collapsed()) {
+              <span class="nav__label">{{ entry.label }}</span>
+              @if (entry.soon) {
+                <span class="nav__soon">bientôt</span>
+              }
+            }
+          </a>
+        }
+      }
+    </nav>
+
+    <button type="button" class="collapse" (click)="toggleSidebar()">
+      {{ collapsed() ? '»' : '« Replier' }}
+    </button>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button type="button" class="icon-btn mobile-only" (click)="toggleSidebar()">
+          ☰
+        </button>
+
+        <div class="org">
+          <button
+            type="button"
+            class="org__button"
+            (click)="orgPickerOpen.set(!orgPickerOpen())"
+            [disabled]="session.organizations().length < 2"
+          >
+            <span class="org__name">{{ session.organization()?.name ?? '—' }}</span>
+            @if (session.organizations().length > 1) {
+              <span class="org__caret">▾</span>
+            }
+          </button>
+
+          @if (orgPickerOpen()) {
+            <div class="dropdown">
+              @for (organization of session.organizations(); track organization.id) {
+                <button
+                  type="button"
+                  class="dropdown__item"
+                  [class.is-current]="organization.id === session.organizationId()"
+                  (click)="selectOrganization(organization.id)"
+                >
+                  {{ organization.name }}
+                  <small>{{ organization.currency }}</small>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="topbar__right">
+        <a class="icon-btn" routerLink="/notifications" title="Notifications">
+          ◔
+          @if (unread() > 0) {
+            <span class="dot">{{ unread() }}</span>
+          }
+        </a>
+
+        <div class="profile">
+          <button type="button" class="profile__button" (click)="menuOpen.set(!menuOpen())">
+            <k-avatar [name]="fullName()" />
+            <span class="profile__id">
+              <span class="profile__name">{{ fullName() }}</span>
+              @if (session.role(); as role) {
+                <k-badge [value]="role" />
+              }
+            </span>
+          </button>
+
+          @if (menuOpen()) {
+            <div class="dropdown dropdown--right">
+              <div class="dropdown__head">
+                <strong>{{ fullName() }}</strong>
+                <small>{{ user()?.email ?? user()?.phone }}</small>
+                <small class="k-tertiary">{{ session.role() | label }}</small>
+              </div>
+              <a class="dropdown__item" routerLink="/settings" (click)="menuOpen.set(false)">
+                Paramètres de l'organisation
+              </a>
+              <button type="button" class="dropdown__item dropdown__item--danger" (click)="logout()">
+                Se déconnecter
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

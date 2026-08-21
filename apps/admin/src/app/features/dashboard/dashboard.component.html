@@ -1,0 +1,212 @@
+<k-page-header
+  title="Tableau de bord"
+  [subtitle]="session.organization()?.name ?? null"
+>
+  <button type="button" class="k-btn k-btn--ghost" (click)="load()">Actualiser</button>
+</k-page-header>
+
+<k-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="!loading() && !error() && !data()"
+  emptyTitle="Aucune organisation active"
+  (retry)="load()"
+/>
+
+@if (data(); as dashboard) {
+  <div class="k-stack">
+    <section class="k-grid k-grid--4">
+      <k-stat label="Membres" [value]="dashboard.membersCount.toString()" />
+      <k-stat label="Tontines actives" [value]="dashboard.activeTontines.toString()" />
+      <k-stat
+        label="Attendu ce mois"
+        [value]="dashboard.expectedThisPeriod | money"
+      />
+      <k-stat
+        label="Collecté ce mois"
+        [value]="dashboard.collectedThisPeriod | money"
+        [accent]="true"
+      />
+    </section>
+
+    <section class="k-grid k-grid--4">
+      <k-stat label="Restant" [value]="dashboard.remaining_this_month | money" />
+      <k-stat
+        label="Taux de collecte"
+        [value]="collectionRate() + ' %'"
+        [hint]="collectionRate() === 100 ? 'Période intégralement réglée' : null"
+      />
+      <k-stat
+        label="Cotisations en retard"
+        [value]="dashboard.lateContributions.toString()"
+        [hint]="dashboard.lateContributions > 0 ? 'À relancer' : 'Rien à signaler'"
+      />
+      <k-stat
+        label="Ma cotisation"
+        [value]="dashboard.myContributionPaid | money"
+        [hint]="'Attendu : ' + (dashboard.myContributionDue | amount)"
+      />
+    </section>
+
+    <section class="k-grid k-grid--2">
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">Progression de la collecte</h2>
+        </div>
+        <div class="k-card__body">
+          <div class="k-row k-row--between" style="margin-bottom: 10px">
+            <span class="k-strong">{{ dashboard.collectedThisPeriod | money }}</span>
+            <span class="k-muted">sur {{ dashboard.expectedThisPeriod | money }}</span>
+          </div>
+          <div class="k-progress">
+            <div class="k-progress__bar" [style.width.%]="collectionRate()"></div>
+          </div>
+
+          @if (chartPoints().length > 0) {
+            <div style="margin-top: 24px">
+              <k-bar-chart [points]="chartPoints()" />
+            </div>
+          }
+        </div>
+      </article>
+
+      <div class="k-stack">
+        <article class="k-card">
+          <div class="k-card__header">
+            <h2 class="k-card__title">Prochain tirage</h2>
+          </div>
+          <div class="k-card__body">
+            @if (dashboard.nextDraw; as draw) {
+              <p class="lead">{{ draw.tontineName }}</p>
+              <p class="k-muted">
+                {{ draw.eligibleCount }} participants éligibles ·
+                cagnotte {{ draw.potAmount | money }}
+              </p>
+              <div class="k-row" style="margin-top: 12px">
+                <k-badge [value]="draw.isUnlocked ? 'ready_for_draw' : 'collecting'" />
+                <a class="k-btn k-btn--sm k-btn--ghost" [routerLink]="['/tontines', draw.tontineId]">
+                  Ouvrir la tontine
+                </a>
+              </div>
+              @if (!draw.isUnlocked) {
+                <p class="k-tertiary" style="margin-top: 10px; font-size: 12.5px">
+                  Le tirage se débloquera une fois toutes les cotisations réglées.
+                </p>
+              }
+            } @else {
+              <p class="k-muted">Aucun tirage à venir.</p>
+            }
+          </div>
+        </article>
+
+        <article class="k-card">
+          <div class="k-card__header">
+            <h2 class="k-card__title">Bénéficiaire actuel</h2>
+          </div>
+          <div class="k-card__body">
+            @if (dashboard.currentBeneficiary; as beneficiary) {
+              <div class="k-row">
+                <k-avatar [name]="beneficiary.memberName" [size]="40" />
+                <div>
+                  <p class="lead" style="margin: 0">{{ beneficiary.memberName }}</p>
+                  <p class="k-muted" style="margin: 2px 0 0">
+                    {{ beneficiary.tontineName }} ·
+                    {{ beneficiary.periodStart | frDate }}
+                  </p>
+                </div>
+              </div>
+              <div class="k-row k-row--between" style="margin-top: 14px">
+                <span class="k-strong">{{ beneficiary.amount | money }}</span>
+                <k-badge [value]="beneficiary.isPaidOut ? 'paid' : 'designated'" />
+              </div>
+            } @else {
+              <p class="k-muted">Aucun bénéficiaire désigné pour l'instant.</p>
+            }
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="k-grid k-grid--2">
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">Paiements récents</h2>
+        </div>
+        @if (recentPayments().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucun paiement récent.</p></div>
+        } @else {
+          <div class="k-table-wrap">
+            <table class="k-table">
+              <tbody>
+                @for (entry of recentPayments(); track entry.id) {
+                  <tr>
+                    <td>{{ entry.description }}</td>
+                    <td class="k-num k-strong">{{ entry.amount | money }}</td>
+                    <td class="k-tertiary k-nowrap">{{ entry.createdAt | frDate }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">Activité récente</h2>
+          <a class="k-btn k-btn--sm k-btn--ghost" routerLink="/audit">Tout voir</a>
+        </div>
+        @if (dashboard.recentActivity.length === 0) {
+          <div class="k-card__body"><p class="k-muted">Rien à afficher.</p></div>
+        } @else {
+          <ul class="feed">
+            @for (entry of dashboard.recentActivity.slice(0, 6); track entry.id) {
+              <li>
+                <span class="feed__action">{{ entry.action | label }}</span>
+                <span class="feed__text">{{ entry.description }}</span>
+                <span class="feed__date">{{ entry.createdAt | frDate: true }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    </section>
+  </div>
+}
+
+<style>
+  .lead {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+  }
+  .feed {
+    margin: 0;
+    padding: 8px 20px 16px;
+    list-style: none;
+  }
+  .feed li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--k-outline);
+  }
+  .feed li:last-child {
+    border-bottom: none;
+  }
+  .feed__action {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--k-primary);
+  }
+  .feed__text {
+    font-size: 13.5px;
+  }
+  .feed__date {
+    font-size: 12px;
+    color: var(--k-text-tertiary);
+  }
+</style>

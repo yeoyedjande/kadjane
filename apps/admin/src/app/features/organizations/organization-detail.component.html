@@ -1,0 +1,244 @@
+@if (organization(); as org) {
+  <k-page-header [title]="org.name" [subtitle]="org.description">
+    <k-badge [value]="org.status" />
+    <a class="k-btn k-btn--ghost" routerLink="/settings">Modifier</a>
+  </k-page-header>
+}
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (organization(); as org) {
+  <nav class="k-tabs" style="margin-bottom: 20px">
+    @for (item of tabs; track item.key) {
+      <button
+        type="button"
+        class="k-tab"
+        [class.is-active]="tab() === item.key"
+        (click)="tab.set(item.key)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </nav>
+
+  @switch (tab()) {
+    @case ('overview') {
+      <div class="k-stack">
+        <section class="k-grid k-grid--4">
+          <k-stat label="Membres" [value]="membersTotal().toString()" />
+          <k-stat label="Tontines" [value]="tontines().length.toString()" />
+          <k-stat label="Tontines actives" [value]="activeTontines().toString()" [accent]="true" />
+          <k-stat label="Devise" [value]="org.currency" />
+        </section>
+
+        <section class="k-grid k-grid--2">
+          <article class="k-card">
+            <div class="k-card__header"><h2 class="k-card__title">Identité</h2></div>
+            <div class="k-card__body">
+              <dl class="facts">
+                <div><dt>Nom</dt><dd>{{ org.name }}</dd></div>
+                <div><dt>Pays</dt><dd>{{ org.country }}</dd></div>
+                <div><dt>Téléphone</dt><dd>{{ org.phone ?? '—' }}</dd></div>
+                <div><dt>E-mail</dt><dd>{{ org.email ?? '—' }}</dd></div>
+                <div><dt>Adresse</dt><dd>{{ org.address ?? '—' }}</dd></div>
+                <div><dt>Créée le</dt><dd>{{ org.createdAt | frDate }}</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="k-card">
+            <div class="k-card__header"><h2 class="k-card__title">Responsables</h2></div>
+            @if (officers().length === 0) {
+              <div class="k-card__body"><p class="k-muted">Aucun responsable désigné.</p></div>
+            } @else {
+              <div class="k-table-wrap">
+                <table class="k-table">
+                  <tbody>
+                    @for (officer of officers(); track officer.id) {
+                      <tr>
+                        <td>
+                          <div class="k-row">
+                            <k-avatar
+                              [name]="officer.user.firstName + ' ' + officer.user.lastName"
+                            />
+                            <span class="k-strong">
+                              {{ officer.user.firstName }} {{ officer.user.lastName }}
+                            </span>
+                          </div>
+                        </td>
+                        <td class="k-num"><k-badge [value]="officer.role" /></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </article>
+        </section>
+
+        @if (org.rules) {
+          <article class="k-card">
+            <div class="k-card__header"><h2 class="k-card__title">Règlement</h2></div>
+            <div class="k-card__body"><p class="k-muted" style="margin: 0">{{ org.rules }}</p></div>
+          </article>
+        }
+      </div>
+    }
+
+    @case ('members') {
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">{{ membersTotal() }} membre(s)</h2>
+          <a class="k-btn k-btn--sm k-btn--ghost" routerLink="/members">Gérer les membres</a>
+        </div>
+        <div class="k-table-wrap">
+          <table class="k-table">
+            <thead>
+              <tr><th>Membre</th><th>Téléphone</th><th>Rôle</th><th>Statut</th></tr>
+            </thead>
+            <tbody>
+              @for (member of members(); track member.id) {
+                <tr>
+                  <td class="k-strong">
+                    {{ member.user.firstName }} {{ member.user.lastName }}
+                  </td>
+                  <td class="k-nowrap">{{ member.user.phone }}</td>
+                  <td><k-badge [value]="member.role" /></td>
+                  <td><k-badge [value]="member.status" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+
+    @case ('tontines') {
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">Tontines</h2>
+          <a class="k-btn k-btn--sm k-btn--ghost" routerLink="/tontines">Toutes les tontines</a>
+        </div>
+        @if (tontines().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucune tontine.</p></div>
+        } @else {
+          <div class="k-table-wrap">
+            <table class="k-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th class="k-num">Cotisation</th>
+                  <th class="k-num">Participants</th>
+                  <th>Mode</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (summary of tontines(); track summary.tontine.id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/tontines', summary.tontine.id]" class="k-strong">
+                        {{ summary.tontine.name }}
+                      </a>
+                    </td>
+                    <td class="k-num">{{ summary.tontine.contributionAmount | money }}</td>
+                    <td class="k-num">{{ summary.participantCount }}</td>
+                    <td>{{ summary.tontine.allocationMode | label }}</td>
+                    <td><k-badge [value]="summary.tontine.status" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+    }
+
+    @case ('activity') {
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">Activité récente</h2>
+          <a class="k-btn k-btn--sm k-btn--ghost" routerLink="/audit">Journal complet</a>
+        </div>
+        @if (activity().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucune activité.</p></div>
+        } @else {
+          <div class="k-table-wrap">
+            <table class="k-table">
+              <thead>
+                <tr><th>Date</th><th>Action</th><th>Description</th><th>Par</th></tr>
+              </thead>
+              <tbody>
+                @for (entry of activity(); track entry.id) {
+                  <tr>
+                    <td class="k-nowrap k-muted">{{ entry.createdAt | frDate: true }}</td>
+                    <td class="k-nowrap">{{ entry.action | label }}</td>
+                    <td>{{ entry.description }}</td>
+                    <td class="k-nowrap k-muted">{{ entry.actorName }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+    }
+
+    @case ('settings') {
+      <article class="k-card">
+        <div class="k-card__header"><h2 class="k-card__title">Règles de fonctionnement</h2></div>
+        <div class="k-card__body">
+          <dl class="facts">
+            <div>
+              <dt>Paiement complet avant tirage</dt>
+              <dd>{{ org.settings.requireFullPaymentBeforeDraw ? 'Oui' : 'Non' }}</dd>
+            </div>
+            <div>
+              <dt>Forçage du tirage autorisé</dt>
+              <dd>{{ org.settings.allowDrawOverride ? 'Oui' : 'Non' }}</dd>
+            </div>
+            <div>
+              <dt>Tolérance de retard</dt>
+              <dd>{{ org.settings.latePaymentGraceDays }} jour(s)</dd>
+            </div>
+            <div>
+              <dt>Rappel avant échéance</dt>
+              <dd>{{ org.settings.notifyBeforeDueDays }} jour(s)</dd>
+            </div>
+          </dl>
+          <a class="k-btn k-btn--ghost" routerLink="/settings" style="margin-top: 16px">
+            Modifier les paramètres
+          </a>
+        </div>
+      </article>
+    }
+  }
+}
+
+<style>
+  .facts {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+  .facts > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--k-outline);
+  }
+  .facts > div:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .facts dt {
+    color: var(--k-text-secondary);
+    font-size: 13px;
+  }
+  .facts dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+</style>

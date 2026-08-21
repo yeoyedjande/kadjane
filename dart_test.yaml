@@ -1,0 +1,4 @@
+tags:
+  live:
+    # Nécessite le backend réel : `docker compose up -d`.
+    # Ignoré par défaut, voir test/integration/live_api_test.dart.

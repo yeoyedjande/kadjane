@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kadjane-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kadjane}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kadjane}
+      POSTGRES_DB: ${POSTGRES_DB:-kadjane}
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kadjane} -d ${POSTGRES_DB:-kadjane}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kadjane-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kadjane}:${POSTGRES_PASSWORD:-kadjane}@postgres:5432/${POSTGRES_DB:-kadjane}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:8080,http://localhost:3000}
+      CORS_ORIGIN_REGEX: ${CORS_ORIGIN_REGEX:-}
+      SEED_PASSWORD: ${SEED_PASSWORD:-kadjane}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    # Migrations appliquées au démarrage, puis serveur avec rechargement à chaud.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # Back-office Angular. En développement, `npm start` dans apps/admin reste
+  # plus confortable (rechargement à chaud) ; ce service sert l'application
+  # construite, comme en production.
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+    container_name: kadjane-admin
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${ADMIN_PORT:-4200}:80"
+    profiles:
+      - admin
+
+volumes:
+  postgres_data:

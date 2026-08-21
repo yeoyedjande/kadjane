@@ -1,0 +1,599 @@
+{
+  "@@locale": "fr",
+  "appName": "Kadjane",
+  "appTagline": "La tontine, en toute transparence.",
+  "commonNext": "Suivant",
+  "commonBack": "Retour",
+  "commonSkip": "Passer",
+  "commonStart": "Commencer",
+  "commonCancel": "Annuler",
+  "commonConfirm": "Confirmer",
+  "commonSave": "Enregistrer",
+  "commonDelete": "Supprimer",
+  "commonEdit": "Modifier",
+  "commonAdd": "Ajouter",
+  "commonSearch": "Rechercher",
+  "commonFilter": "Filtrer",
+  "commonAll": "Tous",
+  "commonRetry": "Réessayer",
+  "commonLoading": "Chargement...",
+  "commonSeeAll": "Tout voir",
+  "commonClose": "Fermer",
+  "commonContinueLabel": "Continuer",
+  "commonYes": "Oui",
+  "commonNo": "Non",
+  "commonNone": "Aucun",
+  "commonOptional": "Facultatif",
+  "commonDone": "Terminé",
+  "commonRefresh": "Actualiser",
+  "commonExport": "Exporter",
+  "commonComment": "Commentaire",
+  "commonReference": "Référence",
+  "commonAmount": "Montant",
+  "commonDate": "Date",
+  "commonStatus": "Statut",
+  "commonDetails": "Détails",
+  "commonTotal": "Total",
+  "commonUnknown": "Inconnu",
+  "commonNoResults": "Aucun résultat",
+  "commonErrorTitle": "Une erreur est survenue",
+  "commonErrorGeneric": "Impossible de charger les données. Veuillez réessayer.",
+  "commonEmptyTitle": "Rien à afficher",
+  "commonOfflineTitle": "Vous êtes hors ligne",
+  "commonOfflineMessage": "Les données affichées peuvent ne pas être à jour.",
+  "commonComingSoon": "Bientôt disponible",
+  "commonRequiredField": "Ce champ est obligatoire",
+  "commonSelect": "Sélectionner",
+  "commonNotAvailable": "Non disponible",
+  "authSignIn": "Connexion",
+  "authSignInSubtitle": "Accédez à vos tontines et à votre organisation.",
+  "authSignUp": "Créer un compte",
+  "authSignUpSubtitle": "Rejoignez Kadjane en quelques secondes.",
+  "authEmail": "Email",
+  "authPhone": "Téléphone",
+  "authPassword": "Mot de passe",
+  "authConfirmPassword": "Confirmer le mot de passe",
+  "authForgotPassword": "Mot de passe oublié ?",
+  "authForgotPasswordSubtitle": "Saisissez votre numéro de téléphone pour recevoir un code de vérification.",
+  "authSendCode": "Envoyer le code",
+  "authOtpTitle": "Vérification",
+  "authOtpSubtitle": "Saisissez le code à 6 chiffres envoyé au {target}.",
+  "@authOtpSubtitle": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "authResendCode": "Renvoyer le code",
+  "authNewPassword": "Nouveau mot de passe",
+  "authResetPasswordTitle": "Nouveau mot de passe",
+  "authResetPasswordSubtitle": "Choisissez un mot de passe sécurisé pour votre compte.",
+  "authAlreadyHaveAccount": "Vous avez déjà un compte ?",
+  "authNoAccount": "Pas encore de compte ?",
+  "authLogout": "Se déconnecter",
+  "authLogoutConfirm": "Voulez-vous vraiment vous déconnecter ?",
+  "authFirstName": "Prénom",
+  "authLastName": "Nom",
+  "authInvalidEmail": "Email invalide",
+  "authInvalidPhone": "Numéro de téléphone invalide",
+  "authPasswordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+  "authPasswordMismatch": "Les mots de passe ne correspondent pas",
+  "authInvalidCredentials": "Identifiants incorrects",
+  "authInvalidOtp": "Code de vérification incorrect",
+  "authDemoHint": "Démo : mot de passe kadjane, code de vérification 123456.",
+  "onboardingTitle1": "Gérez votre tontine simplement",
+  "onboardingBody1": "Suivez les cotisations, bénéficiaires et échéances depuis votre téléphone.",
+  "onboardingTitle2": "Des tirages transparents",
+  "onboardingBody2": "Effectuez les tirages au sort et conservez automatiquement les résultats.",
+  "onboardingTitle3": "Gardez une trace de tout",
+  "onboardingBody3": "Paiements, bénéficiaires, historiques et activités restent accessibles.",
+  "navHome": "Accueil",
+  "navTontines": "Tontines",
+  "navContributions": "Cotisations",
+  "navActivity": "Activités",
+  "navProfile": "Profil",
+  "dashboardGreeting": "Bonjour {name}",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMembers": "Membres",
+  "dashboardActiveTontines": "Tontines actives",
+  "dashboardExpectedThisMonth": "Attendu ce mois",
+  "dashboardCollected": "Collecté",
+  "dashboardRemaining": "Restant",
+  "dashboardLateContributions": "Cotisations en retard",
+  "dashboardNextDraw": "Prochain tirage",
+  "dashboardCurrentBeneficiary": "Bénéficiaire actuel",
+  "dashboardUpcomingDeadlines": "Prochaines échéances",
+  "dashboardMyContribution": "Ma cotisation",
+  "dashboardRecentActivity": "Activité récente",
+  "dashboardCollectionProgress": "Progression de la collecte",
+  "dashboardContributionsTrend": "Évolution des cotisations",
+  "dashboardNoUpcomingDraw": "Aucun tirage programmé",
+  "dashboardQuickActions": "Accès rapide",
+  "membersTitle": "Membres",
+  "membersAdd": "Ajouter un membre",
+  "membersDetails": "Fiche du membre",
+  "membersRole": "Rôle",
+  "membersJoinedOn": "Membre depuis",
+  "membersTotalPaid": "Sommes versées",
+  "membersTotalReceived": "Sommes reçues",
+  "membersGender": "Sexe",
+  "membersMale": "Homme",
+  "membersFemale": "Femme",
+  "membersBirthDate": "Date de naissance",
+  "membersPhoto": "Photo",
+  "membersSearchHint": "Rechercher un membre",
+  "membersEmpty": "Aucun membre pour le moment",
+  "membersSaved": "Membre enregistré",
+  "membersInviteSoon": "Invitation par lien disponible prochainement",
+  "membersTontines": "Tontines du membre",
+  "statusActive": "Actif",
+  "statusInactive": "Inactif",
+  "statusSuspended": "Suspendu",
+  "statusPending": "En attente",
+  "roleSuperAdmin": "Super Admin",
+  "roleAdmin": "Administrateur",
+  "rolePresident": "Président",
+  "roleTreasurer": "Trésorier",
+  "roleAuditor": "Commissaire aux comptes",
+  "roleMember": "Membre",
+  "tontinesTitle": "Mes tontines",
+  "tontinesCreate": "Créer une tontine",
+  "tontinesName": "Nom de la tontine",
+  "tontinesDescription": "Description",
+  "tontinesContributionAmount": "Montant de la cotisation",
+  "tontinesCurrency": "Devise",
+  "tontinesFrequency": "Fréquence",
+  "tontinesStartDate": "Date de début",
+  "tontinesDueDay": "Jour d'échéance",
+  "tontinesParticipants": "Participants",
+  "tontinesEstimatedPot": "Cagnotte estimée",
+  "tontinesPot": "Cagnotte",
+  "tontinesProgress": "Progression",
+  "tontinesEmpty": "Aucune tontine pour le moment",
+  "tontinesCreated": "Tontine créée avec succès",
+  "tontinesCyclesCompleted": "Cycles terminés",
+  "tontinesPreviousBeneficiary": "Bénéficiaire précédent",
+  "tontinesNextDraws": "Prochains tirages",
+  "tontinesSelectParticipants": "Sélectionner les participants",
+  "tontinesParticipantsCount": "{count} participants",
+  "@tontinesParticipantsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tontinesPotFormula": "{count} membres x {amount}",
+  "@tontinesPotFormula": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tontinesStepInfo": "Informations",
+  "tontinesStepParticipants": "Participants",
+  "tontinesStepMode": "Attribution",
+  "tontinesStepSummary": "Récapitulatif",
+  "tontinesTabOverview": "Vue d'ensemble",
+  "tontinesTabContributions": "Cotisations",
+  "tontinesTabDraws": "Tirages",
+  "tontinesTabParticipants": "Participants",
+  "tontinesTabHistory": "Historique",
+  "tontinesTabSettings": "Paramètres",
+  "tontinesCycle": "Cycle {index}",
+  "@tontinesCycle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "tontinesMinParticipants": "Sélectionnez au moins 2 participants",
+  "tontineStatusDraft": "Brouillon",
+  "tontineStatusPending": "En attente",
+  "tontineStatusActive": "Active",
+  "tontineStatusSuspended": "Suspendue",
+  "tontineStatusCompleted": "Terminée",
+  "tontineStatusCancelled": "Annulée",
+  "frequencyWeekly": "Hebdomadaire",
+  "frequencyBiweekly": "Bimensuelle",
+  "frequencyMonthly": "Mensuelle",
+  "frequencyCustom": "Personnalisée",
+  "allocationMode": "Mode d'attribution",
+  "allocationMonthlyDraw": "Tirage à chaque période",
+  "allocationMonthlyDrawDesc": "Un bénéficiaire est tiré au sort à chaque période parmi les membres n'ayant pas encore reçu la cagnotte.",
+  "allocationFullOrder": "Ordre complet par tirage",
+  "allocationFullOrderDesc": "Un tirage unique en début de tontine fixe l'ordre de passage de tous les participants.",
+  "allocationManualOrder": "Ordre manuel",
+  "allocationManualOrderDesc": "L'administrateur définit lui-même l'ordre de passage des participants.",
+  "contributionsTitle": "Cotisations",
+  "contributionsPeriod": "Période",
+  "contributionsExpected": "Attendu",
+  "contributionsCollected": "Collecté",
+  "contributionsRemaining": "Restant",
+  "contributionsPaidMembers": "{paid} membres sur {total} ont payé",
+  "@contributionsPaidMembers": {
+    "placeholders": {
+      "paid": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "contributionsRecordPayment": "Enregistrer un paiement",
+  "contributionsPaymentMethod": "Moyen de paiement",
+  "contributionsProof": "Justificatif",
+  "contributionsAddProof": "Ajouter un justificatif",
+  "contributionsTakePhoto": "Prendre une photo",
+  "contributionsChooseImage": "Choisir une image",
+  "contributionsViewProof": "Voir le justificatif",
+  "contributionsRecorded": "Paiement enregistré",
+  "contributionsMine": "Mes cotisations",
+  "contributionsTotalPaid": "Total versé",
+  "contributionsPaymentsCount": "Paiements",
+  "contributionsUpcoming": "Prochains paiements",
+  "contributionsEmpty": "Aucune cotisation enregistrée",
+  "contributionsLate": "En retard",
+  "contributionsSelectMember": "Membre",
+  "paymentStatusPending": "En attente",
+  "paymentStatusConfirmed": "Payé",
+  "paymentStatusRejected": "Rejeté",
+  "paymentStatusCancelled": "Annulé",
+  "methodWave": "Wave",
+  "methodOrangeMoney": "Orange Money",
+  "methodMtnMomo": "MTN MoMo",
+  "methodMoovMoney": "Moov Money",
+  "methodBankTransfer": "Virement bancaire",
+  "methodCash": "Espèces",
+  "methodOther": "Autre",
+  "drawTitle": "Tirage du mois",
+  "drawSpin": "Lancer le tirage",
+  "drawSpinning": "Tirage en cours...",
+  "drawParticipantsAtStart": "{count} participants au départ",
+  "@drawParticipantsAtStart": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawRemainingToDraw": "{count} membres restent à tirer",
+  "@drawRemainingToDraw": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawUnavailable": "Tirage indisponible",
+  "drawUnavailableReason": "{count} cotisation(s) restent à régler.",
+  "@drawUnavailableReason": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawConfirmTitle": "Confirmer le tirage ?",
+  "drawConfirmMessage": "Cette opération désignera définitivement le bénéficiaire de la période.",
+  "drawCongratulations": "Félicitations !",
+  "drawBeneficiaryOf": "est le bénéficiaire de la période {period}.",
+  "@drawBeneficiaryOf": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "drawViewResult": "Voir le résultat",
+  "drawHistory": "Historique des tirages",
+  "drawLaunchedBy": "Lancé par",
+  "drawReference": "Référence",
+  "drawEligibleParticipants": "Participants éligibles",
+  "drawNoEligible": "Aucun participant éligible pour ce tirage",
+  "drawOverrideTitle": "Forcer le tirage",
+  "drawOverrideMessage": "Le règlement exige que toutes les cotisations soient réglées. Forcer le tirage sera enregistré dans l'audit.",
+  "drawOverrideReason": "Motif du forçage",
+  "drawOverrideUsed": "Tirage forcé par un administrateur",
+  "drawCancelAction": "Annuler le tirage",
+  "drawInvalidate": "Invalider le tirage",
+  "drawInvalidateReason": "Motif de l'invalidation",
+  "drawAlreadyDone": "Le tirage de cette période a déjà été effectué",
+  "drawNoPermission": "Vous n'avez pas la permission de lancer un tirage",
+  "drawOrderGenerated": "Ordre de passage généré",
+  "drawScheduledOn": "Tirage prévu le {date}",
+  "@drawScheduledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "drawStatusScheduled": "Programmé",
+  "drawStatusCompleted": "Validé",
+  "drawStatusCancelled": "Annulé",
+  "drawStatusInvalidated": "Invalidé",
+  "beneficiaryTitle": "Bénéficiaire de la période",
+  "beneficiaryPayout": "Versement",
+  "beneficiaryRecordPayout": "Enregistrer le versement",
+  "beneficiaryAmountSent": "Montant envoyé",
+  "beneficiaryPayoutRecorded": "Versement enregistré",
+  "beneficiaryStepContributions": "Cotisations",
+  "beneficiaryStepPot": "Cagnotte complète",
+  "beneficiaryStepDraw": "Tirage",
+  "beneficiaryStepBeneficiary": "Bénéficiaire",
+  "beneficiaryStepPayout": "Versement",
+  "beneficiaryStepConfirmation": "Confirmation",
+  "beneficiaryNone": "Aucun bénéficiaire désigné",
+  "payoutStatusPending": "En attente",
+  "payoutStatusProcessing": "En cours",
+  "payoutStatusPaid": "Versé",
+  "payoutStatusFailed": "Échoué",
+  "positionTitle": "Ma position",
+  "positionNotReceived": "Vous n'avez pas encore reçu votre cagnotte.",
+  "positionRemaining": "Participants restant à tirer : {remaining} / {total}.",
+  "@positionRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "positionReceivedIn": "Vous avez reçu votre cagnotte en {period}.",
+  "@positionReceivedIn": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "positionKeepContributing": "Vous devez continuer vos cotisations jusqu'à la fin de la tontine.",
+  "positionOrder": "Votre passage : position {position}",
+  "@positionOrder": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "positionEstimatedPeriod": "Période estimée : {period}",
+  "@positionEstimatedPeriod": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "positionNotParticipant": "Vous ne participez pas à cette tontine.",
+  "activityTitle": "Activités",
+  "activityEmpty": "Aucune activité enregistrée",
+  "activityAudit": "Journal d'audit",
+  "activityToday": "Aujourd'hui",
+  "activityYesterday": "Hier",
+  "activityEarlier": "Plus tôt",
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Tout marquer comme lu",
+  "notificationsEmpty": "Aucune notification",
+  "treasuryTitle": "Caisse",
+  "treasuryBalance": "Solde",
+  "treasuryInflows": "Entrées",
+  "treasuryOutflows": "Sorties",
+  "treasuryAddTransaction": "Nouvelle opération",
+  "treasuryType": "Type d'opération",
+  "treasuryIncome": "Entrée",
+  "treasuryExpense": "Sortie",
+  "treasuryCategory": "Catégorie",
+  "treasuryEmpty": "Aucune opération de caisse",
+  "treasurySaved": "Opération enregistrée",
+  "reportsTitle": "Rapports",
+  "reportsTotalContributions": "Total cotisations",
+  "reportsUnpaid": "Impayés",
+  "reportsRecoveryRate": "Taux de recouvrement",
+  "reportsDistributed": "Sommes distribuées",
+  "reportsExportPdf": "Exporter en PDF",
+  "reportsExportExcel": "Exporter en Excel",
+  "reportsExportMocked": "Export simulé : intégration backend à venir.",
+  "profileTitle": "Profil",
+  "profileMyOrganizations": "Mes organisations",
+  "profilePreferences": "Préférences",
+  "profileSecurity": "Sécurité",
+  "profileTheme": "Thème",
+  "profileThemeLight": "Clair",
+  "profileThemeDark": "Sombre",
+  "profileThemeSystem": "Système",
+  "profileLanguage": "Langue",
+  "profileFrench": "Français",
+  "profileEnglish": "Anglais",
+  "profileNotifications": "Notifications",
+  "profileEdit": "Modifier mon profil",
+  "profileVersion": "Version",
+  "profileSaved": "Profil mis à jour",
+  "orgSettingsTitle": "Paramètres de l'organisation",
+  "orgName": "Nom de l'organisation",
+  "orgLogo": "Logo",
+  "orgCountry": "Pays",
+  "orgAddress": "Adresse",
+  "orgRules": "Règles",
+  "orgOfficers": "Responsables",
+  "orgSwitch": "Changer d'organisation",
+  "orgCreate": "Créer une organisation",
+  "orgRequireFullPayment": "Exiger toutes les cotisations avant le tirage",
+  "orgAllowOverride": "Autoriser le forçage du tirage",
+  "orgGraceDays": "Jours de tolérance avant retard",
+  "orgSaved": "Organisation mise à jour",
+  "orgNoPermission": "Action non autorisée pour votre rôle",
+  "adminTitle": "Kadjane Admin",
+  "adminConsole": "Console d'administration",
+  "adminNavOverview": "Vue d'ensemble",
+  "adminNavMembers": "Membres",
+  "adminNavRoles": "Rôles et permissions",
+  "adminNavReminders": "Relances",
+  "adminNavTontines": "Tontines",
+  "adminNavAudit": "Audit",
+  "adminNavSettings": "Paramètres",
+  "adminCollectionRate": "Taux de recouvrement",
+  "adminOutstanding": "Encours impayé",
+  "adminAlerts": "Points de vigilance",
+  "adminNoAlerts": "Aucun point de vigilance",
+  "adminAlertLateMembers": "{count} membre(s) en retard de cotisation",
+  "@adminAlertLateMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAlertBlockedDraw": "{count} tirage(s) bloqué(s) par des impayés",
+  "@adminAlertBlockedDraw": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAlertPendingPayout": "{count} versement(s) en attente",
+  "@adminAlertPendingPayout": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminSearch": "Rechercher",
+  "adminSelected": "{count} sélectionné(s)",
+  "@adminSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminChangeRole": "Changer le rôle",
+  "adminMemberUpdated": "Membre mis à jour",
+  "adminRoleMatrix": "Matrice des permissions",
+  "adminRoleMatrixHint": "Cochez les droits accordés à chaque rôle. La modification s'applique immédiatement, sur mobile comme sur la console.",
+  "adminRoleReset": "Rétablir les droits par défaut",
+  "adminRoleSaved": "Permissions mises à jour",
+  "adminRoleCustomized": "Personnalisé",
+  "adminRoleDefault": "Par défaut",
+  "adminPermissionsCount": "{count} droits",
+  "@adminPermissionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminMembersWithRole": "{count} membre(s)",
+  "@adminMembersWithRole": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOpenMobileHint": "Les rôles définis ici pilotent aussi l'application mobile.",
+  "permModuleOrganization": "Organisation",
+  "permModuleMember": "Membres",
+  "permModuleTontine": "Tontines",
+  "permModuleContribution": "Cotisations",
+  "permModuleDraw": "Tirages",
+  "permModulePayout": "Versements",
+  "permModuleTreasury": "Caisse",
+  "permModuleReport": "Rapports",
+  "permModuleAudit": "Audit",
+  "permModuleReminder": "Relances",
+  "permActionView": "Consulter",
+  "permActionEdit": "Modifier",
+  "permActionCreate": "Créer",
+  "permActionManageOfficers": "Gérer le bureau",
+  "permActionInvite": "Inviter",
+  "permActionValidate": "Valider",
+  "permActionRecord": "Enregistrer",
+  "permActionConfirm": "Confirmer",
+  "permActionCancel": "Annuler",
+  "permActionRun": "Lancer",
+  "permActionOverride": "Forcer",
+  "permActionInvalidate": "Invalider",
+  "permActionManage": "Gérer",
+  "permActionSend": "Envoyer",
+  "remindersTitle": "Relances",
+  "remindersCenter": "Centre de relance",
+  "remindersToRemind": "À relancer",
+  "remindersSend": "Envoyer les relances",
+  "remindersSendShort": "Relancer",
+  "remindersChannel": "Canal d'envoi",
+  "remindersChannelInApp": "Notification",
+  "remindersChannelSms": "SMS",
+  "remindersChannelWhatsapp": "WhatsApp",
+  "remindersChannelEmail": "Email",
+  "remindersChannelPush": "Push",
+  "remindersLevelUpcoming": "Échéance proche",
+  "remindersLevelDueToday": "Échéance aujourd'hui",
+  "remindersLevelLate": "En retard",
+  "remindersLevelEscalated": "Retard critique",
+  "remindersMessage": "Message",
+  "remindersPreview": "Aperçu du message",
+  "remindersSentCount": "{count} relance(s) envoyée(s)",
+  "@remindersSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersHistory": "Historique des relances",
+  "remindersNoTargets": "Aucun impayé : rien à relancer",
+  "remindersNoHistory": "Aucune relance envoyée",
+  "remindersMine": "Mes relances",
+  "remindersReceived": "Relance reçue",
+  "remindersLastSent": "Dernière relance : {date}",
+  "@remindersLastSent": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersStatusQueued": "En file",
+  "remindersStatusSent": "Envoyée",
+  "remindersStatusRead": "Lue",
+  "remindersStatusFailed": "Échec",
+  "remindersCampaign": "Campagne",
+  "remindersTargets": "Destinataires",
+  "remindersAudited": "Chaque relance est horodatée et tracée dans l'audit.",
+  "remindersSelectAll": "Tout sélectionner",
+  "remindersDaysLate": "{count} jour(s) de retard",
+  "@remindersDaysLate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersConfirmTitle": "Envoyer les relances ?",
+  "remindersConfirmMessage": "{count} membre(s) seront notifiés sur les canaux sélectionnés.",
+  "@remindersConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

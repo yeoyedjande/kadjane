@@ -1,0 +1,709 @@
+@if (tontine(); as tontine) {
+  <k-page-header [title]="tontine.name" [subtitle]="tontine.description">
+    <k-badge [value]="tontine.status" />
+    <a class="k-btn k-btn--ghost" routerLink="/tontines">Toutes les tontines</a>
+  </k-page-header>
+}
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (summary(); as summary) {
+  <nav class="k-tabs" style="margin-bottom: 20px">
+    @for (item of tabs; track item.key) {
+      <button
+        type="button"
+        class="k-tab"
+        [class.is-active]="tab() === item.key"
+        (click)="tab.set(item.key)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </nav>
+
+  @switch (tab()) {
+    @case ('overview') {
+      <div class="k-stack">
+        <section class="k-grid k-grid--4">
+          <k-stat label="Cotisation" [value]="summary.tontine.contributionAmount | money" />
+          <k-stat label="Cagnotte" [value]="pot() | money" [accent]="true" />
+          <k-stat label="Participants" [value]="summary.participantCount.toString()" />
+          <k-stat
+            label="Cycles terminés"
+            [value]="summary.completedCycles + ' / ' + summary.totalCycles"
+          />
+        </section>
+
+        <section class="k-grid k-grid--2">
+          <article class="k-card">
+            <div class="k-card__header">
+              <h2 class="k-card__title">
+                Cycle en cours — {{ summary.currentCycle?.periodLabel ?? '—' }}
+              </h2>
+            </div>
+            <div class="k-card__body">
+              <div class="k-row k-row--between" style="margin-bottom: 8px">
+                <span class="k-strong">{{ summary.collectedCurrentCycle | money }}</span>
+                <span class="k-muted">sur {{ summary.expectedCurrentCycle | money }}</span>
+              </div>
+              <div class="k-progress">
+                <div
+                  class="k-progress__bar"
+                  [style.width.%]="
+                    summary.expectedCurrentCycle > 0
+                      ? (summary.collectedCurrentCycle / summary.expectedCurrentCycle) * 100
+                      : 0
+                  "
+                ></div>
+              </div>
+
+              @if (eligibility(); as eligibility) {
+                <div class="draw-box">
+                  <div class="k-row k-row--between">
+                    <div>
+                      <p class="k-strong" style="margin: 0">Prochain tirage</p>
+                      <p class="k-muted" style="margin: 2px 0 0">
+                        {{ eligibility.eligible_count }} éligibles sur
+                        {{ eligibility.participants_count }} participants
+                      </p>
+                    </div>
+                    <k-badge [value]="eligibility.can_draw ? 'ready_for_draw' : 'collecting'" />
+                  </div>
+
+                  @if (!eligibility.can_draw && eligibility.reason === 'missingContributions') {
+                    <p class="blocked">
+                      Tirage indisponible —
+                      {{ eligibility.remaining_contributions }} cotisation(s) restent à régler
+                      ({{ eligibility.remaining_amount | money }}).
+                    </p>
+                  } @else if (!eligibility.can_draw) {
+                    <p class="blocked">{{ eligibility.reason | label }}</p>
+                  }
+
+                  @if (session.can('draw.run')) {
+                    <div class="k-row" style="margin-top: 12px">
+                      <button
+                        type="button"
+                        class="k-btn"
+                        [disabled]="!eligibility.can_draw || busy()"
+                        (click)="askRunDraw(false)"
+                      >
+                        Lancer le tirage
+                      </button>
+                      @if (
+                        !eligibility.can_draw &&
+                        eligibility.override_allowed &&
+                        eligibility.reason === 'missingContributions' &&
+                        session.can('draw.override')
+                      ) {
+                        <button
+                          type="button"
+                          class="k-btn k-btn--gold"
+                          [disabled]="busy()"
+                          (click)="askRunDraw(true)"
+                        >
+                          Forcer le tirage
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </article>
+
+          <div class="k-stack">
+            <article class="k-card">
+              <div class="k-card__header"><h2 class="k-card__title">Attribution</h2></div>
+              <div class="k-card__body">
+                <dl class="facts">
+                  <div>
+                    <dt>Mode</dt>
+                    <dd>{{ summary.tontine.allocationMode | label }}</dd>
+                  </div>
+                  <div>
+                    <dt>Reste à tirer</dt>
+                    <dd>{{ remainingToDraw() }} participant(s)</dd>
+                  </div>
+                  <div>
+                    <dt>Bénéficiaire actuel</dt>
+                    <dd>{{ summary.currentBeneficiaryName ?? '—' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Bénéficiaire précédent</dt>
+                    <dd>{{ summary.previousBeneficiaryName ?? '—' }}</dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+
+            <article class="k-card">
+              <div class="k-card__header"><h2 class="k-card__title">Règles</h2></div>
+              <div class="k-card__body">
+                <dl class="facts">
+                  <div>
+                    <dt>Cotisations complètes exigées</dt>
+                    <dd>{{ summary.tontine.requireAllContributionsBeforeDraw ? 'Oui' : 'Non' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Forçage autorisé</dt>
+                    <dd>{{ summary.tontine.allowDrawOverride ? 'Oui' : 'Non' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Fréquence</dt>
+                    <dd>{{ summary.tontine.frequency | label }}</dd>
+                  </div>
+                  <div>
+                    <dt>Échéance</dt>
+                    <dd>le {{ summary.tontine.dueDayOfPeriod }} de chaque période</dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    }
+
+    @case ('participants') {
+      <article class="k-card">
+        <div class="k-card__header">
+          <h2 class="k-card__title">{{ participants().length }} participants</h2>
+          <span class="k-tertiary" style="font-size: 12.5px">
+            Un ancien bénéficiaire reste dans la tontine et continue de cotiser.
+          </span>
+        </div>
+        <div class="k-table-wrap">
+          <table class="k-table">
+            <thead>
+              <tr>
+                <th>Membre</th>
+                <th>Situation</th>
+                <th>A déjà reçu</th>
+                <th>Éligible au tirage</th>
+                <th class="k-num">Position</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (participant of participants(); track participant.id) {
+                <tr>
+                  <td>
+                    <div class="k-row">
+                      <k-avatar [name]="participant.displayName" />
+                      <span class="k-strong">{{ participant.displayName }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    @if (!participant.isActive) {
+                      <k-badge value="inactive" />
+                    } @else if (participant.hasReceivedPot) {
+                      <span class="tag tag--gold">Déjà bénéficiaire</span>
+                    } @else {
+                      <span class="tag tag--green">À tirer</span>
+                    }
+                  </td>
+                  <td>{{ participant.hasReceivedPot ? 'Oui' : 'Non' }}</td>
+                  <td>{{ participant.isEligibleForDraw ? 'Oui' : 'Non' }}</td>
+                  <td class="k-num">{{ participant.orderPosition ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+
+    @case ('cycles') {
+      <article class="k-card">
+        <div class="k-table-wrap">
+          <table class="k-table">
+            <thead>
+              <tr>
+                <th>Cycle</th>
+                <th>Période</th>
+                <th class="k-num">Attendu</th>
+                <th class="k-num">Collecté</th>
+                <th>Statut</th>
+                <th>Bénéficiaire</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cycle of cycles(); track cycle.id) {
+                <tr [class.is-selected]="cycle.id === selectedCycleId()">
+                  <td class="k-strong">#{{ cycle.index }}</td>
+                  <td class="k-nowrap">{{ cycle.periodLabel }}</td>
+                  <td class="k-num">{{ cycle.expectedAmount | amount }}</td>
+                  <td class="k-num k-strong">{{ cycle.collectedAmount | amount }}</td>
+                  <td><k-badge [value]="cycle.status" /></td>
+                  <td>{{ beneficiaryOfCycle(cycle.id)?.memberName ?? '—' }}</td>
+                  <td class="k-num">
+                    <button
+                      type="button"
+                      class="k-btn k-btn--ghost k-btn--sm"
+                      (click)="selectCycle(cycle.id); tab.set('contributions')"
+                    >
+                      Cotisations
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+
+    @case ('contributions') {
+      <article class="k-card">
+        <div class="k-card__header">
+          <label class="k-field">
+            <span class="k-label">Cycle</span>
+            <select class="k-select" (change)="selectCycle($any($event.target).value)">
+              @for (cycle of cycles(); track cycle.id) {
+                <option [value]="cycle.id" [selected]="cycle.id === selectedCycleId()">
+                  {{ cycle.periodLabel }}
+                </option>
+              }
+            </select>
+          </label>
+
+          @if (totals(); as totals) {
+            <div class="totals">
+              <span>Attendu <strong>{{ totals.expected | money }}</strong></span>
+              <span>Collecté <strong>{{ totals.collected | money }}</strong></span>
+              <span>Restant <strong>{{ totals.remaining | money }}</strong></span>
+              <span>Payés <strong>{{ totals.paid_count }}/{{ totals.total }}</strong></span>
+              <span>En retard <strong>{{ totals.late_count }}</strong></span>
+            </div>
+          }
+        </div>
+
+        <div class="k-table-wrap">
+          <table class="k-table">
+            <thead>
+              <tr>
+                <th>Membre</th>
+                <th class="k-num">Attendu</th>
+                <th class="k-num">Payé</th>
+                <th class="k-num">Restant</th>
+                <th>Statut</th>
+                <th>Moyen</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of lines(); track line.id) {
+                <tr>
+                  <td>
+                    <div class="k-row">
+                      <k-avatar [name]="line.memberName" />
+                      <div>
+                        <div class="k-strong">{{ line.memberName }}</div>
+                        @if (line.hasReceivedPot) {
+                          <div class="k-tertiary" style="font-size: 12px">
+                            Déjà bénéficiaire — cotise toujours
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td class="k-num">{{ line.expectedAmount | amount }}</td>
+                  <td class="k-num k-strong">{{ line.paidAmount | amount }}</td>
+                  <td class="k-num">{{ line.remainingAmount | amount }}</td>
+                  <td><k-badge [value]="line.status" /></td>
+                  <td class="k-nowrap k-muted">
+                    {{ line.payments.length ? (line.payments[line.payments.length - 1].method | label) : '—' }}
+                  </td>
+                  <td class="k-num k-nowrap">
+                    @if (session.can('contribution.record') && line.remainingAmount > 0) {
+                      <button
+                        type="button"
+                        class="k-btn k-btn--sm"
+                        (click)="openPayment(line)"
+                      >
+                        Enregistrer
+                      </button>
+                    }
+                    @if (pendingPayment(line) && session.can('contribution.confirm')) {
+                      <button
+                        type="button"
+                        class="k-btn k-btn--ghost k-btn--sm"
+                        (click)="askConfirmPayment(line)"
+                      >
+                        Confirmer
+                      </button>
+                    }
+                    @for (payment of line.payments; track payment.id) {
+                      @if (payment.status === 'confirmed' && session.can('contribution.cancel')) {
+                        <button
+                          type="button"
+                          class="k-btn k-btn--ghost k-btn--sm"
+                          (click)="askCancelPayment(payment.id, line.memberName)"
+                        >
+                          Annuler
+                        </button>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+
+    @case ('draws') {
+      <article class="k-card">
+        <div class="k-card__header"><h2 class="k-card__title">Tirages</h2></div>
+        @if (drawHistory().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucun tirage effectué.</p></div>
+        } @else {
+          <div class="k-table-wrap">
+            <table class="k-table">
+              <thead>
+                <tr>
+                  <th>Période</th>
+                  <th>Date</th>
+                  <th>Bénéficiaire</th>
+                  <th class="k-num">Éligibles</th>
+                  <th>Forçage</th>
+                  <th>Preuve</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (draw of drawHistory(); track draw.id) {
+                  <tr>
+                    <td class="k-strong">{{ draw.periodLabel }}</td>
+                    <td class="k-nowrap k-muted">{{ draw.executedAt | frDate: true }}</td>
+                    <td>{{ draw.winnerName ?? '—' }}</td>
+                    <td class="k-num">{{ draw.participants.length }}</td>
+                    <td>
+                      @if (draw.overrideUsed) {
+                        <span class="tag tag--gold" [title]="draw.overrideReason ?? ''">Forcé</span>
+                      } @else {
+                        <span class="k-tertiary">—</span>
+                      }
+                    </td>
+                    <td class="k-tertiary k-nowrap">{{ draw.proofReference }}</td>
+                    <td><k-badge [value]="draw.status" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+    }
+
+    @case ('beneficiaries') {
+      <article class="k-card">
+        <div class="k-card__header"><h2 class="k-card__title">Bénéficiaires</h2></div>
+        @if (beneficiaryList().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucun bénéficiaire désigné.</p></div>
+        } @else {
+          <div class="k-table-wrap">
+            <table class="k-table">
+              <thead>
+                <tr>
+                  <th>Bénéficiaire</th>
+                  <th>Période</th>
+                  <th class="k-num">Montant</th>
+                  <th>Désigné le</th>
+                  <th>Statut</th>
+                  <th>Versement</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (beneficiary of beneficiaryList(); track beneficiary.id) {
+                  <tr>
+                    <td>
+                      <div class="k-row">
+                        <k-avatar [name]="beneficiary.memberName" />
+                        <span class="k-strong">{{ beneficiary.memberName }}</span>
+                      </div>
+                    </td>
+                    <td class="k-nowrap">
+                      {{ beneficiaryPeriod(beneficiary.cycleId) }}
+                    </td>
+                    <td class="k-num k-strong">{{ beneficiary.amount | money }}</td>
+                    <td class="k-nowrap k-muted">{{ beneficiary.designatedAt | frDate }}</td>
+                    <td><k-badge [value]="beneficiary.status" /></td>
+                    <td>
+                      @if (payoutOfBeneficiary(beneficiary.id); as payout) {
+                        <k-badge [value]="payout.status" />
+                      } @else {
+                        <span class="k-tertiary">Non versé</span>
+                      }
+                    </td>
+                    <td class="k-num">
+                      @if (!payoutOfBeneficiary(beneficiary.id) && session.can('payout.record')) {
+                        <button
+                          type="button"
+                          class="k-btn k-btn--sm"
+                          [disabled]="busy()"
+                          (click)="askRecordPayout(beneficiary)"
+                        >
+                          Verser
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </article>
+    }
+
+    @case ('history') {
+      <article class="k-card">
+        <div class="k-card__header"><h2 class="k-card__title">Historique de la tontine</h2></div>
+        @if (activity().length === 0) {
+          <div class="k-card__body"><p class="k-muted">Aucune opération.</p></div>
+        } @else {
+          <ul class="timeline">
+            @for (entry of activity(); track entry.id) {
+              <li>
+                <span class="timeline__dot"></span>
+                <div>
+                  <p class="timeline__title">{{ entry.action | label }}</p>
+                  <p class="timeline__text">{{ entry.description }}</p>
+                  <p class="timeline__meta">
+                    {{ entry.createdAt | frDate: true }} · {{ entry.actorName }}
+                  </p>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    }
+
+    @case ('settings') {
+      <article class="k-card">
+        <div class="k-card__header"><h2 class="k-card__title">Paramètres</h2></div>
+        <div class="k-card__body">
+          <dl class="facts">
+            <div><dt>Identifiant</dt><dd class="k-tertiary">{{ summary.tontine.id }}</dd></div>
+            <div><dt>Créée le</dt><dd>{{ summary.tontine.createdAt | frDate }}</dd></div>
+            <div><dt>Activée le</dt><dd>{{ summary.tontine.activatedAt | frDate }}</dd></div>
+            <div><dt>Devise</dt><dd>{{ summary.tontine.currency }}</dd></div>
+            <div><dt>Début</dt><dd>{{ summary.tontine.startDate | frDate }}</dd></div>
+          </dl>
+          <p class="k-hint" style="margin-top: 14px">
+            Le montant, la fréquence et la date de début sont verrouillés après
+            activation : les cycles et les cotisations déjà générés en dépendent.
+          </p>
+        </div>
+      </article>
+    }
+  }
+}
+
+@if (paymentTarget(); as line) {
+  <div class="drawer-backdrop" (click)="paymentTarget.set(null)">
+    <aside class="drawer k-card" (click)="$event.stopPropagation()">
+      <div class="k-card__header">
+        <h2 class="k-card__title">Enregistrer un paiement</h2>
+        <button type="button" class="k-btn k-btn--ghost k-btn--sm" (click)="paymentTarget.set(null)">
+          Fermer
+        </button>
+      </div>
+
+      <form class="k-card__body k-stack" [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+        <div class="target">
+          <k-avatar [name]="line.memberName" [size]="38" />
+          <div>
+            <p class="k-strong" style="margin: 0">{{ line.memberName }}</p>
+            <p class="k-muted" style="margin: 2px 0 0">
+              Restant dû : {{ line.remainingAmount | money }}
+            </p>
+          </div>
+        </div>
+
+        <div class="k-grid k-grid--2">
+          <label class="k-field">
+            <span class="k-label">Montant</span>
+            <input class="k-input" type="number" min="1" formControlName="amount" />
+          </label>
+          <label class="k-field">
+            <span class="k-label">Moyen de paiement</span>
+            <select class="k-select" formControlName="method">
+              @for (method of methods; track method) {
+                <option [value]="method">{{ method | label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="k-grid k-grid--2">
+          <label class="k-field">
+            <span class="k-label">Date</span>
+            <input class="k-input" type="date" formControlName="paidAt" />
+          </label>
+          <label class="k-field">
+            <span class="k-label">Référence</span>
+            <input class="k-input" formControlName="reference" placeholder="OM-9931" />
+          </label>
+        </div>
+
+        <label class="k-field">
+          <span class="k-label">Commentaire</span>
+          <textarea class="k-textarea" rows="2" formControlName="comment"></textarea>
+        </label>
+
+        <label class="k-field">
+          <span class="k-label">Justificatif (image ou PDF)</span>
+          <input class="k-input" type="file" accept="image/*,application/pdf" (change)="onProofSelected($event)" />
+          @if (proofName()) {
+            <span class="k-hint">Joint : {{ proofName() }}</span>
+          }
+        </label>
+
+        <div class="k-row" style="justify-content: flex-end">
+          <button type="button" class="k-btn k-btn--ghost" (click)="paymentTarget.set(null)">
+            Annuler
+          </button>
+          <button type="submit" class="k-btn" [disabled]="busy()">
+            {{ busy() ? 'Enregistrement…' : 'Enregistrer le paiement' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<k-confirm [open]="confirm()" (confirmed)="onConfirmed($event)" (cancelled)="onCancelled()" />
+
+<style>
+  .facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  .facts > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--k-outline);
+  }
+  .facts > div:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .facts dt {
+    color: var(--k-text-secondary);
+    font-size: 13px;
+  }
+  .facts dd {
+    margin: 0;
+    font-weight: 650;
+    text-align: right;
+  }
+  .draw-box {
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid var(--k-outline);
+    border-radius: var(--k-radius);
+    background: var(--k-surface-muted);
+  }
+  .blocked {
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    border-radius: var(--k-radius-sm);
+    background: var(--k-warning-surface);
+    color: #8a5310;
+    font-size: 13px;
+  }
+  .totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-size: 13px;
+    color: var(--k-text-secondary);
+  }
+  .totals strong {
+    color: var(--k-text);
+  }
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .tag--gold {
+    background: var(--k-gold-container);
+    color: #8a6011;
+  }
+  .tag--green {
+    background: var(--k-primary-container);
+    color: var(--k-primary-dark);
+  }
+  .timeline {
+    margin: 0;
+    padding: 12px 20px 20px;
+    list-style: none;
+  }
+  .timeline li {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .timeline__dot {
+    width: 9px;
+    height: 9px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--k-primary);
+    flex: none;
+  }
+  .timeline__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--k-primary);
+  }
+  .timeline__text {
+    margin: 2px 0 0;
+    font-size: 13.5px;
+  }
+  .timeline__meta {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--k-text-tertiary);
+  }
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: flex-end;
+    background: rgb(13 20 17 / 35%);
+  }
+  .drawer {
+    width: min(520px, 100%);
+    height: 100%;
+    border-radius: 0;
+    overflow-y: auto;
+  }
+  .target {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--k-radius-sm);
+    background: var(--k-surface-muted);
+  }
+  tr.is-selected {
+    background: #f4fbf8;
+  }
+</style>

@@ -1,0 +1,344 @@
+<k-page-header
+  title="Créer une tontine"
+  subtitle="Les cycles et les cotisations sont générés automatiquement à l'activation."
+/>
+
+<ol class="steps">
+  @for (label of steps; track label; let index = $index) {
+    <li class="steps__item" [class.is-active]="index === step()" [class.is-done]="index < step()">
+      <span class="steps__num">{{ index + 1 }}</span>
+      <span class="steps__label">{{ label }}</span>
+    </li>
+  }
+</ol>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (!loading()) {
+  <article class="k-card">
+    <form [formGroup]="form" class="k-card__body k-stack">
+      @switch (step()) {
+        @case (0) {
+          <div class="k-grid k-grid--2">
+            <label class="k-field">
+              <span class="k-label">Nom de la tontine</span>
+              <input class="k-input" formControlName="name" placeholder="Tontine Solidarité" />
+            </label>
+            <label class="k-field">
+              <span class="k-label">Montant de la cotisation</span>
+              <input class="k-input" type="number" min="1" formControlName="contributionAmount" />
+              <span class="k-hint">Par participant et par période, en {{ session.currency() }}.</span>
+            </label>
+          </div>
+
+          <label class="k-field">
+            <span class="k-label">Description (facultatif)</span>
+            <textarea class="k-textarea" rows="2" formControlName="description"></textarea>
+          </label>
+
+          <div class="k-grid k-grid--3">
+            <label class="k-field">
+              <span class="k-label">Fréquence</span>
+              <select class="k-select" formControlName="frequency">
+                @for (frequency of frequencies; track frequency) {
+                  <option [value]="frequency">{{ frequency | label }}</option>
+                }
+              </select>
+            </label>
+            <label class="k-field">
+              <span class="k-label">Date de début</span>
+              <input class="k-input" type="date" formControlName="startDate" />
+            </label>
+            <label class="k-field">
+              <span class="k-label">Jour d'échéance</span>
+              <input class="k-input" type="number" min="1" max="31" formControlName="dueDayOfPeriod" />
+            </label>
+          </div>
+        }
+
+        @case (1) {
+          <div class="k-row k-row--between">
+            <p class="k-muted" style="margin: 0">
+              {{ participantCount() }} participant(s) sélectionné(s) — cagnotte
+              <strong>{{ pot() | money }}</strong>
+            </p>
+            <div class="k-row">
+              <button type="button" class="k-btn k-btn--ghost k-btn--sm" (click)="selectAll()">
+                Tout sélectionner
+              </button>
+              <button type="button" class="k-btn k-btn--ghost k-btn--sm" (click)="clearSelection()">
+                Tout retirer
+              </button>
+            </div>
+          </div>
+
+          <div class="picker">
+            @for (member of candidates(); track member.id) {
+              <label class="picker__item" [class.is-selected]="isSelected(member.id)">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(member.id)"
+                  (change)="toggle(member.id)"
+                />
+                <k-avatar [name]="member.user.firstName + ' ' + member.user.lastName" />
+                <span class="picker__name">
+                  {{ member.user.firstName }} {{ member.user.lastName }}
+                  <small class="k-tertiary">{{ member.user.phone }}</small>
+                </span>
+              </label>
+            }
+          </div>
+
+          @if (participantCount() < 2) {
+            <p class="k-error">Sélectionnez au moins deux participants.</p>
+          }
+        }
+
+        @case (2) {
+          <div class="modes">
+            @for (mode of modes; track mode) {
+              <label class="mode" [class.is-selected]="form.controls.allocationMode.value === mode">
+                <input type="radio" [value]="mode" formControlName="allocationMode" />
+                <span class="mode__title">{{ mode | label }}</span>
+                <span class="mode__desc">
+                  @switch (mode) {
+                    @case ('monthly_draw') {
+                      Un tirage à chaque période parmi les participants n'ayant pas
+                      encore reçu la cagnotte.
+                    }
+                    @case ('full_order_draw') {
+                      Un tirage unique au démarrage fixe l'ordre de passage complet.
+                    }
+                    @case ('manual_order') {
+                      Le bureau définit l'ordre de passage, validé puis figé.
+                    }
+                  }
+                </span>
+              </label>
+            }
+          </div>
+
+          @if (orderNotice()) {
+            <p class="k-hint">
+              L'ordre de passage se définit après création, depuis l'onglet
+              « Participants » de la tontine.
+            </p>
+          }
+        }
+
+        @case (3) {
+          <label class="rule">
+            <input type="checkbox" formControlName="requireAllContributionsBeforeDraw" />
+            <span>
+              <strong>Exiger toutes les cotisations avant le tirage</strong>
+              <small class="k-muted">
+                Le tirage reste bloqué tant qu'une cotisation manque.
+              </small>
+            </span>
+          </label>
+
+          <label class="rule">
+            <input type="checkbox" formControlName="allowDrawOverride" />
+            <span>
+              <strong>Autoriser le forçage du tirage</strong>
+              <small class="k-muted">
+                Un responsable habilité peut passer outre, avec justification
+                obligatoire et trace dans l'audit.
+              </small>
+            </span>
+          </label>
+        }
+
+        @case (4) {
+          <dl class="facts">
+            <div><dt>Nom</dt><dd>{{ form.controls.name.value }}</dd></div>
+            <div>
+              <dt>Cotisation</dt>
+              <dd>{{ form.controls.contributionAmount.value | money }}</dd>
+            </div>
+            <div><dt>Participants</dt><dd>{{ participantCount() }}</dd></div>
+            <div><dt>Cagnotte par période</dt><dd>{{ pot() | money }}</dd></div>
+            <div><dt>Fréquence</dt><dd>{{ form.controls.frequency.value | label }}</dd></div>
+            <div><dt>Début</dt><dd>{{ form.controls.startDate.value }}</dd></div>
+            <div>
+              <dt>Mode d'attribution</dt>
+              <dd>{{ form.controls.allocationMode.value | label }}</dd>
+            </div>
+            <div>
+              <dt>Cotisations complètes exigées</dt>
+              <dd>{{ form.controls.requireAllContributionsBeforeDraw.value ? 'Oui' : 'Non' }}</dd>
+            </div>
+            <div>
+              <dt>Forçage autorisé</dt>
+              <dd>{{ form.controls.allowDrawOverride.value ? 'Oui' : 'Non' }}</dd>
+            </div>
+            <div>
+              <dt>Cycles générés</dt>
+              <dd>{{ participantCount() }}</dd>
+            </div>
+          </dl>
+        }
+      }
+
+      <div class="k-row k-row--between" style="margin-top: 8px">
+        <button
+          type="button"
+          class="k-btn k-btn--ghost"
+          [disabled]="step() === 0"
+          (click)="previous()"
+        >
+          Retour
+        </button>
+
+        @if (step() < steps.length - 1) {
+          <button type="button" class="k-btn" [disabled]="!canContinue()" (click)="next()">
+            Continuer
+          </button>
+        } @else {
+          <button type="button" class="k-btn" [disabled]="saving()" (click)="submit()">
+            {{ saving() ? 'Création…' : 'Créer la tontine' }}
+          </button>
+        }
+      </div>
+    </form>
+  </article>
+}
+
+<style>
+  .steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+  }
+  .steps__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--k-outline);
+    border-radius: 999px;
+    background: var(--k-surface);
+    color: var(--k-text-tertiary);
+    font-size: 13px;
+  }
+  .steps__item.is-active {
+    border-color: var(--k-primary);
+    color: var(--k-primary);
+    font-weight: 650;
+  }
+  .steps__item.is-done {
+    color: var(--k-success);
+    border-color: var(--k-success-surface);
+    background: var(--k-success-surface);
+  }
+  .steps__num {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: currentColor;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .steps__item.is-active .steps__num,
+  .steps__item.is-done .steps__num {
+    color: #fff;
+  }
+  .picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .picker__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--k-outline);
+    border-radius: var(--k-radius-sm);
+    cursor: pointer;
+  }
+  .picker__item.is-selected {
+    border-color: var(--k-primary);
+    background: var(--k-primary-container);
+  }
+  .picker__name {
+    display: flex;
+    flex-direction: column;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .picker__name small {
+    font-weight: 400;
+    font-size: 12px;
+  }
+  .modes {
+    display: grid;
+    gap: 12px;
+  }
+  .mode {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--k-outline);
+    border-radius: var(--k-radius);
+    cursor: pointer;
+  }
+  .mode.is-selected {
+    border-color: var(--k-primary);
+    background: #f4fbf8;
+  }
+  .mode input {
+    grid-row: span 2;
+  }
+  .mode__title {
+    font-weight: 650;
+  }
+  .mode__desc {
+    grid-column: 2;
+    font-size: 13px;
+    color: var(--k-text-secondary);
+  }
+  .rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--k-outline);
+    border-radius: var(--k-radius);
+    cursor: pointer;
+  }
+  .rule span {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  .facts > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--k-outline);
+  }
+  .facts dt {
+    color: var(--k-text-secondary);
+  }
+  .facts dd {
+    margin: 0;
+    font-weight: 650;
+  }
+</style>

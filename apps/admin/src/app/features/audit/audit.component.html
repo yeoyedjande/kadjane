@@ -1,0 +1,124 @@
+<k-page-header
+  title="Journal d'audit"
+  subtitle="Écriture seule : une ligne d'audit n'est ni modifiée ni supprimée."
+/>
+
+<article class="k-card" style="margin-bottom: 20px">
+  <div class="k-card__header">
+    <div class="k-toolbar">
+      <label class="k-field">
+        <span class="k-label">Action</span>
+        <select class="k-select" (change)="onAction($any($event.target).value)">
+          <option value="">Toutes</option>
+          @for (action of actions; track action) {
+            <option [value]="action">{{ action | label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="k-field">
+        <span class="k-label">Type d'entité</span>
+        <select class="k-select" (change)="targetType.set($any($event.target).value)">
+          <option value="">Tous</option>
+          @for (type of types(); track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </label>
+
+      <k-search placeholder="Utilisateur, description…" (search)="search.set($event)" />
+    </div>
+  </div>
+</article>
+
+<k-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="!loading() && !error() && filtered().length === 0"
+  emptyTitle="Aucune opération"
+  (retry)="load()"
+/>
+
+@if (filtered().length > 0) {
+  <div class="k-grid" style="grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)">
+    <article class="k-card">
+      <div class="k-table-wrap">
+        <table class="k-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Utilisateur</th>
+              <th>Action</th>
+              <th>Entité</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of filtered(); track entry.id) {
+              <tr
+                [class.is-selected]="entry.id === selected()?.id"
+                (click)="selected.set(entry)"
+                style="cursor: pointer"
+              >
+                <td class="k-nowrap k-muted">{{ entry.createdAt | frDate: true }}</td>
+                <td class="k-nowrap">
+                  <div class="k-row">
+                    <k-avatar [name]="entry.actorName" [size]="26" />
+                    <span>{{ entry.actorName }}</span>
+                  </div>
+                </td>
+                <td class="k-nowrap k-strong">{{ entry.action | label }}</td>
+                <td class="k-tertiary k-nowrap">{{ entry.targetType ?? '—' }}</td>
+                <td>{{ entry.description }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="k-card">
+      <div class="k-card__header"><h2 class="k-card__title">Détail</h2></div>
+      @if (selected(); as entry) {
+        <div class="k-card__body k-stack">
+          <dl class="facts">
+            <div><dt>Action</dt><dd>{{ entry.action | label }}</dd></div>
+            <div><dt>Code</dt><dd class="k-tertiary">{{ entry.action }}</dd></div>
+            <div><dt>Date</dt><dd>{{ entry.createdAt | frDate: true }}</dd></div>
+            <div><dt>Utilisateur</dt><dd>{{ entry.actorName }}</dd></div>
+            <div><dt>Type d'entité</dt><dd>{{ entry.targetType ?? '—' }}</dd></div>
+            <div><dt>Entité</dt><dd class="k-tertiary">{{ entry.targetId ?? '—' }}</dd></div>
+            @if (entry.amount !== null) {
+              <div><dt>Montant</dt><dd>{{ entry.amount | money }}</dd></div>
+            }
+          </dl>
+
+          <div>
+            <p class="k-label">Description</p>
+            <p style="margin: 4px 0 0">{{ entry.description }}</p>
+          </div>
+
+          <div>
+            <p class="k-label">Métadonnées</p>
+            @if (metadataEntries(entry).length === 0) {
+              <p class="k-muted" style="margin: 4px 0 0">Aucune.</p>
+            } @else {
+              <ul class="meta">
+                @for (item of metadataEntries(entry); track item.key) {
+                  <li>
+                    <span class="meta__key">{{ item.key }}</span>
+                    <span class="meta__value">{{ item.value }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="k-card__body">
+          <p class="k-muted">Sélectionnez une ligne pour voir son détail.</p>
+        </div>
+      }
+    </article>
+  </div>
+}

@@ -1,0 +1,599 @@
+{
+  "@@locale": "en",
+  "appName": "Kadjane",
+  "appTagline": "Tontine, with full transparency.",
+  "commonNext": "Next",
+  "commonBack": "Back",
+  "commonSkip": "Skip",
+  "commonStart": "Get started",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonAdd": "Add",
+  "commonSearch": "Search",
+  "commonFilter": "Filter",
+  "commonAll": "All",
+  "commonRetry": "Retry",
+  "commonLoading": "Loading...",
+  "commonSeeAll": "See all",
+  "commonClose": "Close",
+  "commonContinueLabel": "Continue",
+  "commonYes": "Yes",
+  "commonNo": "No",
+  "commonNone": "None",
+  "commonOptional": "Optional",
+  "commonDone": "Done",
+  "commonRefresh": "Refresh",
+  "commonExport": "Export",
+  "commonComment": "Comment",
+  "commonReference": "Reference",
+  "commonAmount": "Amount",
+  "commonDate": "Date",
+  "commonStatus": "Status",
+  "commonDetails": "Details",
+  "commonTotal": "Total",
+  "commonUnknown": "Unknown",
+  "commonNoResults": "No results",
+  "commonErrorTitle": "Something went wrong",
+  "commonErrorGeneric": "Unable to load data. Please try again.",
+  "commonEmptyTitle": "Nothing to show",
+  "commonOfflineTitle": "You are offline",
+  "commonOfflineMessage": "Displayed data may not be up to date.",
+  "commonComingSoon": "Coming soon",
+  "commonRequiredField": "This field is required",
+  "commonSelect": "Select",
+  "commonNotAvailable": "Not available",
+  "authSignIn": "Sign in",
+  "authSignInSubtitle": "Access your tontines and your organization.",
+  "authSignUp": "Create account",
+  "authSignUpSubtitle": "Join Kadjane in seconds.",
+  "authEmail": "Email",
+  "authPhone": "Phone",
+  "authPassword": "Password",
+  "authConfirmPassword": "Confirm password",
+  "authForgotPassword": "Forgot password?",
+  "authForgotPasswordSubtitle": "Enter your phone number to receive a verification code.",
+  "authSendCode": "Send code",
+  "authOtpTitle": "Verification",
+  "authOtpSubtitle": "Enter the 6-digit code sent to {target}.",
+  "@authOtpSubtitle": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "authResendCode": "Resend code",
+  "authNewPassword": "New password",
+  "authResetPasswordTitle": "New password",
+  "authResetPasswordSubtitle": "Choose a secure password for your account.",
+  "authAlreadyHaveAccount": "Already have an account?",
+  "authNoAccount": "No account yet?",
+  "authLogout": "Log out",
+  "authLogoutConfirm": "Do you really want to log out?",
+  "authFirstName": "First name",
+  "authLastName": "Last name",
+  "authInvalidEmail": "Invalid email",
+  "authInvalidPhone": "Invalid phone number",
+  "authPasswordTooShort": "Password must be at least 8 characters",
+  "authPasswordMismatch": "Passwords do not match",
+  "authInvalidCredentials": "Invalid credentials",
+  "authInvalidOtp": "Invalid verification code",
+  "authDemoHint": "Demo: password kadjane, verification code 123456.",
+  "onboardingTitle1": "Manage your tontine easily",
+  "onboardingBody1": "Track contributions, beneficiaries and due dates from your phone.",
+  "onboardingTitle2": "Transparent draws",
+  "onboardingBody2": "Run the draws and keep every result recorded automatically.",
+  "onboardingTitle3": "Keep track of everything",
+  "onboardingBody3": "Payments, beneficiaries, history and activity stay available.",
+  "navHome": "Home",
+  "navTontines": "Tontines",
+  "navContributions": "Contributions",
+  "navActivity": "Activity",
+  "navProfile": "Profile",
+  "dashboardGreeting": "Hello {name}",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMembers": "Members",
+  "dashboardActiveTontines": "Active tontines",
+  "dashboardExpectedThisMonth": "Expected this month",
+  "dashboardCollected": "Collected",
+  "dashboardRemaining": "Remaining",
+  "dashboardLateContributions": "Late contributions",
+  "dashboardNextDraw": "Next draw",
+  "dashboardCurrentBeneficiary": "Current beneficiary",
+  "dashboardUpcomingDeadlines": "Upcoming deadlines",
+  "dashboardMyContribution": "My contribution",
+  "dashboardRecentActivity": "Recent activity",
+  "dashboardCollectionProgress": "Collection progress",
+  "dashboardContributionsTrend": "Contributions trend",
+  "dashboardNoUpcomingDraw": "No scheduled draw",
+  "dashboardQuickActions": "Quick actions",
+  "membersTitle": "Members",
+  "membersAdd": "Add a member",
+  "membersDetails": "Member profile",
+  "membersRole": "Role",
+  "membersJoinedOn": "Member since",
+  "membersTotalPaid": "Amounts paid",
+  "membersTotalReceived": "Amounts received",
+  "membersGender": "Gender",
+  "membersMale": "Male",
+  "membersFemale": "Female",
+  "membersBirthDate": "Date of birth",
+  "membersPhoto": "Photo",
+  "membersSearchHint": "Search a member",
+  "membersEmpty": "No member yet",
+  "membersSaved": "Member saved",
+  "membersInviteSoon": "Invitation by link is coming soon",
+  "membersTontines": "Member tontines",
+  "statusActive": "Active",
+  "statusInactive": "Inactive",
+  "statusSuspended": "Suspended",
+  "statusPending": "Pending",
+  "roleSuperAdmin": "Super admin",
+  "roleAdmin": "Administrator",
+  "rolePresident": "President",
+  "roleTreasurer": "Treasurer",
+  "roleAuditor": "Auditor",
+  "roleMember": "Member",
+  "tontinesTitle": "My tontines",
+  "tontinesCreate": "Create a tontine",
+  "tontinesName": "Tontine name",
+  "tontinesDescription": "Description",
+  "tontinesContributionAmount": "Contribution amount",
+  "tontinesCurrency": "Currency",
+  "tontinesFrequency": "Frequency",
+  "tontinesStartDate": "Start date",
+  "tontinesDueDay": "Due day",
+  "tontinesParticipants": "Participants",
+  "tontinesEstimatedPot": "Estimated pot",
+  "tontinesPot": "Pot",
+  "tontinesProgress": "Progress",
+  "tontinesEmpty": "No tontine yet",
+  "tontinesCreated": "Tontine created successfully",
+  "tontinesCyclesCompleted": "Completed cycles",
+  "tontinesPreviousBeneficiary": "Previous beneficiary",
+  "tontinesNextDraws": "Upcoming draws",
+  "tontinesSelectParticipants": "Select participants",
+  "tontinesParticipantsCount": "{count} participants",
+  "@tontinesParticipantsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tontinesPotFormula": "{count} members x {amount}",
+  "@tontinesPotFormula": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tontinesStepInfo": "Information",
+  "tontinesStepParticipants": "Participants",
+  "tontinesStepMode": "Allocation",
+  "tontinesStepSummary": "Summary",
+  "tontinesTabOverview": "Overview",
+  "tontinesTabContributions": "Contributions",
+  "tontinesTabDraws": "Draws",
+  "tontinesTabParticipants": "Participants",
+  "tontinesTabHistory": "History",
+  "tontinesTabSettings": "Settings",
+  "tontinesCycle": "Cycle {index}",
+  "@tontinesCycle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "tontinesMinParticipants": "Select at least 2 participants",
+  "tontineStatusDraft": "Draft",
+  "tontineStatusPending": "Pending",
+  "tontineStatusActive": "Active",
+  "tontineStatusSuspended": "Suspended",
+  "tontineStatusCompleted": "Completed",
+  "tontineStatusCancelled": "Cancelled",
+  "frequencyWeekly": "Weekly",
+  "frequencyBiweekly": "Twice a month",
+  "frequencyMonthly": "Monthly",
+  "frequencyCustom": "Custom",
+  "allocationMode": "Allocation mode",
+  "allocationMonthlyDraw": "Draw every period",
+  "allocationMonthlyDrawDesc": "A beneficiary is drawn every period among members who have not received the pot yet.",
+  "allocationFullOrder": "Full order by draw",
+  "allocationFullOrderDesc": "A single draw at the beginning sets the order for every participant.",
+  "allocationManualOrder": "Manual order",
+  "allocationManualOrderDesc": "The administrator defines the order of participants manually.",
+  "contributionsTitle": "Contributions",
+  "contributionsPeriod": "Period",
+  "contributionsExpected": "Expected",
+  "contributionsCollected": "Collected",
+  "contributionsRemaining": "Remaining",
+  "contributionsPaidMembers": "{paid} of {total} members have paid",
+  "@contributionsPaidMembers": {
+    "placeholders": {
+      "paid": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "contributionsRecordPayment": "Record a payment",
+  "contributionsPaymentMethod": "Payment method",
+  "contributionsProof": "Proof",
+  "contributionsAddProof": "Add a proof",
+  "contributionsTakePhoto": "Take a photo",
+  "contributionsChooseImage": "Choose an image",
+  "contributionsViewProof": "View proof",
+  "contributionsRecorded": "Payment recorded",
+  "contributionsMine": "My contributions",
+  "contributionsTotalPaid": "Total paid",
+  "contributionsPaymentsCount": "Payments",
+  "contributionsUpcoming": "Upcoming payments",
+  "contributionsEmpty": "No contribution recorded",
+  "contributionsLate": "Late",
+  "contributionsSelectMember": "Member",
+  "paymentStatusPending": "Pending",
+  "paymentStatusConfirmed": "Paid",
+  "paymentStatusRejected": "Rejected",
+  "paymentStatusCancelled": "Cancelled",
+  "methodWave": "Wave",
+  "methodOrangeMoney": "Orange Money",
+  "methodMtnMomo": "MTN MoMo",
+  "methodMoovMoney": "Moov Money",
+  "methodBankTransfer": "Bank transfer",
+  "methodCash": "Cash",
+  "methodOther": "Other",
+  "drawTitle": "Draw of the period",
+  "drawSpin": "Start the draw",
+  "drawSpinning": "Drawing...",
+  "drawParticipantsAtStart": "{count} participants at start",
+  "@drawParticipantsAtStart": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawRemainingToDraw": "{count} members left to draw",
+  "@drawRemainingToDraw": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawUnavailable": "Draw unavailable",
+  "drawUnavailableReason": "{count} contribution(s) still pending.",
+  "@drawUnavailableReason": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawConfirmTitle": "Confirm the draw?",
+  "drawConfirmMessage": "This operation will permanently designate the beneficiary of the period.",
+  "drawCongratulations": "Congratulations!",
+  "drawBeneficiaryOf": "is the beneficiary for {period}.",
+  "@drawBeneficiaryOf": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "drawViewResult": "View result",
+  "drawHistory": "Draw history",
+  "drawLaunchedBy": "Launched by",
+  "drawReference": "Reference",
+  "drawEligibleParticipants": "Eligible participants",
+  "drawNoEligible": "No eligible participant for this draw",
+  "drawOverrideTitle": "Force the draw",
+  "drawOverrideMessage": "The rules require every contribution to be paid. Forcing the draw will be recorded in the audit log.",
+  "drawOverrideReason": "Override reason",
+  "drawOverrideUsed": "Draw forced by an administrator",
+  "drawCancelAction": "Cancel the draw",
+  "drawInvalidate": "Invalidate the draw",
+  "drawInvalidateReason": "Invalidation reason",
+  "drawAlreadyDone": "The draw for this period has already been run",
+  "drawNoPermission": "You are not allowed to run a draw",
+  "drawOrderGenerated": "Order generated",
+  "drawScheduledOn": "Draw scheduled on {date}",
+  "@drawScheduledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "drawStatusScheduled": "Scheduled",
+  "drawStatusCompleted": "Validated",
+  "drawStatusCancelled": "Cancelled",
+  "drawStatusInvalidated": "Invalidated",
+  "beneficiaryTitle": "Beneficiary of the period",
+  "beneficiaryPayout": "Payout",
+  "beneficiaryRecordPayout": "Record the payout",
+  "beneficiaryAmountSent": "Amount sent",
+  "beneficiaryPayoutRecorded": "Payout recorded",
+  "beneficiaryStepContributions": "Contributions",
+  "beneficiaryStepPot": "Pot complete",
+  "beneficiaryStepDraw": "Draw",
+  "beneficiaryStepBeneficiary": "Beneficiary",
+  "beneficiaryStepPayout": "Payout",
+  "beneficiaryStepConfirmation": "Confirmation",
+  "beneficiaryNone": "No beneficiary designated",
+  "payoutStatusPending": "Pending",
+  "payoutStatusProcessing": "Processing",
+  "payoutStatusPaid": "Paid",
+  "payoutStatusFailed": "Failed",
+  "positionTitle": "My position",
+  "positionNotReceived": "You have not received your pot yet.",
+  "positionRemaining": "Participants left to draw: {remaining} / {total}.",
+  "@positionRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "positionReceivedIn": "You received your pot in {period}.",
+  "@positionReceivedIn": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "positionKeepContributing": "You must keep contributing until the end of the tontine.",
+  "positionOrder": "Your turn: position {position}",
+  "@positionOrder": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "positionEstimatedPeriod": "Estimated period: {period}",
+  "@positionEstimatedPeriod": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "positionNotParticipant": "You do not take part in this tontine.",
+  "activityTitle": "Activity",
+  "activityEmpty": "No activity recorded",
+  "activityAudit": "Audit log",
+  "activityToday": "Today",
+  "activityYesterday": "Yesterday",
+  "activityEarlier": "Earlier",
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Mark all as read",
+  "notificationsEmpty": "No notification",
+  "treasuryTitle": "Treasury",
+  "treasuryBalance": "Balance",
+  "treasuryInflows": "Inflows",
+  "treasuryOutflows": "Outflows",
+  "treasuryAddTransaction": "New operation",
+  "treasuryType": "Operation type",
+  "treasuryIncome": "Income",
+  "treasuryExpense": "Expense",
+  "treasuryCategory": "Category",
+  "treasuryEmpty": "No treasury operation",
+  "treasurySaved": "Operation saved",
+  "reportsTitle": "Reports",
+  "reportsTotalContributions": "Total contributions",
+  "reportsUnpaid": "Unpaid",
+  "reportsRecoveryRate": "Recovery rate",
+  "reportsDistributed": "Distributed amounts",
+  "reportsExportPdf": "Export as PDF",
+  "reportsExportExcel": "Export as Excel",
+  "reportsExportMocked": "Mocked export: backend integration coming soon.",
+  "profileTitle": "Profile",
+  "profileMyOrganizations": "My organizations",
+  "profilePreferences": "Preferences",
+  "profileSecurity": "Security",
+  "profileTheme": "Theme",
+  "profileThemeLight": "Light",
+  "profileThemeDark": "Dark",
+  "profileThemeSystem": "System",
+  "profileLanguage": "Language",
+  "profileFrench": "French",
+  "profileEnglish": "English",
+  "profileNotifications": "Notifications",
+  "profileEdit": "Edit my profile",
+  "profileVersion": "Version",
+  "profileSaved": "Profile updated",
+  "orgSettingsTitle": "Organization settings",
+  "orgName": "Organization name",
+  "orgLogo": "Logo",
+  "orgCountry": "Country",
+  "orgAddress": "Address",
+  "orgRules": "Rules",
+  "orgOfficers": "Officers",
+  "orgSwitch": "Switch organization",
+  "orgCreate": "Create an organization",
+  "orgRequireFullPayment": "Require all contributions before the draw",
+  "orgAllowOverride": "Allow forcing the draw",
+  "orgGraceDays": "Grace days before late",
+  "orgSaved": "Organization updated",
+  "orgNoPermission": "Action not allowed for your role",
+  "adminTitle": "Kadjane Admin",
+  "adminConsole": "Administration console",
+  "adminNavOverview": "Overview",
+  "adminNavMembers": "Members",
+  "adminNavRoles": "Roles and permissions",
+  "adminNavReminders": "Reminders",
+  "adminNavTontines": "Tontines",
+  "adminNavAudit": "Audit",
+  "adminNavSettings": "Settings",
+  "adminCollectionRate": "Recovery rate",
+  "adminOutstanding": "Outstanding amount",
+  "adminAlerts": "Attention points",
+  "adminNoAlerts": "Nothing needs attention",
+  "adminAlertLateMembers": "{count} member(s) late on contributions",
+  "@adminAlertLateMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAlertBlockedDraw": "{count} draw(s) blocked by unpaid contributions",
+  "@adminAlertBlockedDraw": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAlertPendingPayout": "{count} payout(s) pending",
+  "@adminAlertPendingPayout": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminSearch": "Search",
+  "adminSelected": "{count} selected",
+  "@adminSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminChangeRole": "Change role",
+  "adminMemberUpdated": "Member updated",
+  "adminRoleMatrix": "Permission matrix",
+  "adminRoleMatrixHint": "Tick the rights granted to each role. Changes apply immediately, on mobile as well as in the console.",
+  "adminRoleReset": "Restore default rights",
+  "adminRoleSaved": "Permissions updated",
+  "adminRoleCustomized": "Customized",
+  "adminRoleDefault": "Default",
+  "adminPermissionsCount": "{count} rights",
+  "@adminPermissionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminMembersWithRole": "{count} member(s)",
+  "@adminMembersWithRole": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOpenMobileHint": "Roles defined here also drive the mobile application.",
+  "permModuleOrganization": "Organization",
+  "permModuleMember": "Members",
+  "permModuleTontine": "Tontines",
+  "permModuleContribution": "Contributions",
+  "permModuleDraw": "Draws",
+  "permModulePayout": "Payouts",
+  "permModuleTreasury": "Treasury",
+  "permModuleReport": "Reports",
+  "permModuleAudit": "Audit",
+  "permModuleReminder": "Reminders",
+  "permActionView": "View",
+  "permActionEdit": "Edit",
+  "permActionCreate": "Create",
+  "permActionManageOfficers": "Manage officers",
+  "permActionInvite": "Invite",
+  "permActionValidate": "Validate",
+  "permActionRecord": "Record",
+  "permActionConfirm": "Confirm",
+  "permActionCancel": "Cancel",
+  "permActionRun": "Run",
+  "permActionOverride": "Override",
+  "permActionInvalidate": "Invalidate",
+  "permActionManage": "Manage",
+  "permActionSend": "Send",
+  "remindersTitle": "Reminders",
+  "remindersCenter": "Reminder center",
+  "remindersToRemind": "To remind",
+  "remindersSend": "Send reminders",
+  "remindersSendShort": "Remind",
+  "remindersChannel": "Channel",
+  "remindersChannelInApp": "Notification",
+  "remindersChannelSms": "SMS",
+  "remindersChannelWhatsapp": "WhatsApp",
+  "remindersChannelEmail": "Email",
+  "remindersChannelPush": "Push",
+  "remindersLevelUpcoming": "Due soon",
+  "remindersLevelDueToday": "Due today",
+  "remindersLevelLate": "Late",
+  "remindersLevelEscalated": "Critically late",
+  "remindersMessage": "Message",
+  "remindersPreview": "Message preview",
+  "remindersSentCount": "{count} reminder(s) sent",
+  "@remindersSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersHistory": "Reminder history",
+  "remindersNoTargets": "No unpaid contribution: nothing to remind",
+  "remindersNoHistory": "No reminder sent",
+  "remindersMine": "My reminders",
+  "remindersReceived": "Reminder received",
+  "remindersLastSent": "Last reminder: {date}",
+  "@remindersLastSent": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersStatusQueued": "Queued",
+  "remindersStatusSent": "Sent",
+  "remindersStatusRead": "Read",
+  "remindersStatusFailed": "Failed",
+  "remindersCampaign": "Campaign",
+  "remindersTargets": "Recipients",
+  "remindersAudited": "Every reminder is timestamped and recorded in the audit log.",
+  "remindersSelectAll": "Select all",
+  "remindersDaysLate": "{count} day(s) late",
+  "@remindersDaysLate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersConfirmTitle": "Send reminders?",
+  "remindersConfirmMessage": "{count} member(s) will be notified on the selected channels.",
+  "@remindersConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

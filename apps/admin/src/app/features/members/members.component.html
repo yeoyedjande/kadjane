@@ -1,0 +1,211 @@
+<k-page-header
+  title="Membres"
+  [subtitle]="total() + ' membre(s) dans ' + (session.organization()?.name ?? '')"
+>
+  @if (session.can('member.create')) {
+    <button type="button" class="k-btn" (click)="openCreate()">Ajouter un membre</button>
+  }
+</k-page-header>
+
+<article class="k-card">
+  <div class="k-card__header">
+    <div class="k-toolbar">
+      <k-search placeholder="Nom, téléphone, e-mail…" (search)="onSearch($event)" />
+
+      <label class="k-field">
+        <span class="k-label">Rôle</span>
+        <select class="k-select" (change)="onFilter('role', $any($event.target).value)">
+          <option value="">Tous</option>
+          @for (role of roles; track role) {
+            <option [value]="role">{{ role | label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="k-field">
+        <span class="k-label">Statut</span>
+        <select class="k-select" (change)="onFilter('status', $any($event.target).value)">
+          <option value="">Tous</option>
+          @for (status of statuses; track status) {
+            <option [value]="status">{{ status | label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <k-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!loading() && !error() && rows().length === 0"
+    emptyTitle="Aucun membre"
+    emptyHint="Ajoutez un premier membre à cette organisation."
+    (retry)="load()"
+  />
+
+  @if (!loading() && rows().length > 0) {
+    <div class="k-table-wrap">
+      <table class="k-table">
+        <thead>
+          <tr>
+            <th>Membre</th>
+            <th>Téléphone</th>
+            <th>E-mail</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Adhésion</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (member of rows(); track member.id) {
+            <tr>
+              <td>
+                <div class="k-row">
+                  <k-avatar [name]="member.user.firstName + ' ' + member.user.lastName" />
+                  <div>
+                    <div class="k-strong">
+                      {{ member.user.firstName }} {{ member.user.lastName }}
+                    </div>
+                    <div class="k-tertiary" style="font-size: 12px">
+                      {{ member.memberNumber ?? '—' }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="k-nowrap">{{ member.user.phone }}</td>
+              <td class="k-muted">{{ member.user.email ?? '—' }}</td>
+              <td><k-badge [value]="member.role" /></td>
+              <td><k-badge [value]="member.status" /></td>
+              <td class="k-nowrap k-muted">{{ member.joinedAt | frDate }}</td>
+              <td class="k-num">
+                @if (session.can('member.edit')) {
+                  <button
+                    type="button"
+                    class="k-btn k-btn--ghost k-btn--sm"
+                    (click)="openEdit(member)"
+                  >
+                    Modifier
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <k-pagination
+      [page]="page()"
+      [pageSize]="20"
+      [total]="total()"
+      [hasMore]="hasMore()"
+      (go)="goToPage($event)"
+    />
+  }
+</article>
+
+@if (formOpen()) {
+  <div class="drawer-backdrop" (click)="formOpen.set(false)">
+    <aside class="drawer k-card" (click)="$event.stopPropagation()">
+      <div class="k-card__header">
+        <h2 class="k-card__title">
+          {{ editing() ? 'Modifier le membre' : 'Ajouter un membre' }}
+        </h2>
+        <button type="button" class="k-btn k-btn--ghost k-btn--sm" (click)="formOpen.set(false)">
+          Fermer
+        </button>
+      </div>
+
+      <form class="k-card__body k-stack" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="k-grid k-grid--2">
+          <label class="k-field">
+            <span class="k-label">Prénom</span>
+            <input class="k-input" formControlName="firstName" [class.is-invalid]="invalid('firstName')" />
+            @if (invalid('firstName')) {
+              <span class="k-error">{{ serverError('firstName') ?? 'Prénom requis.' }}</span>
+            }
+          </label>
+
+          <label class="k-field">
+            <span class="k-label">Nom</span>
+            <input class="k-input" formControlName="lastName" [class.is-invalid]="invalid('lastName')" />
+            @if (invalid('lastName')) {
+              <span class="k-error">{{ serverError('lastName') ?? 'Nom requis.' }}</span>
+            }
+          </label>
+        </div>
+
+        <label class="k-field">
+          <span class="k-label">Téléphone</span>
+          <input
+            class="k-input"
+            formControlName="phone"
+            placeholder="+225 07 00 00 00 13"
+            [class.is-invalid]="invalid('phone')"
+          />
+          @if (invalid('phone')) {
+            <span class="k-error">{{ serverError('phone') ?? 'Téléphone requis.' }}</span>
+          }
+          <span class="k-hint">Sert d'identifiant de connexion à l'application mobile.</span>
+        </label>
+
+        <label class="k-field">
+          <span class="k-label">E-mail (facultatif)</span>
+          <input class="k-input" type="email" formControlName="email" />
+          @if (serverError('email')) {
+            <span class="k-error">{{ serverError('email') }}</span>
+          }
+        </label>
+
+        <div class="k-grid k-grid--2">
+          <label class="k-field">
+            <span class="k-label">Rôle</span>
+            <select class="k-select" formControlName="role">
+              @for (role of roles; track role) {
+                <option [value]="role">{{ role | label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="k-field">
+            <span class="k-label">Statut</span>
+            <select class="k-select" formControlName="status">
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ status | label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="k-row" style="justify-content: flex-end">
+          <button type="button" class="k-btn k-btn--ghost" (click)="formOpen.set(false)">
+            Annuler
+          </button>
+          <button type="submit" class="k-btn" [disabled]="saving()">
+            {{ saving() ? 'Enregistrement…' : editing() ? 'Enregistrer' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<k-confirm [open]="confirm()" (confirmed)="onConfirmed()" (cancelled)="onCancelled()" />
+
+<style>
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: flex-end;
+    background: rgb(13 20 17 / 35%);
+  }
+  .drawer {
+    width: min(520px, 100%);
+    height: 100%;
+    border-radius: 0;
+    overflow-y: auto;
+  }
+</style>
