@@ -189,9 +189,13 @@ Démarrer d'abord le backend (`docker compose up -d`), puis :
 flutter run
 ```
 
-> **`flutter run` seul vise le backend local.** L'environnement par défaut est
-> `development` (`AppConfig.fromDartDefine()`) : c'est voulu. Pour viser le
-> backend de la Beta en ligne, il faut le demander explicitement :
+> **`flutter run` seul vise le backend local**, et c'est voulu : sans
+> `--dart-define`, un binaire de **debug** part en `development`. Une
+> compilation **release** (APK, App Bundle, web) bascule en revanche d'office
+> en `production` — un binaire distribué ne doit jamais viser `localhost` ni
+> `10.0.2.2`, qui n'existent pas sur le téléphone d'un beta-testeur.
+>
+> Pour viser la Beta depuis un `flutter run` de développement :
 >
 > ```bash
 > flutter run --dart-define=KADJANE_ENV=production
@@ -906,6 +910,14 @@ sans quoi l'interface s'affiche mais tous ses appels échouent en 400.
   port figé alors que l'hébergeur route vers le sien ; ou son `proxy_pass`
   visait un hôte inexistant hors de docker-compose, ce qui empêche nginx de
   démarrer (`host not found in upstream`).
+- **« Impossible de charger les données » dans l'APK, alors que tout marche en
+  développement** — deux causes distinctes, cumulables :
+  1. Flutter ne déclare `android.permission.INTERNET` que dans les manifestes
+     `debug` et `profile`. Sans elle dans `main`, l'APK de release n'a **aucun**
+     accès réseau. Vérifier le manifeste fusionné :
+     `build/app/intermediates/merged_manifest/release/…/AndroidManifest.xml`.
+  2. L'APK a été compilé sans `--dart-define=KADJANE_ENV`, et visait un hôte
+     local. Le repli release → `production` couvre désormais ce cas.
 
 ---
 

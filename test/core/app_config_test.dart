@@ -27,10 +27,24 @@ void main() {
       expect(AppConfig.development().apiBaseUrl, isNot(contains('railway')));
     });
 
-    test('sans dart-define, on est en développement', () {
-      // Les tests tournent sans `--dart-define` : c'est exactement la
-      // situation d'un `flutter run` nu.
+    test('sans dart-define, un binaire de debug reste en développement', () {
+      // Les tests tournent en mode debug, sans `--dart-define` : c'est
+      // exactement la situation d'un `flutter run` nu.
       expect(AppConfig.fromDartDefine().environment, AppEnvironment.development);
+    });
+
+    test('aucun environnement distant ne vise un hôte local', () {
+      // Régression : un APK compilé sans `--dart-define` visait `10.0.2.2`,
+      // inexistant sur le téléphone d'un beta-testeur. La release bascule
+      // désormais d'office en production — ces URL doivent donc être distantes.
+      for (final AppConfig config in <AppConfig>[
+        AppConfig.staging(),
+        AppConfig.production(),
+      ]) {
+        expect(config.apiBaseUrl, isNot(contains('localhost')));
+        expect(config.apiBaseUrl, isNot(contains('10.0.2.2')));
+        expect(config.apiBaseUrl, startsWith('https://'));
+      }
     });
 
     test('aucun environnement ne bascule sur les mocks par défaut', () {

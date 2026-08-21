@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Indispensable : Flutter ne déclare INTERNET que dans les manifestes
+         `debug` et `profile`. Sans cette ligne, l'APK de release n'a aucun
+         accès réseau et tous les appels à l'API échouent silencieusement. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
-        android:label="kadjane"
+        android:label="Kadjane"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
