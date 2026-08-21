@@ -146,6 +146,43 @@ class MemberService:
         self.db.refresh(member)
         return member
 
+    def delete(self, member: OrganizationMember, actor: OrganizationMember) -> None:
+        """Retire définitivement un membre de l'organisation.
+
+        Trois refus, dans cet ordre :
+
+        1. **Se supprimer soi-même** — l'organisation perdrait son
+           administrateur sans qu'aucun autre ne puisse reprendre la main.
+        2. **Supprimer plus haut placé que soi** — pendant de
+           `_guard_role_escalation` : un trésorier ne retire pas un président.
+        3. **Supprimer un membre engagé dans une tontine** — le lien
+           `tontine_participants → organization_members` est en `CASCADE`, tout
+           comme `contributions → tontine_participants` : la suppression
+           effacerait silencieusement cotisations et versements. L'historique
+           financier prime, on redirige vers la désactivation.
+        """
+        if member.id == actor.id:
+            raise ConflictError(
+                "Vous ne pouvez pas vous supprimer vous-même.",
+                code="member_self_delete",
+            )
+
+        if member.role_enum.level > actor.role_enum.level:
+            raise PermissionDeniedError(
+                "Vous ne pouvez pas supprimer un membre au rôle supérieur au vôtre.",
+                code="role_escalation_denied",
+            )
+
+        if self.members.has_tontine_participation(member.id):
+            raise ConflictError(
+                "Ce membre participe à une tontine : son historique de "
+                "cotisations serait perdu. Désactivez-le plutôt.",
+                code="member_has_history",
+            )
+
+        self.members.remove(member)
+        self.db.commit()
+
     # --- Interne -------------------------------------------------------------
 
     @staticmethod

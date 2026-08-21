@@ -49,6 +49,10 @@ export class ApiClient {
     return this.unwrap(this.http.put<ApiEnvelope<T>>(this.url(path), body));
   }
 
+  delete<T>(path: string): Observable<T> {
+    return this.unwrap(this.http.delete<ApiEnvelope<T>>(this.url(path)));
+  }
+
   upload<T>(path: string, file: File): Observable<T> {
     const form = new FormData();
     form.append('file', file);

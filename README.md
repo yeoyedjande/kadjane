@@ -154,6 +154,16 @@ npm --prefix apps/admin start
 Le back-office est alors servi sur <http://localhost:4200> et consomme la même
 API que l'application mobile. Détails : **[`docs/admin.md`](docs/admin.md)**.
 
+> **Rôle du back-office.** Il **pilote** l'application mobile, il ne la
+> reproduit pas. C'est lui qui crée les comptes des membres et qui les
+> supprime : l'application mobile n'offre donc ni inscription libre ni accès de
+> démonstration. Un membre créé par l'administrateur reçoit un mot de passe
+> inutilisable et définit le sien à la première connexion, via
+> « Mot de passe oublié ? » (OTP).
+>
+> Avant d'ajouter un écran au back-office, se demander s'il relève du pilotage
+> (oui) ou de l'usage membre (non).
+
 ---
 
 ## 4. Lancement
@@ -163,6 +173,21 @@ Démarrer d'abord le backend (`docker compose up -d`), puis :
 ```bash
 flutter run
 ```
+
+> **`flutter run` seul vise le backend local.** L'environnement par défaut est
+> `development` (`AppConfig.fromDartDefine()`) : c'est voulu. Pour viser le
+> backend de la Beta en ligne, il faut le demander explicitement :
+>
+> ```bash
+> flutter run --dart-define=KADJANE_ENV=production
+> ```
+>
+> Attention si vous testez **dans un navigateur** : le navigateur applique les
+> CORS, et l'origine `localhost` du serveur de développement n'est pas
+> autorisée par le backend en production — les appels échouent en
+> « Failed to fetch ». Sur un téléphone ou dans l'APK, la question ne se pose
+> pas : il n'y a pas de CORS. Pour tester quand même depuis le navigateur,
+> ajouter l'origine locale à `CORS_ORIGINS` côté backend.
 
 L'application de développement utilise le backend réel. L'URL par défaut
 dépend de la cible : `10.0.2.2:8000` sur émulateur Android, `localhost:8000`
@@ -559,8 +584,12 @@ Configuration centralisée dans `lib/core/config/app_config.dart`.
 | Environnement | API | Source de données |
 |---|---|---|
 | `development` | backend local `:8000/api/v1` | **REST** (mocks en repli) |
-| `staging` | `https://api.staging.kadjane.app/api/v1` | **REST** |
-| `production` | `https://api.kadjane.app/api/v1` | **REST** |
+| `staging` | `https://kadjane.up.railway.app/api/v1` | **REST** |
+| `production` | `https://kadjane.up.railway.app/api/v1` | **REST** |
+
+Recette et production visent le même backend Railway tant qu'aucun domaine
+propre n'existe (`AppConfig.betaApiBaseUrl`). Le back-office suit la même URL
+dans `apps/admin/src/environments/environment.production.ts`.
 
 Sélection au lancement :
 
@@ -813,6 +842,24 @@ Puis vérifier depuis un poste, en visant l'URL publique :
 python backend/scripts/smoke_api.py --base-url https://<hôte>/api/v1 --origin https://<front>
 ```
 
+### Déploiement du back-office
+
+`apps/admin/Dockerfile` construit l'application puis la sert avec nginx.
+
+Deux points le rendent portable :
+
+- **Le port n'est pas figé.** `nginx.conf` est déposé comme *modèle* dans
+  `/etc/nginx/templates/` ; l'entrypoint officiel de l'image y applique
+  `envsubst` et remplace `${PORT}` au démarrage. `NGINX_ENVSUBST_FILTER=^PORT$`
+  restreint la substitution à cette seule variable — sans ce filtre, `envsubst`
+  viderait aussi `$uri`, qui est une variable **nginx**, pas d'environnement.
+- **Aucun proxy vers l'API.** Le back-office et le backend sont deux services
+  d'origines distinctes ; l'application appelle l'API en URL absolue
+  (`environment.production.ts`).
+
+L'origine du back-office doit donc figurer dans `CORS_ORIGINS` côté backend,
+sans quoi l'interface s'affiche mais tous ses appels échouent en 400.
+
 ### Pièges rencontrés
 
 - **`ModuleNotFoundError: No module named 'psycopg2'`** — l'hébergeur injecte
@@ -824,6 +871,10 @@ python backend/scripts/smoke_api.py --base-url https://<hôte>/api/v1 --origin h
   n'existe pas.
 - **400 « Disallowed CORS origin »** — `CORS_ORIGINS` ne contient pas l'origine
   du front. Voir [§11](#11-environnements).
+- **« Application failed to respond » sur le back-office** — nginx écoutait un
+  port figé alors que l'hébergeur route vers le sien ; ou son `proxy_pass`
+  visait un hôte inexistant hors de docker-compose, ce qui empêche nginx de
+  démarrer (`host not found in upstream`).
 
 ---
 

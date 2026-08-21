@@ -107,6 +107,18 @@ export class MemberService {
       `/organizations/${organizationId}/members/${memberId}`,
     );
   }
+
+  /** Retire un membre de l'organisation.
+   *
+   *  Le backend refuse la suppression d'un membre engagé dans une tontine
+   *  (`member_has_history`) : son historique de cotisations serait effacé en
+   *  cascade. Dans ce cas, la désactivation est la bonne réponse.
+   */
+  remove(organizationId: string, memberId: string): Observable<{ deleted: boolean }> {
+    return this.api.delete<{ deleted: boolean }>(
+      `/organizations/${organizationId}/members/${memberId}`,
+    );
+  }
 }
 
 @Injectable({ providedIn: 'root' })

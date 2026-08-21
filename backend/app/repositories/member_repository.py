@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.enums import MemberStatus, OrgRole
 from app.models.membership import OrganizationMember
+from app.models.tontine import TontineParticipant
 from app.models.user import User
 
 
@@ -93,6 +94,21 @@ class MemberRepository:
         self.db.add(member)
         self.db.flush()
         return member
+
+    def has_tontine_participation(self, member_id: uuid.UUID) -> bool:
+        """Le membre est-il engagé dans au moins une tontine ?
+
+        Garde-fou avant suppression : la participation est en `CASCADE`, tout
+        comme les cotisations qui s'y rattachent.
+        """
+        statement = select(TontineParticipant.id).where(
+            TontineParticipant.organization_member_id == member_id
+        )
+        return self.db.scalars(statement).first() is not None
+
+    def remove(self, member: OrganizationMember) -> None:
+        self.db.delete(member)
+        self.db.flush()
 
     def next_member_number(self, organization_id: uuid.UUID) -> str:
         return f"M-{self.count(organization_id) + 1:03d}"

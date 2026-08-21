@@ -99,9 +99,24 @@ requête. Un échec purge la session et renvoie l'utilisateur vers la connexion.
 | GET | `/organizations/{id}/officers` | `[member]` |
 | GET | `/organizations/{id}/members?query=&role=&status=&page=&pageSize=` | `paged<member>` |
 | POST | `/organizations/{id}/members` | `member` |
+| DELETE | `/organizations/{id}/members/{memberId}` | `{ "deleted": true }` |
 | GET | `/members/{id}` | `member` |
 | PUT | `/members/{id}` | `member` |
 | GET | `/members/{id}/stats` | `memberStats` |
+
+**Suppression d'un membre** — réservée à `member.delete` (administrateur), elle
+est refusée dans trois cas :
+
+| Code | Statut | Cause |
+|---|---|---|
+| `member_self_delete` | 409 | On ne se supprime pas soi-même |
+| `role_escalation_denied` | 403 | Cible d'un rôle supérieur à celui de l'appelant |
+| `member_has_history` | 409 | Le membre participe à une tontine |
+
+Le dernier cas protège les données : `tontine_participants` référence
+`organization_members` en `CASCADE`, et les cotisations référencent les
+participants de la même façon. Supprimer effacerait l'historique financier —
+la désactivation (`status: "inactive"`) est la bonne réponse.
 
 ```jsonc
 // organization

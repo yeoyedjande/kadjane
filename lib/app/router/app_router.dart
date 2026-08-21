@@ -9,7 +9,6 @@ import 'package:kadjane/features/auth/presentation/screens/forgot_password_scree
 import 'package:kadjane/features/auth/presentation/screens/login_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/otp_screen.dart';
-import 'package:kadjane/features/auth/presentation/screens/register_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/splash_screen.dart';
 import 'package:kadjane/features/beneficiary/presentation/screens/beneficiary_screen.dart';
@@ -85,10 +84,9 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         builder: (_, _) => const OnboardingScreen(),
       ),
       GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginScreen()),
-      GoRoute(
-        path: AppRoutes.register,
-        builder: (_, _) => const RegisterScreen(),
-      ),
+      // Pas d'inscription libre : les comptes sont créés par l'administrateur
+      // depuis le back-office, et le membre définit son mot de passe à la
+      // première connexion (« Mot de passe oublié ? », par OTP).
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (_, _) => const ForgotPasswordScreen(),

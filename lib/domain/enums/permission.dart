@@ -12,6 +12,7 @@ enum Permission {
   memberView('member.view'),
   memberCreate('member.create'),
   memberEdit('member.edit'),
+  memberDelete('member.delete'),
   memberInvite('member.invite'),
 
   // Tontines

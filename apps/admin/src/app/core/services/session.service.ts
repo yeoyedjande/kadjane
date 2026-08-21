@@ -177,6 +177,7 @@ const ALL_PERMISSIONS = [
   'organization.manage_officers',
   'member.create',
   'member.edit',
+  'member.delete',
   'member.invite',
   'tontine.create',
   'tontine.edit',

@@ -50,7 +50,7 @@ class AppConfig {
   /// Recette : backend REST.
   factory AppConfig.staging() => AppConfig(
     environment: AppEnvironment.staging,
-    apiBaseUrl: _apiBaseUrlOverride ?? 'https://api.staging.kadjane.app/api/v1',
+    apiBaseUrl: _apiBaseUrlOverride ?? betaApiBaseUrl,
     useMockData: _mockOverride ?? false,
     networkLatency: Duration.zero,
     enableVerboseLogs: true,
@@ -59,7 +59,7 @@ class AppConfig {
   /// Production : backend REST.
   factory AppConfig.production() => AppConfig(
     environment: AppEnvironment.production,
-    apiBaseUrl: _apiBaseUrlOverride ?? 'https://api.kadjane.app/api/v1',
+    apiBaseUrl: _apiBaseUrlOverride ?? betaApiBaseUrl,
     useMockData: _mockOverride ?? false,
     networkLatency: Duration.zero,
     enableVerboseLogs: false,
@@ -107,6 +107,14 @@ class AppConfig {
 
   static String? get _apiBaseUrlOverride =>
       _apiBaseUrlDefine.isEmpty ? null : _apiBaseUrlDefine;
+
+  /// Backend de la Beta, déployé sur Railway.
+  ///
+  /// Recette et production le partagent tant qu'un domaine propre n'existe
+  /// pas : à ce moment-là, `api.staging.kadjane.app` et `api.kadjane.app`
+  /// reprendront chacun leur place.
+  static const String betaApiBaseUrl =
+      'https://kadjane.up.railway.app/api/v1';
 
   /// Backend local par défaut en développement.
   ///
