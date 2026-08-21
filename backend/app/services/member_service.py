@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import secrets
 import uuid
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError, PermissionDeniedError
-from app.core.security import hash_password
+from app.core.security import generate_temporary_password, hash_password
 from app.models.enums import MemberStatus, OrgRole
 from app.models.membership import OrganizationMember
 from app.models.user import User
@@ -60,11 +59,26 @@ class MemberService:
         organization_id: uuid.UUID,
         payload: MemberCreate,
         actor: OrganizationMember,
-    ) -> OrganizationMember:
+    ) -> tuple[OrganizationMember, str | None]:
+        """Ajoute un membre et renvoie son mot de passe provisoire s'il en a un.
+
+        Le second élément n'est renseigné que lorsqu'un mot de passe a été tiré
+        au hasard : c'est la seule occasion de le lire, il n'est stocké que
+        haché. Si l'administrateur en a fourni un, il le connaît déjà et rien
+        n'est renvoyé.
+        """
+        generated_password: str | None = None
         user = self.users.by_phone(payload.phone)
         if user is None:
-            # Compte créé sans mot de passe utilisable : le membre le définira
-            # lors de sa première connexion (réinitialisation par OTP).
+            # Le membre reçoit un accès utilisable immédiatement : c'est
+            # l'administrateur qui le lui transmet, puis le membre le change
+            # depuis l'application s'il le souhaite.
+            if payload.password:
+                password = payload.password
+            else:
+                password = generate_temporary_password()
+                generated_password = password
+
             user = User(
                 first_name=payload.first_name.strip(),
                 last_name=payload.last_name.strip(),
@@ -73,7 +87,7 @@ class MemberService:
                 gender=payload.gender.value,
                 birth_date=payload.birth_date,
                 avatar_url=payload.avatar_url,
-                password_hash=hash_password(secrets.token_urlsafe(32)),
+                password_hash=hash_password(password),
                 is_active=True,
                 is_verified=False,
             )
@@ -104,7 +118,7 @@ class MemberService:
                 code="member_already_exists",
             ) from error
         self.db.refresh(member)
-        return member
+        return member, generated_password
 
     def update(
         self,

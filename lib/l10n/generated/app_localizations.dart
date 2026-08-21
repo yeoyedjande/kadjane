@@ -530,6 +530,30 @@ abstract class AppLocalizations {
   /// **'Les mots de passe ne correspondent pas'**
   String get authPasswordMismatch;
 
+  /// No description provided for @authChangePassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer le mot de passe'**
+  String get authChangePassword;
+
+  /// No description provided for @authCurrentPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe actuel'**
+  String get authCurrentPassword;
+
+  /// No description provided for @authPasswordChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe modifié'**
+  String get authPasswordChanged;
+
+  /// No description provided for @authChangePasswordHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si votre administrateur vous a remis un mot de passe provisoire, c\'est ici que vous le remplacez.'**
+  String get authChangePasswordHint;
+
   /// No description provided for @authInvalidCredentials.
   ///
   /// In fr, this message translates to:

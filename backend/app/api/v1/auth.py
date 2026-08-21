@@ -7,12 +7,13 @@ from fastapi import APIRouter, Body, status
 
 from app.core.deps import CurrentUser, DbSession
 from app.core.errors import AuthenticationError
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.core.responses import success
 from app.schemas.auth import (
     LoginRequest,
     OtpRequest,
     OtpVerifyRequest,
+    PasswordChangeRequest,
     PasswordResetRequest,
     RefreshRequest,
     RegisterRequest,
@@ -56,6 +57,33 @@ def logout(
 @router.get("/me", summary="Utilisateur connecté")
 def me(user: CurrentUser) -> dict[str, Any]:
     return success(dump(UserRead.model_validate(user)))
+
+
+@router.post("/password/change", summary="Changer son mot de passe")
+def change_password(
+    db: DbSession, user: CurrentUser, payload: PasswordChangeRequest
+) -> dict[str, Any]:
+    """Le membre change lui-même son mot de passe, en connaissant l'ancien.
+
+    C'est le pendant du mot de passe provisoire remis par l'administrateur à la
+    création du compte : le membre s'en affranchit quand il le souhaite.
+    """
+    if not verify_password(payload.current_password, user.password_hash):
+        raise AuthenticationError(
+            "Mot de passe actuel incorrect.", code="invalid_current_password"
+        )
+    if payload.current_password == payload.new_password:
+        raise AuthenticationError(
+            "Le nouveau mot de passe doit être différent de l'ancien.",
+            code="password_unchanged",
+        )
+
+    user.password_hash = hash_password(payload.new_password)
+    # Les autres sessions tombent : un mot de passe changé doit déconnecter
+    # partout ailleurs, sans quoi un accès déjà ouvert survivrait au changement.
+    RefreshTokenRepository(db).revoke_all(user.id)
+    db.commit()
+    return success({"changed": True})
 
 
 # --- Réinitialisation de mot de passe ---------------------------------------

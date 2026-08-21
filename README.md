@@ -157,12 +157,27 @@ API que l'application mobile. Détails : **[`docs/admin.md`](docs/admin.md)**.
 > **Rôle du back-office.** Il **pilote** l'application mobile, il ne la
 > reproduit pas. C'est lui qui crée les comptes des membres et qui les
 > supprime : l'application mobile n'offre donc ni inscription libre ni accès de
-> démonstration. Un membre créé par l'administrateur reçoit un mot de passe
-> inutilisable et définit le sien à la première connexion, via
-> « Mot de passe oublié ? » (OTP).
+> démonstration.
 >
 > Avant d'ajouter un écran au back-office, se demander s'il relève du pilotage
 > (oui) ou de l'usage membre (non).
+
+### Comment un membre obtient son accès
+
+Aucun SMS n'est envoyé : le parcours OTP reste un bouchon de développement
+(`_DEV_OTP = "123456"`), faute de fournisseur SMS en Côte d'Ivoire. Les accès
+circulent donc par l'administrateur :
+
+1. Il crée le membre depuis le back-office, en saisissant un **mot de passe
+   provisoire** ou en laissant le champ vide — le backend en génère alors un,
+   affiché une seule fois avec un bouton « Copier le message ».
+2. Il transmet identifiant (le téléphone) et mot de passe au membre.
+3. Le membre se connecte, puis change son mot de passe quand il le souhaite
+   depuis **Profil → Changer le mot de passe**. Les autres sessions ouvertes
+   sont alors fermées.
+
+Le mot de passe généré évite les caractères ambigus (`0`/`O`, `1`/`l`/`I`) :
+il est destiné à être dicté ou recopié.
 
 ---
 

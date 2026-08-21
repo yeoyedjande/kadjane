@@ -76,6 +76,20 @@ class RestAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _api.post(
+      ApiRoutes.changePassword,
+      body: <String, dynamic>{
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
+  @override
   Future<AuthSession?> restoreSession() async {
     final AuthTokens? tokens = await _tokens.read();
     if (tokens == null) {

@@ -233,6 +233,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authPasswordMismatch => 'Les mots de passe ne correspondent pas';
 
   @override
+  String get authChangePassword => 'Changer le mot de passe';
+
+  @override
+  String get authCurrentPassword => 'Mot de passe actuel';
+
+  @override
+  String get authPasswordChanged => 'Mot de passe modifié';
+
+  @override
+  String get authChangePasswordHint =>
+      'Si votre administrateur vous a remis un mot de passe provisoire, c\'est ici que vous le remplacez.';
+
+  @override
   String get authInvalidCredentials => 'Identifiants incorrects';
 
   @override

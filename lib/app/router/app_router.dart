@@ -21,6 +21,7 @@ import 'package:kadjane/features/members/presentation/screens/member_form_screen
 import 'package:kadjane/features/members/presentation/screens/members_screen.dart';
 import 'package:kadjane/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:kadjane/features/organization/presentation/screens/organization_settings_screen.dart';
+import 'package:kadjane/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:kadjane/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:kadjane/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kadjane/features/reports/presentation/screens/reports_screen.dart';
@@ -228,6 +229,10 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         path: AppRoutes.organizationSettings,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (_, _) => const OrganizationSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (_, _) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.profileEdit,

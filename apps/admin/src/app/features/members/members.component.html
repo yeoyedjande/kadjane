@@ -115,6 +115,40 @@
   }
 </article>
 
+@if (credentials(); as access) {
+  <div class="drawer-backdrop" (click)="dismissCredentials()">
+    <aside class="drawer k-card" (click)="$event.stopPropagation()">
+      <div class="k-card__header">
+        <h2 class="k-card__title">Accès de {{ access.name }}</h2>
+        <button type="button" class="k-btn k-btn--ghost k-btn--sm" (click)="dismissCredentials()">
+          Fermer
+        </button>
+      </div>
+
+      <div class="k-card__body k-stack">
+        <p class="k-muted">
+          Transmettez ces accès au membre. Le mot de passe n'est affiché
+          <strong>qu'une seule fois</strong> : il n'est pas conservé en clair.
+        </p>
+
+        <div class="k-field">
+          <span class="k-label">Identifiant</span>
+          <code class="credentials__value">{{ access.phone }}</code>
+        </div>
+
+        <div class="k-field">
+          <span class="k-label">Mot de passe provisoire</span>
+          <code class="credentials__value">{{ access.password }}</code>
+        </div>
+
+        <button type="button" class="k-btn" (click)="copyCredentials()">
+          {{ copied() ? 'Message copié' : 'Copier le message' }}
+        </button>
+      </div>
+    </aside>
+  </div>
+}
+
 @if (formOpen()) {
   <div class="drawer-backdrop" (click)="formOpen.set(false)">
     <aside class="drawer k-card" (click)="$event.stopPropagation()">
@@ -167,6 +201,29 @@
             <span class="k-error">{{ serverError('email') }}</span>
           }
         </label>
+
+        @if (!editing()) {
+          <label class="k-field">
+            <span class="k-label">Mot de passe provisoire (facultatif)</span>
+            <input
+              class="k-input"
+              type="text"
+              formControlName="password"
+              autocomplete="off"
+              placeholder="Laisser vide pour en générer un"
+              [class.is-invalid]="invalid('password')"
+            />
+            @if (invalid('password')) {
+              <span class="k-error">
+                {{ serverError('password') ?? '8 caractères minimum.' }}
+              </span>
+            }
+            <span class="k-hint">
+              À transmettre au membre avec son téléphone. Il pourra le changer
+              depuis l'application.
+            </span>
+          </label>
+        }
 
         <div class="k-grid k-grid--2">
           <label class="k-field">

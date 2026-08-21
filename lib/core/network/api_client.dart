@@ -33,6 +33,7 @@ class ApiRoutes {
   static const String requestOtp = '/auth/otp/request';
   static const String verifyOtp = '/auth/otp/verify';
   static const String resetPassword = '/auth/password/reset';
+  static const String changePassword = '/auth/password/change';
   static const String logout = '/auth/logout';
   static const String me = '/me';
 
