@@ -8,8 +8,12 @@ Utilisation :
     python -m app.db.seed
 
 Le script est idempotent : relancé, il complète ce qui manque sans dupliquer.
-Le mot de passe vient de `SEED_PASSWORD` (défaut `kadjane`) et n'est destiné
-qu'au développement — ne jamais l'utiliser en production.
+
+**Développement uniquement.** Les douze comptes partagent le mot de passe
+`SEED_PASSWORD` (défaut `kadjane`), sont marqués comme déjà vérifiés, et onze
+paiements fictifs de 50 000 FCFA atterrissent dans la trésorerie, les rapports
+et le journal d'audit. Pour amorcer une Beta ou une production, utiliser
+`app.db.create_admin`, qui ne crée qu'un super administrateur.
 """
 
 from __future__ import annotations

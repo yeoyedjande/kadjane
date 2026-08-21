@@ -829,12 +829,28 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ### Premier déploiement
 
 Les migrations créent le schéma, **pas les données** : la base est vide et
-aucun compte n'existe. Pour une Beta, peupler le jeu de démonstration depuis
-le conteneur :
+aucun compte n'existe. Créer le super administrateur depuis le conteneur :
 
 ```bash
-python -m app.db.seed
+python -m app.db.create_admin --phone "+225 07 00 00 00 01" --first-name Yedjande --last-name YEO --organization "Association Solidarité"
 ```
+
+Le mot de passe est demandé sans écho. En contexte non interactif, le passer
+par `KADJANE_ADMIN_PASSWORD` plutôt que par `--password`, qui laisserait une
+trace dans l'historique du shell et les journaux de l'hébergeur. Sont refusés :
+moins de 12 caractères, et tout mot de passe contenant un terme trop courant
+(`kadjane`, `password`, `changeme`…).
+
+Le script est idempotent, et ne crée **que** ce compte et son organisation :
+aucune tontine, aucune écriture financière. Le super administrateur ajoute
+ensuite les membres depuis le back-office, et chacun définit son mot de passe à
+la première connexion par OTP.
+
+> **Ne pas utiliser `python -m app.db.seed` en production.** Ce jeu de
+> démonstration crée douze comptes partageant un même mot de passe connu —
+> dont un administrateur — les marque comme déjà vérifiés, et injecte onze
+> paiements fictifs de 50 000 FCFA dans la trésorerie, les rapports et l'audit.
+> Il est réservé au développement.
 
 Puis vérifier depuis un poste, en visant l'URL publique :
 
