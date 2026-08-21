@@ -154,6 +154,19 @@ a:hover { text-decoration: underline; }
 .k-btn--danger { background: var(--k-danger); }
 .k-btn--danger:hover:not(:disabled) { background: #a12a22; }
 
+/* Action destructive au fil d'un tableau : le rouge plein, répété à chaque
+   ligne, écraserait la lecture. On garde le fantôme et on ne teinte que le
+   texte, jusqu'au survol. */
+.k-btn--ghost.k-btn--danger {
+  background: transparent;
+  color: var(--k-danger);
+}
+
+.k-btn--ghost.k-btn--danger:hover:not(:disabled) {
+  background: var(--k-danger-surface);
+  border-color: var(--k-danger);
+}
+
 .k-btn--gold {
   background: var(--k-gold);
   color: #3a2708;

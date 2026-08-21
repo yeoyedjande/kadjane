@@ -105,6 +105,24 @@ def patch_member_in_organization(
     )
 
 
+@router.delete(
+    "/organizations/{organization_id}/members/{member_id}",
+    summary="Supprimer un membre",
+)
+def delete_member_in_organization(
+    db: DbSession, context: OrgContext, member_id: uuid.UUID
+) -> dict[str, Any]:
+    """Retire un membre de l'organisation.
+
+    Refusé s'il participe à une tontine : voir `MemberService.delete`.
+    """
+    permission_service.require(context.membership.role_enum, "member.delete")
+    service = MemberService(db)
+    member = service.get_in_organization(member_id, context.organization_id)
+    service.delete(member, context.membership)
+    return success({"deleted": True})
+
+
 # --- Routes courtes `/members/{id}` -----------------------------------------
 # L'application les utilise depuis la fiche d'un membre. L'organisation n'est
 # pas dans l'URL : elle est déduite du membre visé, puis l'appartenance de

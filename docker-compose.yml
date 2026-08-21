@@ -59,7 +59,9 @@ services:
     depends_on:
       - backend
     ports:
-      - "${ADMIN_PORT:-4200}:80"
+      # L'image écoute sur `PORT` (8080 par défaut) : l'hébergeur impose le
+      # sien, le port ne peut donc pas être figé dans nginx.
+      - "${ADMIN_PORT:-4200}:8080"
     profiles:
       - admin
 

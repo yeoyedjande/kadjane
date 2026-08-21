@@ -50,6 +50,7 @@ ADMIN_PERMISSIONS: set[str] = (
         "organization.manage_officers",
         "member.create",
         "member.edit",
+        "member.delete",
         "tontine.create",
         "tontine.edit",
         "draw.override",

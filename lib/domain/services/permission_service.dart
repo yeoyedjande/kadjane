@@ -52,6 +52,7 @@ class PermissionService {
     Permission.organizationManageOfficers,
     Permission.memberCreate,
     Permission.memberEdit,
+    Permission.memberDelete,
     Permission.tontineCreate,
     Permission.tontineEdit,
     Permission.drawOverride,

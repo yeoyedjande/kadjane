@@ -75,6 +75,7 @@ export class MembersPage {
   readonly formOpen = signal(false);
   readonly editing = signal<Member | null>(null);
   readonly confirm = signal<ConfirmRequest | null>(null);
+  readonly deleting = signal<string | null>(null);
 
   private pendingChange: (() => void) | null = null;
 
@@ -200,6 +201,25 @@ export class MembersPage {
     this.persist(organizationId, payload);
   }
 
+  /** Demande confirmation avant de retirer un membre.
+   *
+   *  La suppression est définitive et rend l'accès mobile impossible : elle
+   *  passe donc toujours par le dialogue, jamais par un clic isolé.
+   */
+  askDelete(member: Member): void {
+    const organizationId = this.session.organizationId();
+    if (!organizationId) {
+      return;
+    }
+    const name = `${member.user.firstName} ${member.user.lastName}`;
+    this.pendingChange = () => this.remove(organizationId, member, name);
+    this.confirm.set({
+      title: 'Supprimer ce membre',
+      message: `${name} sera retiré de l'organisation et perdra l'accès à l'application mobile. Cette action est définitive.`,
+      confirmLabel: 'Supprimer',
+    });
+  }
+
   onConfirmed(): void {
     const action = this.pendingChange;
     this.pendingChange = null;
@@ -210,6 +230,23 @@ export class MembersPage {
   onCancelled(): void {
     this.pendingChange = null;
     this.confirm.set(null);
+  }
+
+  private remove(organizationId: string, member: Member, name: string): void {
+    this.deleting.set(member.id);
+    this.members.remove(organizationId, member.id).subscribe({
+      next: () => {
+        this.deleting.set(null);
+        this.toast.success(`${name} a été supprimé.`);
+        this.load();
+      },
+      error: (error: unknown) => {
+        this.deleting.set(null);
+        // `member_has_history` n'est pas un échec technique mais une règle
+        // métier : le message du backend indique déjà la désactivation.
+        this.toast.fromError(error);
+      },
+    });
   }
 
   private persist(organizationId: string, payload: MemberPayload): void {

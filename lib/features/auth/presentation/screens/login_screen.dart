@@ -117,46 +117,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     isLoading: state.isLoading,
                     onPressed: _submit,
                   ),
-                  KSpacing.gapLg,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        context.l10n.authNoAccount,
-                        style: context.text.bodyMedium,
-                      ),
-                      TextButton(
-                        onPressed: () => context.push(AppRoutes.register),
-                        child: Text(context.l10n.authSignUp),
-                      ),
-                    ],
-                  ),
-                  KSpacing.gapLg,
-                  Container(
-                    padding: const EdgeInsets.all(KSpacing.md),
-                    decoration: BoxDecoration(
-                      color: context.colors.infoSurface,
-                      borderRadius: KRadius.field,
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.info_outline,
-                          size: KSizes.iconSm,
-                          color: context.colors.info,
-                        ),
-                        const SizedBox(width: KSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            context.l10n.authDemoHint,
-                            style: context.text.bodySmall?.copyWith(
-                              color: context.colors.info,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Ni création de compte ni identifiants de démonstration :
+                  // les comptes des membres sont créés par l'administrateur
+                  // depuis le back-office.
                 ],
               ),
             ),

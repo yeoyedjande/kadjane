@@ -88,6 +88,16 @@
                     Modifier
                   </button>
                 }
+                @if (session.can('member.delete') && member.id !== session.membership()?.id) {
+                  <button
+                    type="button"
+                    class="k-btn k-btn--ghost k-btn--sm k-btn--danger"
+                    [disabled]="deleting() === member.id"
+                    (click)="askDelete(member)"
+                  >
+                    Supprimer
+                  </button>
+                }
               </td>
             </tr>
           }
