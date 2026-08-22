@@ -100,6 +100,9 @@ requête. Un échec purge la session et renvoie l'utilisateur vers la connexion.
 | GET | `/organizations/{id}/members?query=&role=&status=&page=&pageSize=` | `paged<member>` |
 | POST | `/organizations/{id}/members` | `member` (+ `temporaryPassword`) |
 | DELETE | `/organizations/{id}/members/{memberId}` | `{ "deleted": true }` |
+| GET | `/members/{id}` | `member` |
+| PUT | `/members/{id}` | `member` |
+| GET | `/members/{id}/stats` | `memberStats` |
 
 **Accès du membre.** `POST /organizations/{id}/members` accepte un champ
 `password` : le mot de passe provisoire que l'administrateur remet au membre.
@@ -117,9 +120,6 @@ Le membre change ensuite son mot de passe lui-même :
 Corps : `currentPassword`, `newPassword` (8 caractères minimum). Requiert une
 session. Erreurs : `invalid_current_password` (401), `password_unchanged` (401).
 Les autres sessions ouvertes sont fermées.
-| GET | `/members/{id}` | `member` |
-| PUT | `/members/{id}` | `member` |
-| GET | `/members/{id}/stats` | `memberStats` |
 
 **Suppression d'un membre** — réservée à `member.delete` (administrateur), elle
 est refusée dans trois cas :
@@ -390,6 +390,53 @@ la désactivation (`status: "inactive"`) est la bonne réponse.
   "status": "paid",     // pending | processing | paid | failed
   "method": "wave", "reference": "WV88120", "comment": null, "attachmentId": null,
   "sentAt": "…", "recordedBy": "mbr_2", "createdAt": "…"
+}
+```
+
+---
+
+## 7bis. Cotisations de caisse
+
+Sommes dues à l'association **hors tontine** : elles ne sont pas redistribuées.
+Voir la section « Tontine ≠ caisse » du README.
+
+| Méthode | Route | Réponse |
+|---|---|---|
+| GET | `/organizations/{id}/dues-plans` | `[duesPlan]` (avec `summary`) |
+| POST | `/organizations/{id}/dues-plans` | `duesPlan` |
+| PATCH | `/organizations/{id}/dues-plans/{planId}` | `duesPlan` |
+| GET | `/organizations/{id}/dues-plans/{planId}/entries?period=&memberId=` | `[duesEntry]` |
+| GET | `/organizations/{id}/dues-outstanding?memberId=` | `[duesEntry]` non soldées |
+| GET | `/me/dues?organizationId=` | `[duesEntry]` du membre connecté |
+| POST | `/dues-entries/{entryId}/payments` | `duesPayment` (+ `entry` rafraîchie) |
+| POST | `/dues-payments/{paymentId}/cancel` | `duesPayment` |
+
+**Droits** — `dues.view` (tout membre), `dues.record` (trésorier et
+administrateur), `dues.manage` (administrateur).
+
+**Génération des échéances.** Les lectures (`dues-plans`, `entries`,
+`dues-outstanding`, `/me/dues`) engendrent les périodes écoulées manquantes.
+L'opération est idempotente. Un membre ne reçoit pas d'échéance pour une
+période close avant son adhésion, et un plan `paused` ou `closed` n'en engendre
+plus.
+
+**Trésorerie.** `/organizations/{id}/treasury` expose désormais
+`contributionsTotal` (tontines) et `duesTotal` (caisse) en plus de `balance`.
+
+```jsonc
+// duesEntry
+{
+  "id": "…",
+  "planId": "…",
+  "memberId": "…",
+  "member": { /* member */ },
+  "sequenceNumber": 3,
+  "periodLabel": "Août 2026",
+  "dueDate": "2026-08-05T23:59:59Z",
+  "expectedAmount": "5000.00",
+  "paidAmount": "0.00",
+  "remainingAmount": "5000.00",
+  "status": "late"        // pending | partial | paid | late | cancelled
 }
 ```
 

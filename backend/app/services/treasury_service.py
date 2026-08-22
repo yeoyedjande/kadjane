@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.errors import ValidationError
 from app.models.contribution import Contribution, Payment
+from app.models.dues import DuesPayment
 from app.models.enums import (
     AuditAction,
     PaymentStatus,
@@ -43,16 +44,23 @@ class TreasuryService:
 
     def snapshot(self, organization_id: uuid.UUID, *, limit: int = 50) -> dict[str, Any]:
         contributions_in = self._contributions_total(organization_id)
+        dues_in = self._dues_total(organization_id)
         payouts_out = self._payouts_total(organization_id)
         manual_in, manual_out = self._manual_totals(organization_id)
 
-        inflows = contributions_in + manual_in
+        inflows = contributions_in + dues_in + manual_in
         outflows = payouts_out + manual_out
 
         return {
             "balance": out.money(inflows - outflows),
             "inflows": out.money(inflows),
             "outflows": out.money(outflows),
+            # Détail des recettes : les cotisations de tontine transitent par
+            # la cagnotte et ressortent en versements, tandis que celles de
+            # caisse restent dans l'association. Les distinguer évite de lire
+            # un solde flatteur.
+            "contributionsTotal": out.money(contributions_in),
+            "duesTotal": out.money(dues_in),
             "transactions": self.transactions(organization_id, limit=limit),
         }
 
@@ -309,6 +317,15 @@ class TreasuryService:
             select(func.coalesce(func.sum(Payment.amount), 0)).where(
                 Payment.organization_id == organization_id,
                 Payment.status == PaymentStatus.CONFIRMED.value,
+            )
+        )
+
+    def _dues_total(self, organization_id: uuid.UUID) -> Decimal:
+        """Cotisations de caisse encaissées et confirmées."""
+        return self._decimal(
+            select(func.coalesce(func.sum(DuesPayment.amount), 0)).where(
+                DuesPayment.organization_id == organization_id,
+                DuesPayment.status == PaymentStatus.CONFIRMED.value,
             )
         )
 

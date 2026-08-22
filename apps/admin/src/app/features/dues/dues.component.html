@@ -1,0 +1,228 @@
+<k-page-header
+  title="Caisse"
+  subtitle="Cotisations dues à l'association, hors tontine."
+>
+  @if (session.can('dues.manage')) {
+    <button type="button" class="k-btn" (click)="openCreate()">
+      Nouvelle cotisation
+    </button>
+  }
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (!loading() && !plans().length) {
+  <article class="k-card">
+    <div class="k-card__body k-stack">
+      <p class="k-muted">
+        Aucune cotisation de caisse. Une cotisation de caisse est une somme que
+        chaque membre verse périodiquement à l'association — contrairement à une
+        tontine, elle n'est pas redistribuée.
+      </p>
+    </div>
+  </article>
+}
+
+@if (plans().length) {
+  <div class="k-stack">
+    <section class="k-grid k-grid--3">
+      @for (plan of plans(); track plan.id) {
+        <button
+          type="button"
+          class="k-card dues-card"
+          [class.is-selected]="plan.id === selectedId()"
+          (click)="select(plan.id)"
+        >
+          <div class="k-card__body k-stack">
+            <div class="k-toolbar">
+              <strong>{{ plan.name }}</strong>
+              <k-badge [value]="plan.status" />
+            </div>
+            <div class="dues-card__amount">{{ plan.amount | money }}</div>
+            <div class="k-muted" style="font-size: 12px">
+              {{ plan.frequency | label }} · échéance le {{ plan.dueDay }}
+            </div>
+            @if (plan.summary; as summary) {
+              <div class="k-muted" style="font-size: 12px">
+                {{ summary.unpaidCount }} impayé(s) ·
+                {{ summary.collectedTotal | money }} encaissé
+              </div>
+            }
+          </div>
+        </button>
+      }
+    </section>
+
+    @if (selected(); as plan) {
+      <article class="k-card">
+        <div class="k-card__header">
+          <div class="k-toolbar">
+            <h2 class="k-card__title">{{ plan.name }}</h2>
+            <select class="k-select" (change)="onPeriod($any($event.target).value)">
+              <option value="">Toutes les périodes</option>
+              @for (item of periods(); track item.sequence) {
+                <option [value]="item.sequence" [selected]="item.sequence === period()">
+                  {{ item.label }}
+                </option>
+              }
+            </select>
+            <k-search placeholder="Nom, téléphone…" (search)="search.set($event)" />
+            <button
+              type="button"
+              class="k-btn k-btn--ghost k-btn--sm"
+              (click)="toggleUnpaid()"
+            >
+              {{ onlyUnpaid() ? 'Tous' : 'Impayés seulement' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="k-card__body k-stack">
+          <section class="k-grid k-grid--3">
+            <k-stat label="Attendu" [value]="totals().expected | money" />
+            <k-stat
+              label="Encaissé"
+              [value]="totals().collected | money"
+              [accent]="true"
+            />
+            <k-stat label="Impayés" [value]="totals().unpaid.toString()" />
+          </section>
+
+          @if (loadingEntries()) {
+            <p class="k-muted">Chargement des échéances…</p>
+          } @else if (!visibleEntries().length) {
+            <p class="k-muted">Aucune échéance pour ce filtre.</p>
+          } @else {
+            <div class="k-table-wrap">
+              <table class="k-table">
+                <thead>
+                  <tr>
+                    <th>MEMBRE</th>
+                    <th>PÉRIODE</th>
+                    <th class="k-num">DÛ</th>
+                    <th class="k-num">RÉGLÉ</th>
+                    <th>STATUT</th>
+                    <th class="k-nowrap">ÉCHÉANCE</th>
+                    <th class="k-num"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (entry of visibleEntries(); track entry.id) {
+                    <tr>
+                      <td>
+                        <div class="k-toolbar">
+                          <k-avatar
+                            [name]="
+                              (entry.member?.user?.firstName ?? '') +
+                              ' ' +
+                              (entry.member?.user?.lastName ?? '')
+                            "
+                          />
+                          <span>
+                            {{ entry.member?.user?.firstName }}
+                            {{ entry.member?.user?.lastName }}
+                          </span>
+                        </div>
+                      </td>
+                      <td class="k-nowrap">{{ entry.periodLabel }}</td>
+                      <td class="k-num">{{ entry.expectedAmount | money }}</td>
+                      <td class="k-num">{{ entry.paidAmount | money }}</td>
+                      <td><k-badge [value]="entry.status" /></td>
+                      <td class="k-nowrap k-muted">{{ entry.dueDate | frDate }}</td>
+                      <td class="k-num">
+                        @if (entry.status !== 'paid' && session.can('dues.record')) {
+                          <button
+                            type="button"
+                            class="k-btn k-btn--ghost k-btn--sm"
+                            [disabled]="payingId() === entry.id"
+                            (click)="settle(entry)"
+                          >
+                            Encaisser {{ entry.remainingAmount | money }}
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (formOpen()) {
+  <div class="drawer-backdrop" (click)="formOpen.set(false)">
+    <aside class="drawer k-card" (click)="$event.stopPropagation()">
+      <div class="k-card__header">
+        <h2 class="k-card__title">Nouvelle cotisation de caisse</h2>
+        <button
+          type="button"
+          class="k-btn k-btn--ghost k-btn--sm"
+          (click)="formOpen.set(false)"
+        >
+          Fermer
+        </button>
+      </div>
+
+      <form class="k-card__body k-stack" [formGroup]="form" (ngSubmit)="submit()">
+        <label class="k-field">
+          <span class="k-label">Nom</span>
+          <input
+            class="k-input"
+            formControlName="name"
+            placeholder="Caisse de solidarité"
+            [class.is-invalid]="invalid('name')"
+          />
+          @if (invalid('name')) {
+            <span class="k-error">Nom requis.</span>
+          }
+        </label>
+
+        <div class="k-grid k-grid--2">
+          <label class="k-field">
+            <span class="k-label">Montant par membre</span>
+            <input
+              class="k-input"
+              type="number"
+              formControlName="amount"
+              [class.is-invalid]="invalid('amount')"
+            />
+            <span class="k-hint">Identique pour tous les membres.</span>
+          </label>
+
+          <label class="k-field">
+            <span class="k-label">Périodicité</span>
+            <select class="k-select" formControlName="frequency">
+              @for (item of frequencies; track item.value) {
+                <option [value]="item.value">{{ item.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <label class="k-field">
+          <span class="k-label">Jour d'échéance</span>
+          <input
+            class="k-input"
+            type="number"
+            formControlName="dueDay"
+            [class.is-invalid]="invalid('dueDay')"
+          />
+          <span class="k-hint">Passé ce jour, l'échéance bascule en retard.</span>
+        </label>
+
+        <label class="k-field">
+          <span class="k-label">Description (facultatif)</span>
+          <input class="k-input" formControlName="description" />
+        </label>
+
+        <button type="submit" class="k-btn" [disabled]="saving()">
+          {{ saving() ? 'Création…' : 'Créer la cotisation' }}
+        </button>
+      </form>
+    </aside>
+  </div>
+}

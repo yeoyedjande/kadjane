@@ -1324,4 +1324,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String remindersConfirmMessage(int count) {
     return '$count member(s) will be notified on the selected channels.';
   }
+
+  @override
+  String get duesTitle => 'Fund contributions';
+
+  @override
+  String get duesTotalDue => 'Total due';
+
+  @override
+  String get duesAllSettled =>
+      'You are up to date with your fund contributions.';
+
+  @override
+  String duesUnpaidCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count instalments',
+      one: '1 instalment',
+      zero: 'no instalment',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String duesDueOn(String date) {
+    return 'due on $date';
+  }
+
+  @override
+  String get duesCollectTitle => 'Collect contributions';
+
+  @override
+  String get duesNoPlan =>
+      'No fund contribution is defined for this organisation.';
+
+  @override
+  String get duesOnlyUnpaid => 'Unpaid only';
+
+  @override
+  String get duesNothingToCollect => 'Nothing to collect for this period.';
+
+  @override
+  String get duesPerMember => 'per member';
+
+  @override
+  String get duesCollected => 'Collected';
+
+  @override
+  String get duesUnpaidLabel => 'Unpaid';
+
+  @override
+  String get duesPaymentRecorded => 'Payment recorded';
 }

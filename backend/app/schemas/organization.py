@@ -3,10 +3,22 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import EmailStr, Field
+from pydantic import EmailStr, Field, field_validator
 
 from app.models.enums import OrganizationStatus
 from app.schemas.base import CamelModel
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    """Traite un champ facultatif vidé comme absent.
+
+    Les formulaires renvoient `""` quand l'utilisateur efface un champ. Sans
+    cette conversion, `EmailStr` rejette la requête et l'écran entier échoue à
+    l'enregistrement, alors que l'intention était simplement de vider le champ.
+    """
+    if isinstance(value, str) and not value.strip():
+        return None
+    return value
 
 
 class OrganizationSettings(CamelModel):
@@ -45,6 +57,12 @@ class OrganizationCreate(CamelModel):
     rules: str | None = None
     settings: OrganizationSettings | None = None
 
+    _optional_blanks = field_validator(
+        "description", "phone", "email", "address", "rules", "logo_url",
+        mode="before",
+        check_fields=False,
+    )(_blank_to_none)
+
 
 class OrganizationUpdate(CamelModel):
     name: str | None = Field(default=None, min_length=2, max_length=180)
@@ -58,3 +76,10 @@ class OrganizationUpdate(CamelModel):
     rules: str | None = None
     settings: OrganizationSettings | None = None
     status: OrganizationStatus | None = None
+
+    _optional_blanks = field_validator(
+        "description", "phone", "email", "address", "rules", "logo_url",
+        mode="before",
+        check_fields=False,
+    )(_blank_to_none)
+

@@ -68,6 +68,13 @@ backend/.env.*
 # dépôt. Le dossier est recréé au démarrage par l'application.
 backend/uploads/
 
+# --- Firebase ---------------------------------------------------------------
+# Configuration propre à chaque projet Firebase, régénérable depuis la console.
+# Non secrète à proprement parler, mais versionner celle d'un autre projet
+# ferait échouer les builds sans qu'on comprenne pourquoi.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
 # --- Android signing --------------------------------------------------------
 android/key.properties
 *.jks

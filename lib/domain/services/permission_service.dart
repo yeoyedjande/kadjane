@@ -18,6 +18,7 @@ class PermissionService {
     Permission.drawView,
     Permission.payoutView,
     Permission.reminderView,
+    Permission.duesView,
   };
 
   static const Set<Permission> _auditorPermissions = <Permission>{
@@ -34,6 +35,7 @@ class PermissionService {
     Permission.contributionCancel,
     Permission.payoutRecord,
     Permission.treasuryManage,
+    Permission.duesRecord,
     Permission.reminderSend,
   };
 
@@ -53,6 +55,7 @@ class PermissionService {
     Permission.memberCreate,
     Permission.memberEdit,
     Permission.memberDelete,
+    Permission.duesManage,
     Permission.tontineCreate,
     Permission.tontineEdit,
     Permission.drawOverride,

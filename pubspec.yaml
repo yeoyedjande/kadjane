@@ -35,12 +35,34 @@ dependencies:
   uuid: ^4.6.0
   collection: ^1.19.1
   http: ^1.6.0
+  firebase_core: ^4.13.0
+  firebase_messaging: ^16.5.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # Décline les icônes d'application dans toutes les tailles attendues par
+  # Android et iOS : `dart run flutter_launcher_icons`.
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
   generate: true
+
+# Icônes d'application, produites depuis `assets/branding/`.
+# Ces sources sont elles-mêmes générées par `tool/generate_app_icon.py`.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/app_icon.png
+
+  # iOS refuse les icônes comportant un canal alpha et applique son propre
+  # masque : la source dédiée est carrée, pleine et sans coins arrondis.
+  image_path_ios: assets/branding/app_icon_ios.png
+  remove_alpha_ios: true
+
+  # Icône adaptative : le lanceur compose l'avant-plan sur le fond et rogne le
+  # tiers extérieur, d'où un monogramme seul et largement margé.
+  adaptive_icon_background: "#0E6B54"
+  adaptive_icon_foreground: assets/branding/app_icon_foreground.png

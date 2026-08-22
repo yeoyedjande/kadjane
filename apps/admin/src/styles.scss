@@ -154,6 +154,29 @@ a:hover { text-decoration: underline; }
 .k-btn--danger { background: var(--k-danger); }
 .k-btn--danger:hover:not(:disabled) { background: #a12a22; }
 
+/* Cartes de cotisation de caisse : cliquables, l'active se distingue par sa
+   bordure plutôt que par un fond, pour ne pas rivaliser avec les statuts. */
+.dues-card {
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid var(--k-outline);
+  transition: border-color 120ms ease;
+}
+
+.dues-card:hover {
+  border-color: var(--k-text-tertiary);
+}
+
+.dues-card.is-selected {
+  border-color: var(--k-primary);
+  box-shadow: inset 0 0 0 1px var(--k-primary);
+}
+
+.dues-card__amount {
+  font-size: 20px;
+  font-weight: 700;
+}
+
 /* Accès à recopier : le mot de passe provisoire doit se lire caractère par
    caractère, d'où la police à chasse fixe et l'espacement. */
 .credentials__value {

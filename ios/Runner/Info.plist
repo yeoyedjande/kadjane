@@ -8,6 +8,13 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Kadjane</string>
+	<!-- Justificatifs de paiement : `image_picker` ouvre l'appareil photo et la
+	     photothèque. Sans ces descriptions, iOS interrompt l'application au
+	     moment de l'accès, et App Store refuse la soumission. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Kadjane utilise l'appareil photo pour joindre le justificatif d'un paiement.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Kadjane accède à vos photos pour joindre le justificatif d'un paiement.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

@@ -1,12 +1,16 @@
 import 'package:kadjane/core/network/api_client.dart';
 import 'package:kadjane/data/dto/activity_dto.dart';
+import 'package:kadjane/data/dto/dues_dto.dart';
 import 'package:kadjane/data/dto/json_reader.dart';
 import 'package:kadjane/domain/entities/app_notification.dart';
 import 'package:kadjane/domain/entities/audit_log.dart';
 import 'package:kadjane/domain/entities/cash_transaction.dart';
+import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/enums/audit_action.dart';
+import 'package:kadjane/domain/enums/payment_enums.dart';
 import 'package:kadjane/domain/repositories/audit_repository.dart';
 import 'package:kadjane/domain/repositories/dashboard_repository.dart';
+import 'package:kadjane/domain/repositories/dues_repository.dart';
 import 'package:kadjane/domain/repositories/notification_repository.dart';
 import 'package:kadjane/domain/repositories/report_repository.dart';
 import 'package:kadjane/domain/repositories/treasury_repository.dart';
@@ -196,5 +200,61 @@ class RestReportRepository implements ReportRepository {
       body: <String, dynamic>{'format': format.name},
     );
     return Json.stringOr(response, 'url');
+  }
+}
+
+/// Cotisations de caisse du membre connecté.
+///
+/// Lecture seule : l'encaissement se fait depuis le back-office, par le
+/// trésorier qui détient l'argent.
+class RestDuesRepository implements DuesRepository {
+  const RestDuesRepository(this._api);
+
+  final ApiClient _api;
+
+  @override
+  Future<List<DuesEntry>> myOutstanding(String organizationId) async {
+    final List<JsonMap> rows = await _api.getList(
+      ApiRoutes.myDues(organizationId),
+    );
+    return rows.map(DuesEntryDto.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<List<DuesPlan>> plans(String organizationId) async {
+    final List<JsonMap> rows = await _api.getList(
+      ApiRoutes.duesPlans(organizationId),
+    );
+    return rows.map(DuesPlanDto.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<List<DuesEntry>> entries(
+    String organizationId,
+    String planId, {
+    int? period,
+  }) async {
+    final List<JsonMap> rows = await _api.getList(
+      ApiRoutes.duesEntries(organizationId, planId),
+      query: period == null ? null : <String, dynamic>{'period': period},
+    );
+    return rows.map(DuesEntryDto.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<void> recordPayment({
+    required String entryId,
+    required double amount,
+    required PaymentMethod method,
+    String? reference,
+  }) async {
+    await _api.post(
+      ApiRoutes.duesPayments(entryId),
+      body: <String, dynamic>{
+        'amount': amount,
+        'paymentMethod': method.code,
+        if (reference != null && reference.isNotEmpty) 'reference': reference,
+      },
+    );
   }
 }

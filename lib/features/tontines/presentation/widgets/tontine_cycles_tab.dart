@@ -12,7 +12,6 @@ import 'package:kadjane/design_system/widgets/k_progress.dart';
 import 'package:kadjane/domain/entities/beneficiary.dart';
 import 'package:kadjane/domain/entities/tontine_cycle.dart';
 import 'package:kadjane/domain/enums/tontine_enums.dart';
-import 'package:kadjane/features/dashboard/presentation/widgets/dashboard_cards.dart';
 import 'package:kadjane/features/tontines/presentation/providers/tontine_providers.dart';
 
 /// Onglet « Cotisations » : une carte par période.

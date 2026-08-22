@@ -3,12 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
+import 'package:kadjane/design_system/labels.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
 import 'package:kadjane/design_system/widgets/k_avatar.dart';
 import 'package:kadjane/design_system/widgets/k_badge.dart';
 import 'package:kadjane/design_system/widgets/k_states.dart';
 import 'package:kadjane/domain/entities/tontine_participant.dart';
-import 'package:kadjane/features/dashboard/presentation/widgets/dashboard_cards.dart';
 import 'package:kadjane/features/tontines/presentation/providers/tontine_providers.dart';
 
 /// Onglet « Participants ».

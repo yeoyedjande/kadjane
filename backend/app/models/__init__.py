@@ -3,6 +3,7 @@
 from app.models.audit import AuditLog
 from app.models.contribution import Contribution, Payment
 from app.models.draw import DrawParticipant, DrawSession
+from app.models.dues import DuesEntry, DuesPayment, DuesPlan
 from app.models.enums import (
     AllocationMode,
     NotificationType,
@@ -15,6 +16,7 @@ from app.models.enums import (
     CycleStatus,
     DrawStatus,
     DrawType,
+    DuesPlanStatus,
     Gender,
     MemberStatus,
     OrganizationStatus,
@@ -30,6 +32,7 @@ from app.models.notification import DeviceToken, Notification
 from app.models.organization import Organization
 from app.models.payout import Beneficiary, Payout
 from app.models.refresh_token import RefreshToken
+from app.models.reminder import Reminder, ReminderCampaign
 from app.models.tontine import Tontine, TontineCycle, TontineParticipant
 from app.models.treasury import CashTransaction
 from app.models.user import User
@@ -54,6 +57,10 @@ __all__ = [
     "DrawSession",
     "DrawStatus",
     "DrawType",
+    "DuesEntry",
+    "DuesPayment",
+    "DuesPlan",
+    "DuesPlanStatus",
     "Gender",
     "MemberStatus",
     "OrgRole",
@@ -66,6 +73,8 @@ __all__ = [
     "Payout",
     "PayoutStatus",
     "RefreshToken",
+    "Reminder",
+    "ReminderCampaign",
     "Tontine",
     "TontineCycle",
     "TontineFrequency",

@@ -6,6 +6,7 @@ import 'package:kadjane/app/router/app_router.dart';
 import 'package:kadjane/app/state/app_settings_controller.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
 import 'package:kadjane/design_system/theme/app_theme.dart';
+import 'package:kadjane/features/notifications/presentation/providers/push_providers.dart';
 import 'package:kadjane/l10n/generated/app_localizations.dart';
 
 /// Racine de l'application Kadjane.
@@ -16,6 +17,11 @@ class KadjaneApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppSettings settings = ref.watch(appSettingsProvider);
     final GoRouter router = ref.watch(routerProvider);
+
+    // Suit la session : l'appareil s'enregistre pour les notifications à la
+    // connexion, et se détache à la déconnexion. Observé ici plutôt que dans
+    // un écran, pour survivre à la navigation.
+    ref.watch(pushLifecycleProvider);
 
     return MaterialApp.router(
       title: 'Kadjane',

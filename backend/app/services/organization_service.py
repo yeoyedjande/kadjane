@@ -29,6 +29,10 @@ def slugify(value: str) -> str:
     return base or "organisation"
 
 
+# Colonnes non nulles en base : un `null` reçu ne doit pas les écraser.
+_REQUIRED_FIELDS = frozenset({"name", "currency", "country", "status"})
+
+
 class OrganizationService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -81,9 +85,16 @@ class OrganizationService:
     def update(
         self, organization: Organization, payload: OrganizationUpdate
     ) -> Organization:
-        data = payload.model_dump(exclude_unset=True, exclude_none=True)
+        # `exclude_unset` seul : un champ explicitement mis à `null` doit
+        # pouvoir **effacer** la valeur. Écarter tous les `None` interdisait de
+        # vider un e-mail ou une adresse une fois renseignés.
+        data = payload.model_dump(exclude_unset=True)
         settings = data.pop("settings", None)
         for field, value in data.items():
+            # Les colonnes obligatoires ne s'effacent pas : un `null` y est
+            # traité comme « ne pas toucher ».
+            if value is None and field in _REQUIRED_FIELDS:
+                continue
             if field in {"currency", "country"} and isinstance(value, str):
                 value = value.upper()
             if field == "status":

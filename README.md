@@ -449,6 +449,57 @@ C'est la règle fondamentale de Kadjane. Lorsqu'un membre reçoit la cagnotte :
 Implémentée par `TontineParticipant.markAsBeneficiary()` et vérifiée par les
 tests `test/data/draw_repository_test.dart`.
 
+### Tontine ≠ caisse
+
+Deux flux d'argent coexistent, et les confondre fausse les comptes.
+
+| | Tontine | Caisse |
+|---|---|---|
+| Finalité | Redistribuer | Financer l'association |
+| Retour au membre | La cagnotte, à son tour | Aucun |
+| Rattachement | Un cycle de tontine | L'organisation |
+| Modèle | `Contribution` | `DuesEntry` |
+
+Une **cotisation de caisse** est une somme périodique due par chaque membre,
+identique pour tous, qui reste dans l'association — elle finance les dépenses
+courantes et les aides. Le trésorier encaisse et relance.
+
+Plusieurs plans peuvent coexister (« Caisse de solidarité », « Fonds
+événement »), chacun avec son montant et sa périodicité. Les échéances sont
+engendrées **à la lecture** : aucune tâche planifiée, consulter la cotisation
+suffit à faire apparaître les périodes écoulées.
+
+Deux règles d'équité gouvernent cette génération :
+
+* seuls les membres **actifs** reçoivent de nouvelles échéances ;
+* un membre ne doit rien pour les périodes **closes avant son adhésion** —
+  rejoindre l'association ne crée pas de dette rétroactive.
+
+Un changement de montant ne vaut que pour les périodes à venir : réécrire les
+échéances passées fausserait les comptes du trésorier.
+
+C'est ce qui explique qu'un solde de trésorerie puisse être nul alors que des
+millions ont transité : les cotisations de tontine ressortent en versements.
+`duesTotal` et `contributionsTotal` distinguent les deux dans l'instantané de
+trésorerie.
+
+### L'espace du trésorier sur mobile
+
+Le trésorier détient l'argent : il doit pouvoir travailler depuis son téléphone,
+sans ouvrir le back-office.
+
+| Écran mobile | Droit requis |
+|---|---|
+| Trésorerie — solde et mouvements | `treasury.view` / `treasury.manage` |
+| Encaisser une cotisation de tontine | `contribution.record` |
+| **Encaisser les cotisations de caisse** | `dues.record` |
+| **Centre de relance** | `reminder.send` |
+
+Les deux derniers écrans n'apparaissent qu'aux rôles concernés : un simple
+membre ne voit que sa propre situation. Définir une cotisation
+(`dues.manage`) reste en revanche une opération de back-office — c'est du
+paramétrage, pas de l'encaissement.
+
 ### Modes d'attribution
 
 | Mode | Fonctionnement |
@@ -876,6 +927,110 @@ Puis vérifier depuis un poste, en visant l'URL publique :
 ```bash
 python backend/scripts/smoke_api.py --base-url https://<hôte>/api/v1 --origin https://<front>
 ```
+
+### Icône de l'application
+
+Les sources vivent dans `assets/branding/` et sont **générées** par
+`tool/generate_app_icon.py`, qui transpose `lib/design_system/widgets/k_logo.dart`.
+Trois variantes, parce que les plateformes n'attendent pas la même chose :
+
+| Fichier | Usage |
+|---|---|
+| `app_icon.png` | Carré à coins arrondis — icône Android historique |
+| `app_icon_ios.png` | Carré plein, **sans canal alpha** : iOS applique son propre masque et refuse la transparence |
+| `app_icon_foreground.png` | Monogramme seul et margé — avant-plan de l'icône adaptative Android, dont le lanceur rogne le tiers extérieur |
+
+Régénérer les sources (nécessite Pillow ; le conteneur backend fait l'affaire) :
+
+```bash
+docker cp tool/generate_app_icon.py kadjane-backend:/tmp/ && docker exec kadjane-backend pip install --quiet Pillow && docker exec kadjane-backend python /tmp/generate_app_icon.py /app/_icons
+```
+
+Puis décliner toutes les tailles :
+
+```bash
+dart run flutter_launcher_icons
+```
+
+> **À vérifier après chaque exécution.** L'outil écrase
+> `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS` — un réglage
+> **booléen** de `ios/Runner.xcodeproj/project.pbxproj` — avec la valeur
+> `AppIcon`. Le rétablir à `YES` ; `ASSETCATALOG_COMPILER_APPICON_NAME`, lui,
+> vaut bien `AppIcon` et ne doit pas être touché.
+>
+> ```bash
+> git diff ios/Runner.xcodeproj/project.pbxproj
+> ```
+
+### Version iOS
+
+**Impossible depuis Windows ou Linux** : Flutter n'enregistre les sous-commandes
+`build ios` et `build ipa` que sur macOS, où Xcode est disponible. Un Mac est
+indispensable.
+
+Le projet est prêt : icônes déclinées sans canal alpha, `CFBundleDisplayName`
+à *Kadjane*, identifiant `com.kadjane.kadjane`, et les descriptions d'usage
+`NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription` exigées par
+`image_picker` — sans elles, iOS interrompt l'application à l'ouverture de
+l'appareil photo et App Store refuse la soumission.
+
+Reste à faire sur un Mac, avec un compte Apple Developer (99 $/an) :
+
+```bash
+flutter build ipa --export-method app-store
+```
+
+L'IPA se retrouve dans `build/ios/ipa/`, à téléverser vers TestFlight. La
+signature (équipe, profil de provisionnement) se règle dans Xcode, onglet
+*Signing & Capabilities*.
+
+### Notifications push (Android)
+
+Trois pièces, dont deux seulement sont dans le dépôt.
+
+| Pièce | État |
+|---|---|
+| `android/app/google-services.json` | fourni par la console Firebase, non versionné |
+| Plugin Gradle, permissions, icônes, code Dart | dans le dépôt |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` côté backend | clé de compte de service |
+
+Le client est complet : l'appareil demande l'autorisation à la connexion,
+enregistre son jeton auprès de l'API et le ré-enregistre à chaque
+renouvellement par Firebase. Tout y échoue en douceur — un appareil sans
+services Google, une permission refusée ou un `google-services.json` absent ne
+doivent jamais empêcher l'application de fonctionner.
+
+L'envoi côté serveur demande une clé de compte de service, à coller telle
+quelle dans la variable — son contenu JSON, ou le chemin d'un fichier :
+
+```bash
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account", ...}
+```
+
+Elle se télécharge depuis *Paramètres du projet → Comptes de service →
+Générer une nouvelle clé privée*. Elle autorise l'envoi à **tous** les
+appareils : à traiter comme un secret, jamais dans le dépôt. Sans elle, les
+campagnes de relance fonctionnent — trace et notification dans l'application —
+mais rien n'arrive sur l'écran verrouillé.
+
+Vérifier depuis l'extérieur que la clé est bien prise en compte :
+
+```bash
+curl https://<hôte>/health
+```
+
+`"push": "ok"` si la clé est lue, `"disabled"` sinon. Le champ ne révèle jamais
+son contenu.
+
+L'icône de la barre d'état (`res/drawable-*/ic_notification.png`) est
+**monochrome** : Android n'en affiche que le masque alpha, une image en
+couleurs y apparaîtrait comme un carré blanc.
+
+> **Erreur TLS au build Gradle ?** Un antivirus qui inspecte le HTTPS (Avast,
+> Kaspersky, ESET…) présente son propre certificat. Windows lui fait confiance,
+> mais la JVM de Gradle a son magasin à part et refuse la connexion : aucune
+> nouvelle dépendance ne peut alors être téléchargée. Désactiver l'analyse
+> HTTPS, ou importer le certificat de l'antivirus dans le magasin de la JVM.
 
 ### Déploiement du back-office
 

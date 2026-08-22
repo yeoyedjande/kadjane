@@ -55,6 +55,7 @@ const NAVIGATION: { section: string; entries: NavEntry[] }[] = [
   {
     section: 'Finances',
     entries: [
+      { path: '/dues', label: 'Caisse', icon: '◈', permission: 'dues.view' },
       { path: '/treasury', label: 'Trésorerie', icon: '▤', permission: 'treasury.view' },
       { path: '/reminders', label: 'Relances', icon: '!', permission: 'reminder.view' },
     ],

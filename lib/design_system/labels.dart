@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/design_system/theme/app_colors.dart';
 import 'package:kadjane/domain/enums/draw_enums.dart';
 import 'package:kadjane/domain/enums/member_enums.dart';
@@ -419,4 +420,27 @@ class StatusTone {
         return StatusTone(colors.danger, colors.dangerSurface);
     }
   }
+}
+
+/// Fabriques de tons, à partir de la palette du thème.
+///
+/// Vit ici, aux côtés de [StatusTone] : ces couleurs relèvent du design
+/// system, pas d'un écran en particulier.
+class StatusToneHelper {
+  const StatusToneHelper._();
+
+  static StatusTone neutral(BuildContext context) =>
+      StatusTone(context.colors.textSecondary, context.colors.surfaceMuted);
+
+  static StatusTone success(BuildContext context) =>
+      StatusTone(context.colors.success, context.colors.successSurface);
+
+  static StatusTone warning(BuildContext context) =>
+      StatusTone(context.colors.warning, context.colors.warningSurface);
+
+  static StatusTone danger(BuildContext context) =>
+      StatusTone(context.colors.danger, context.colors.dangerSurface);
+
+  static StatusTone info(BuildContext context) =>
+      StatusTone(context.colors.info, context.colors.infoSurface);
 }

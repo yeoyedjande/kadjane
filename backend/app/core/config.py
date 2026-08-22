@@ -65,6 +65,15 @@ class Settings(BaseSettings):
     # inactif) hors développement — voir `cors_origin_regex`.
     cors_origin_regex_raw: str = Field(default="", alias="CORS_ORIGIN_REGEX")
 
+    # --- Notifications push -------------------------------------------------
+    # Compte de service Firebase : le contenu JSON de la clé, ou le chemin d'un
+    # fichier la contenant. Vide, l'envoi push est simplement ignoré — les
+    # notifications restent visibles dans l'application.
+    # Voir `app/services/push_service.py`.
+    firebase_service_account_json: str = Field(
+        default="", alias="FIREBASE_SERVICE_ACCOUNT_JSON"
+    )
+
     # --- Fichiers ---
     upload_dir: str = "uploads"
     files_url_prefix: str = "/files"

@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/app/state/auth_controller.dart';
 import 'package:kadjane/app/state/data_refresh.dart';
+import 'package:kadjane/app/state/session_controller.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/core/utils/money_formatter.dart';
+import 'package:kadjane/design_system/labels.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
+import 'package:kadjane/design_system/widgets/k_action_grid.dart';
 import 'package:kadjane/design_system/widgets/k_badge.dart';
 import 'package:kadjane/design_system/widgets/k_card.dart';
 import 'package:kadjane/design_system/widgets/k_progress.dart';
@@ -17,6 +20,7 @@ import 'package:kadjane/design_system/widgets/k_trend_chart.dart';
 import 'package:kadjane/domain/entities/audit_log.dart';
 import 'package:kadjane/domain/entities/user.dart';
 import 'package:kadjane/domain/enums/currency.dart';
+import 'package:kadjane/domain/enums/permission.dart';
 import 'package:kadjane/domain/repositories/dashboard_repository.dart';
 import 'package:kadjane/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:kadjane/features/dashboard/presentation/widgets/dashboard_cards.dart';
@@ -345,26 +349,37 @@ class _DashboardBody extends ConsumerWidget {
         KSpacing.gapLg,
 
         KSectionHeader(title: context.l10n.dashboardQuickActions),
-        Wrap(
-          spacing: KSpacing.md,
-          runSpacing: KSpacing.md,
-          children: <Widget>[
-            _QuickAction(
+        KActionGrid(
+          actions: <KAction>[
+            KAction(
               icon: Icons.groups_2_outlined,
               label: context.l10n.membersTitle,
               onTap: () => context.push(AppRoutes.members),
             ),
-            _QuickAction(
+            KAction(
+              icon: Icons.savings_outlined,
+              label: context.l10n.duesTitle,
+              onTap: () => context.push(AppRoutes.myDues),
+            ),
+            KAction(
               icon: Icons.account_balance_wallet_outlined,
               label: context.l10n.treasuryTitle,
               onTap: () => context.push(AppRoutes.treasury),
             ),
-            _QuickAction(
+            // Le centre de relance n'apparaît que pour qui peut relancer :
+            // c'est un outil de trésorier, pas une vue de membre.
+            if (ref.watch(canProvider(Permission.reminderSend)))
+              KAction(
+                icon: Icons.campaign_outlined,
+                label: context.l10n.remindersCenter,
+                onTap: () => context.push(AppRoutes.reminders),
+              ),
+            KAction(
               icon: Icons.insert_chart_outlined,
               label: context.l10n.reportsTitle,
               onTap: () => context.push(AppRoutes.reports),
             ),
-            _QuickAction(
+            KAction(
               icon: Icons.settings_outlined,
               label: context.l10n.orgSettingsTitle,
               onTap: () => context.push(AppRoutes.organizationSettings),
@@ -397,51 +412,6 @@ class _InlineStat extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: KRadius.card,
-      child: Container(
-        width: 104,
-        padding: const EdgeInsets.symmetric(
-          vertical: KSpacing.lg,
-          horizontal: KSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: context.scheme.surface,
-          borderRadius: KRadius.card,
-          border: Border.all(color: context.colors.divider),
-        ),
-        child: Column(
-          children: <Widget>[
-            Icon(icon, color: context.colors.brand),
-            const SizedBox(height: KSpacing.sm),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: context.text.labelSmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
       ),
     );
   }

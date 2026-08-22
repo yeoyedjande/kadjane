@@ -85,6 +85,15 @@ class TontineFrequency(StrEnum):
     CUSTOM = "custom"
 
 
+class DuesPlanStatus(StrEnum):
+    """Cycle de vie d'un plan de cotisation de caisse."""
+
+    ACTIVE = "active"
+    # Suspendu : plus aucune échéance n'est engendrée, les impayés subsistent.
+    PAUSED = "paused"
+    CLOSED = "closed"
+
+
 class AllocationMode(StrEnum):
     MONTHLY_DRAW = "monthly_draw"
     FULL_ORDER_DRAW = "full_order_draw"
@@ -189,6 +198,10 @@ class AuditAction(StrEnum):
     PAYOUT_RECORDED = "payout.recorded"
     PAYOUT_CONFIRMED = "payout.confirmed"
     TRANSACTION_RECORDED = "transaction.recorded"
+    DUES_PLAN_CREATED = "dues.plan_created"
+    DUES_PLAN_UPDATED = "dues.plan_updated"
+    DUES_PAYMENT_RECORDED = "dues.payment_recorded"
+    DUES_PAYMENT_CANCELLED = "dues.payment_cancelled"
     REMINDER_SENT = "reminder.sent"
     ORGANIZATION_UPDATED = "organization.updated"
 
@@ -218,6 +231,16 @@ class NotificationType(StrEnum):
     PAYOUT_DONE = "payout_done"
     NEW_MEMBER = "new_member"
     ANNOUNCEMENT = "announcement"
+
+
+class ReminderChannel(StrEnum):
+    """Canaux de relance. Codes alignés sur `lib/domain/enums/reminder_enums.dart`."""
+
+    IN_APP = "in_app"
+    PUSH = "push"
+    SMS = "sms"
+    WHATSAPP = "whatsapp"
+    EMAIL = "email"
 
 
 class ReminderLevel(StrEnum):

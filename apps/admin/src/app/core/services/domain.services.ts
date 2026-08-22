@@ -11,6 +11,11 @@ import {
   ContributionTotals,
   Dashboard,
   DrawEligibility,
+  DuesEntry,
+  DuesPaymentPayload,
+  DuesPlan,
+  DuesPlanPayload,
+  DuesPlanStatus,
   DrawSession,
   Member,
   MemberPayload,
@@ -118,6 +123,60 @@ export class MemberService {
     return this.api.delete<{ deleted: boolean }>(
       `/organizations/${organizationId}/members/${memberId}`,
     );
+  }
+}
+
+/** Cotisations de caisse : les sommes dues à l'association, hors tontine.
+ *
+ *  Le backend engendre les échéances à la lecture : appeler `plans` ou
+ *  `entries` suffit à faire apparaître les périodes écoulées.
+ */
+@Injectable({ providedIn: 'root' })
+export class DuesService {
+  private readonly api = inject(ApiClient);
+
+  plans(organizationId: string): Observable<DuesPlan[]> {
+    return this.api.get<DuesPlan[]>(`/organizations/${organizationId}/dues-plans`);
+  }
+
+  createPlan(organizationId: string, payload: DuesPlanPayload): Observable<DuesPlan> {
+    return this.api.post<DuesPlan>(
+      `/organizations/${organizationId}/dues-plans`,
+      payload,
+    );
+  }
+
+  updatePlan(
+    organizationId: string,
+    planId: string,
+    changes: Partial<DuesPlanPayload> & { status?: DuesPlanStatus },
+  ): Observable<DuesPlan> {
+    return this.api.patch<DuesPlan>(
+      `/organizations/${organizationId}/dues-plans/${planId}`,
+      changes,
+    );
+  }
+
+  entries(
+    organizationId: string,
+    planId: string,
+    query: { period?: number | null; memberId?: string | null } = {},
+  ): Observable<DuesEntry[]> {
+    return this.api.get<DuesEntry[]>(
+      `/organizations/${organizationId}/dues-plans/${planId}/entries`,
+      { period: query.period ?? null, memberId: query.memberId ?? null },
+    );
+  }
+
+  /** Échéances non soldées : ce que le trésorier réclame. */
+  outstanding(organizationId: string): Observable<DuesEntry[]> {
+    return this.api.get<DuesEntry[]>(
+      `/organizations/${organizationId}/dues-outstanding`,
+    );
+  }
+
+  recordPayment(entryId: string, payload: DuesPaymentPayload): Observable<unknown> {
+    return this.api.post(`/dues-entries/${entryId}/payments`, payload);
   }
 }
 
