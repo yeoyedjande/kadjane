@@ -389,7 +389,72 @@ export interface TreasurySnapshot {
   balance: number;
   inflows: number;
   outflows: number;
+  /** Cotisations de tontine encaissées — elles ressortent en versements. */
+  contributionsTotal: number;
+  /** Cotisations de caisse encaissées — celles-ci restent dans l'association. */
+  duesTotal: number;
   transactions: CashTransaction[];
+}
+
+export type DuesPlanStatus = 'active' | 'paused' | 'closed';
+
+/** Cotisation périodique due à l'association, hors tontine. */
+export interface DuesPlan {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string | null;
+  amount: number;
+  currency: string;
+  frequency: TontineFrequency;
+  dueDay: number;
+  startDate: string;
+  status: DuesPlanStatus;
+  createdAt: string;
+  summary?: DuesPlanSummary;
+}
+
+export interface DuesPlanSummary {
+  expectedTotal: number;
+  collectedTotal: number;
+  outstandingTotal: number;
+  unpaidCount: number;
+  memberCount: number;
+  currentPeriod: number;
+}
+
+/** Ce qu'un membre doit pour une période donnée. */
+export interface DuesEntry {
+  id: string;
+  organizationId: string;
+  planId: string;
+  memberId: string;
+  member?: Member;
+  sequenceNumber: number;
+  periodLabel: string;
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  expectedAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: ContributionStatus;
+}
+
+export interface DuesPlanPayload {
+  name: string;
+  amount: number;
+  description?: string | null;
+  frequency?: TontineFrequency;
+  dueDay?: number;
+  startDate?: string | null;
+}
+
+export interface DuesPaymentPayload {
+  amount: number;
+  paymentMethod: PaymentMethod;
+  reference?: string | null;
+  comment?: string | null;
 }
 
 export interface ReportLine {

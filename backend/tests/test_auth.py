@@ -8,7 +8,12 @@ from tests.conftest import auth_headers, register
 def test_health_checks_the_database(client: TestClient) -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "ok"}
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["database"] == "ok"
+    # `push` renseigne si la clé Firebase est présente — jamais son contenu.
+    # Aucune clé en test, d'où `disabled`.
+    assert body["push"] == "disabled"
 
 
 def test_register_returns_user_and_tokens(client: TestClient) -> None:

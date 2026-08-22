@@ -15,6 +15,11 @@ enum Permission {
   memberDelete('member.delete'),
   memberInvite('member.invite'),
 
+  // Caisse de l'association (cotisations hors tontine)
+  duesView('dues.view'),
+  duesRecord('dues.record'),
+  duesManage('dues.manage'),
+
   // Tontines
   tontineView('tontine.view'),
   tontineCreate('tontine.create'),

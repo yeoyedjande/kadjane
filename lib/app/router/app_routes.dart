@@ -52,6 +52,9 @@ class AppRoutes {
   static const String treasury = '/treasury';
   static const String reports = '/reports';
   static const String organizationSettings = '/organization';
+  static const String myDues = '/my-dues';
+  static const String duesCollect = '/dues-collect';
+  static const String reminders = '/reminders';
   static const String profileEdit = '/profile-edit';
   static const String changePassword = '/change-password';
 

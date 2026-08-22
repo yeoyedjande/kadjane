@@ -48,6 +48,19 @@ class ApiRoutes {
   static String officers(String organizationId) =>
       '/organizations/$organizationId/officers';
 
+  // --- Caisse (cotisations hors tontine) ---
+  static String myDues(String organizationId) =>
+      '/me/dues?organizationId=$organizationId';
+
+  static String duesPlans(String organizationId) =>
+      '/organizations/$organizationId/dues-plans';
+
+  static String duesEntries(String organizationId, String planId) =>
+      '/organizations/$organizationId/dues-plans/$planId/entries';
+
+  static String duesPayments(String entryId) =>
+      '/dues-entries/$entryId/payments';
+
   // --- Membres ---
   static String members(String organizationId) =>
       '/organizations/$organizationId/members';

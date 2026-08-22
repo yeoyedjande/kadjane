@@ -13,6 +13,7 @@ import 'package:kadjane/data/repositories/mock_auth_repository.dart';
 import 'package:kadjane/data/repositories/mock_contribution_repository.dart';
 import 'package:kadjane/data/repositories/mock_dashboard_repository.dart';
 import 'package:kadjane/data/repositories/mock_draw_repository.dart';
+import 'package:kadjane/data/repositories/mock_dues_repository.dart';
 import 'package:kadjane/data/repositories/mock_member_repository.dart';
 import 'package:kadjane/data/repositories/mock_notification_repository.dart';
 import 'package:kadjane/data/repositories/mock_organization_repository.dart';
@@ -36,6 +37,7 @@ import 'package:kadjane/domain/repositories/auth_repository.dart';
 import 'package:kadjane/domain/repositories/contribution_repository.dart';
 import 'package:kadjane/domain/repositories/dashboard_repository.dart';
 import 'package:kadjane/domain/repositories/draw_repository.dart';
+import 'package:kadjane/domain/repositories/dues_repository.dart';
 import 'package:kadjane/domain/repositories/member_repository.dart';
 import 'package:kadjane/domain/repositories/notification_repository.dart';
 import 'package:kadjane/domain/repositories/organization_repository.dart';
@@ -209,6 +211,13 @@ final Provider<NotificationRepository> notificationRepositoryProvider =
       (Ref ref) => ref.watch(useMockDataProvider)
           ? MockNotificationRepository(ref.watch(mockDatabaseProvider))
           : RestNotificationRepository(ref.watch(apiClientProvider)),
+    );
+
+final Provider<DuesRepository> duesRepositoryProvider =
+    Provider<DuesRepository>(
+      (Ref ref) => ref.watch(useMockDataProvider)
+          ? MockDuesRepository(ref.watch(mockDatabaseProvider))
+          : RestDuesRepository(ref.watch(apiClientProvider)),
     );
 
 final Provider<TreasuryRepository> treasuryRepositoryProvider =

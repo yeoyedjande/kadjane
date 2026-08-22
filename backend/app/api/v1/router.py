@@ -8,6 +8,7 @@ from app.api.v1 import (
     auth,
     contributions,
     draws,
+    dues,
     members,
     notifications,
     organizations,
@@ -26,6 +27,7 @@ api_router.include_router(members.router)
 api_router.include_router(tontines.router)
 api_router.include_router(contributions.router)
 api_router.include_router(draws.router)
+api_router.include_router(dues.router)
 api_router.include_router(payouts.router)
 api_router.include_router(treasury.router)
 api_router.include_router(reminders.router)

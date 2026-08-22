@@ -256,21 +256,3 @@ class _MiniStat extends StatelessWidget {
 }
 
 /// Fabriques de tons pour les badges du dashboard.
-class StatusToneHelper {
-  const StatusToneHelper._();
-
-  static StatusTone neutral(BuildContext context) =>
-      StatusTone(context.colors.textSecondary, context.colors.surfaceMuted);
-
-  static StatusTone success(BuildContext context) =>
-      StatusTone(context.colors.success, context.colors.successSurface);
-
-  static StatusTone warning(BuildContext context) =>
-      StatusTone(context.colors.warning, context.colors.warningSurface);
-
-  static StatusTone danger(BuildContext context) =>
-      StatusTone(context.colors.danger, context.colors.dangerSurface);
-
-  static StatusTone info(BuildContext context) =>
-      StatusTone(context.colors.info, context.colors.infoSurface);
-}

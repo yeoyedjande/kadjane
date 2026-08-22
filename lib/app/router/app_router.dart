@@ -16,6 +16,8 @@ import 'package:kadjane/features/contributions/presentation/screens/contribution
 import 'package:kadjane/features/contributions/presentation/screens/cycle_contributions_screen.dart';
 import 'package:kadjane/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:kadjane/features/draw/presentation/screens/draw_screen.dart';
+import 'package:kadjane/features/dues/presentation/screens/dues_management_screen.dart';
+import 'package:kadjane/features/dues/presentation/screens/my_dues_screen.dart';
 import 'package:kadjane/features/members/presentation/screens/member_detail_screen.dart';
 import 'package:kadjane/features/members/presentation/screens/member_form_screen.dart';
 import 'package:kadjane/features/members/presentation/screens/members_screen.dart';
@@ -24,6 +26,7 @@ import 'package:kadjane/features/organization/presentation/screens/organization_
 import 'package:kadjane/features/profile/presentation/screens/change_password_screen.dart';
 import 'package:kadjane/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:kadjane/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kadjane/features/reminders/presentation/screens/reminders_screen.dart';
 import 'package:kadjane/features/reports/presentation/screens/reports_screen.dart';
 import 'package:kadjane/features/shell/presentation/app_shell.dart';
 import 'package:kadjane/features/tontines/presentation/screens/tontine_detail_screen.dart';
@@ -229,6 +232,18 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         path: AppRoutes.organizationSettings,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (_, _) => const OrganizationSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myDues,
+        builder: (_, _) => const MyDuesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.duesCollect,
+        builder: (_, _) => const DuesManagementScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.reminders,
+        builder: (_, _) => const RemindersScreen(),
       ),
       GoRoute(
         path: AppRoutes.changePassword,

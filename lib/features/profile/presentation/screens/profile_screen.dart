@@ -184,6 +184,13 @@ class ProfileScreen extends ConsumerWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.savings_outlined),
+            title: Text(context.l10n.duesTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.myDues),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.lock_outline),
             title: Text(context.l10n.authChangePassword),
             trailing: const Icon(Icons.chevron_right),

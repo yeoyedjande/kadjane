@@ -1,6 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Indispensable : Flutter ne déclare INTERNET que dans les manifestes
+         `debug` et `profile`. Sans cette ligne, l'APK de release n'a aucun
+         accès réseau et tous les appels à l'API échouent silencieusement. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Android 13 et au-delà : sans cette permission, accordée par
+         l'utilisateur au premier lancement, aucune notification ne s'affiche
+         — même reçue. Sur les versions antérieures elle est ignorée. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
-        android:label="kadjane"
+        android:label="Kadjane"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -25,6 +35,24 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Notifications reçues application fermée : Android les remet au
+             canal nommé ici. Sans lui, elles atterrissent dans un canal par
+             défaut sans libellé, et l'utilisateur ne peut pas les régler. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="kadjane_reminders" />
+
+        <!-- Icône affichée dans la barre d'état. Android exige une image
+             monochrome : le logo en couleurs y apparaîtrait comme un carré
+             blanc. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/ic_launcher_background" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

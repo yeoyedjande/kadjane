@@ -99,6 +99,12 @@ export const routes: Routes = [
           import('./features/payouts/payouts.component').then((m) => m.PayoutsPage),
       },
       {
+        path: 'dues',
+        canActivate: [permissionGuard('dues.view')],
+        loadComponent: () =>
+          import('./features/dues/dues.component').then((m) => m.DuesPage),
+      },
+      {
         path: 'treasury',
         canActivate: [permissionGuard('treasury.view')],
         loadComponent: () =>

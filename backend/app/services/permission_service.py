@@ -18,6 +18,7 @@ MEMBER_PERMISSIONS: set[str] = {
     "draw.view",
     "payout.view",
     "reminder.view",
+    "dues.view",
 }
 
 AUDITOR_PERMISSIONS: set[str] = MEMBER_PERMISSIONS | {
@@ -32,6 +33,7 @@ TREASURER_PERMISSIONS: set[str] = AUDITOR_PERMISSIONS | {
     "contribution.cancel",
     "payout.record",
     "treasury.manage",
+    "dues.record",
     "reminder.send",
 }
 
@@ -51,6 +53,7 @@ ADMIN_PERMISSIONS: set[str] = (
         "member.create",
         "member.edit",
         "member.delete",
+        "dues.manage",
         "tontine.create",
         "tontine.edit",
         "draw.override",

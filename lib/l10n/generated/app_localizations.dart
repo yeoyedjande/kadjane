@@ -1781,7 +1781,7 @@ abstract class AppLocalizations {
   /// No description provided for @treasuryTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Caisse'**
+  /// **'Trésorerie'**
   String get treasuryTitle;
 
   /// No description provided for @treasuryBalance.
@@ -2593,6 +2593,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count} membre(s) seront notifiés sur les canaux sélectionnés.'**
   String remindersConfirmMessage(int count);
+
+  /// No description provided for @duesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisations de caisse'**
+  String get duesTitle;
+
+  /// No description provided for @duesTotalDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total à régler'**
+  String get duesTotalDue;
+
+  /// No description provided for @duesAllSettled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes à jour de vos cotisations de caisse.'**
+  String get duesAllSettled;
+
+  /// No description provided for @duesUnpaidCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{aucune échéance} =1{1 échéance} other{{count} échéances}}'**
+  String duesUnpaidCount(int count);
+
+  /// No description provided for @duesDueOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'échéance le {date}'**
+  String duesDueOn(String date);
+
+  /// No description provided for @duesCollectTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaisser les cotisations'**
+  String get duesCollectTitle;
+
+  /// No description provided for @duesNoPlan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune cotisation de caisse n\'est définie pour cette organisation.'**
+  String get duesNoPlan;
+
+  /// No description provided for @duesOnlyUnpaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impayés seulement'**
+  String get duesOnlyUnpaid;
+
+  /// No description provided for @duesNothingToCollect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à encaisser pour cette période.'**
+  String get duesNothingToCollect;
+
+  /// No description provided for @duesPerMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'par membre'**
+  String get duesPerMember;
+
+  /// No description provided for @duesCollected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaissé'**
+  String get duesCollected;
+
+  /// No description provided for @duesUnpaidLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impayés'**
+  String get duesUnpaidLabel;
+
+  /// No description provided for @duesPaymentRecorded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Règlement enregistré'**
+  String get duesPaymentRecorded;
 }
 
 class _AppLocalizationsDelegate

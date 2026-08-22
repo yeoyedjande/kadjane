@@ -74,19 +74,35 @@ class _OrganizationSettingsScreenState
     _graceDays = organization.settings.latePaymentGraceDays;
   }
 
+  /// Un champ facultatif laissé vide vaut `null`, jamais `''`.
+  ///
+  /// Le serveur valide l'e-mail : lui envoyer une chaîne vide au lieu de
+  /// l'absence de valeur faisait échouer l'enregistrement de **tout** l'écran.
+  static String? _orNull(String value) {
+    final String trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   Future<void> _submit(Organization organization) async {
     setState(() => _isSaving = true);
     try {
+      // Construction explicite plutôt que `copyWith` : celui-ci retombe sur
+      // l'ancienne valeur quand on lui passe `null` (`email ?? this.email`),
+      // ce qui rendrait impossible d'effacer un champ facultatif.
       await ref
           .read(organizationRepositoryProvider)
           .update(
-            organization.copyWith(
+            Organization(
+              id: organization.id,
+              createdAt: organization.createdAt,
+              logoUrl: organization.logoUrl,
+              country: organization.country,
               name: _name.text.trim(),
-              description: _description.text.trim(),
-              phone: _phone.text.trim(),
-              email: _email.text.trim(),
-              address: _address.text.trim(),
-              rules: _rules.text.trim(),
+              description: _orNull(_description.text),
+              phone: _orNull(_phone.text),
+              email: _orNull(_email.text),
+              address: _orNull(_address.text),
+              rules: _orNull(_rules.text),
               currency: _currency,
               settings: organization.settings.copyWith(
                 requireFullPaymentBeforeDraw: _requireFullPayment,

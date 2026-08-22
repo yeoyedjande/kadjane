@@ -19,7 +19,6 @@ import 'package:kadjane/domain/enums/currency.dart';
 import 'package:kadjane/domain/repositories/dashboard_repository.dart';
 import 'package:kadjane/domain/services/dunning_service.dart';
 import 'package:kadjane/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:kadjane/features/dashboard/presentation/widgets/dashboard_cards.dart';
 import 'package:kadjane/features/reminders/presentation/providers/reminder_providers.dart';
 
 /// Tableau de bord de pilotage de l'organisation.

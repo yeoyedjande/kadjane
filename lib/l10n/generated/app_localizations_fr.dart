@@ -901,7 +901,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationsEmpty => 'Aucune notification';
 
   @override
-  String get treasuryTitle => 'Caisse';
+  String get treasuryTitle => 'Trésorerie';
 
   @override
   String get treasuryBalance => 'Solde';
@@ -1332,4 +1332,55 @@ class AppLocalizationsFr extends AppLocalizations {
   String remindersConfirmMessage(int count) {
     return '$count membre(s) seront notifiés sur les canaux sélectionnés.';
   }
+
+  @override
+  String get duesTitle => 'Cotisations de caisse';
+
+  @override
+  String get duesTotalDue => 'Total à régler';
+
+  @override
+  String get duesAllSettled => 'Vous êtes à jour de vos cotisations de caisse.';
+
+  @override
+  String duesUnpaidCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count échéances',
+      one: '1 échéance',
+      zero: 'aucune échéance',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String duesDueOn(String date) {
+    return 'échéance le $date';
+  }
+
+  @override
+  String get duesCollectTitle => 'Encaisser les cotisations';
+
+  @override
+  String get duesNoPlan =>
+      'Aucune cotisation de caisse n\'est définie pour cette organisation.';
+
+  @override
+  String get duesOnlyUnpaid => 'Impayés seulement';
+
+  @override
+  String get duesNothingToCollect => 'Rien à encaisser pour cette période.';
+
+  @override
+  String get duesPerMember => 'par membre';
+
+  @override
+  String get duesCollected => 'Encaissé';
+
+  @override
+  String get duesUnpaidLabel => 'Impayés';
+
+  @override
+  String get duesPaymentRecorded => 'Règlement enregistré';
 }

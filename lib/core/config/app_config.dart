@@ -6,7 +6,7 @@
 library;
 
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, kReleaseMode;
 
 enum AppEnvironment {
   development('development'),
@@ -138,11 +138,25 @@ class AppConfig {
   static void initialize(AppConfig config) => _current = config;
 
   /// Résout l'environnement depuis `--dart-define=KADJANE_ENV=...`.
+  ///
+  /// Sans valeur explicite, le choix dépend du mode de compilation :
+  ///
+  ///  * **release** — `production`. Un APK distribué ne doit jamais viser
+  ///    `localhost` ni `10.0.2.2` : ces hôtes n'existent pas sur le téléphone
+  ///    d'un beta-testeur, et l'application échouerait sur « Impossible de
+  ///    charger les données » sans autre indice.
+  ///  * **debug / profile** — `development`, pour garder `flutter run` branché
+  ///    sur le backend local.
+  ///
+  /// Le drapeau reste prioritaire : `--dart-define=KADJANE_ENV=development`
+  /// permet de compiler une release pointant vers un backend local.
   static AppConfig fromDartDefine() {
-    const String raw = String.fromEnvironment(
-      'KADJANE_ENV',
-      defaultValue: 'development',
+    const String raw = String.fromEnvironment('KADJANE_ENV');
+    if (raw.isNotEmpty) {
+      return AppConfig.forEnvironment(AppEnvironment.fromCode(raw));
+    }
+    return AppConfig.forEnvironment(
+      kReleaseMode ? AppEnvironment.production : AppEnvironment.development,
     );
-    return AppConfig.forEnvironment(AppEnvironment.fromCode(raw));
   }
 }

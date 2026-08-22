@@ -599,5 +599,32 @@
         "type": "int"
       }
     }
-  }
+  },
+  "duesTitle": "Fund contributions",
+  "duesTotalDue": "Total due",
+  "duesAllSettled": "You are up to date with your fund contributions.",
+  "duesUnpaidCount": "{count, plural, =0{no instalment} =1{1 instalment} other{{count} instalments}}",
+  "@duesUnpaidCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duesDueOn": "due on {date}",
+  "@duesDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "duesCollectTitle": "Collect contributions",
+  "duesNoPlan": "No fund contribution is defined for this organisation.",
+  "duesOnlyUnpaid": "Unpaid only",
+  "duesNothingToCollect": "Nothing to collect for this period.",
+  "duesPerMember": "per member",
+  "duesCollected": "Collected",
+  "duesUnpaidLabel": "Unpaid",
+  "duesPaymentRecorded": "Payment recorded"
 }
