@@ -26,7 +26,7 @@ from app.schemas.dues import (
     DuesPlanRead,
     DuesPlanUpdate,
 )
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.dues_service import DuesService
 
 router = APIRouter(tags=["cotisations de caisse"])
@@ -44,7 +44,7 @@ def _entry_payload(entry) -> dict[str, Any]:
     summary="Cotisations de caisse de l'organisation",
 )
 def list_plans(db: DbSession, context: OrgContext) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "dues.view")
+    PermissionService(db).require(context.membership, "dues.view")
     service = DuesService(db)
     plans = service.plans(context.organization_id)
 
@@ -69,7 +69,7 @@ def list_plans(db: DbSession, context: OrgContext) -> dict[str, Any]:
 def create_plan(
     db: DbSession, context: OrgContext, payload: DuesPlanCreate
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "dues.manage")
+    PermissionService(db).require(context.membership, "dues.manage")
     plan = DuesService(db).create_plan(
         context.organization_id,
         name=payload.name,
@@ -92,7 +92,7 @@ def create_plan(
 def update_plan(
     db: DbSession, context: OrgContext, plan_id: uuid.UUID, payload: DuesPlanUpdate
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "dues.manage")
+    PermissionService(db).require(context.membership, "dues.manage")
     service = DuesService(db)
     plan = service.get_plan(plan_id, context.organization_id)
     plan = service.update_plan(
@@ -118,7 +118,7 @@ def list_entries(
     period: Annotated[int | None, Query(ge=1, description="Numéro de période")] = None,
     member_id: Annotated[uuid.UUID | None, Query(alias="memberId")] = None,
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "dues.view")
+    PermissionService(db).require(context.membership, "dues.view")
     service = DuesService(db)
     plan = service.get_plan(plan_id, context.organization_id)
     service.ensure_entries(plan)
@@ -165,7 +165,7 @@ def cancel_payment(
     if payment is None:
         raise NotFoundError("Règlement introuvable.", code="dues_payment_not_found")
     membership = _membership_or_404(db, user, payment.organization_id)
-    permission_service.require(membership.role_enum, "dues.record")
+    PermissionService(db).require(membership, "dues.record")
 
     payment = DuesService(db).cancel_payment(
         payment, membership, reason=payload.reason
@@ -183,7 +183,7 @@ def list_outstanding(
     member_id: Annotated[uuid.UUID | None, Query(alias="memberId")] = None,
 ) -> dict[str, Any]:
     """Ce que le trésorier réclame — alimente le centre de relance."""
-    permission_service.require(context.membership.role_enum, "dues.view")
+    PermissionService(db).require(context.membership, "dues.view")
     service = DuesService(db)
     for plan in service.plans(context.organization_id):
         service.ensure_entries(plan)
@@ -227,7 +227,7 @@ def _guarded_entry(db, user, entry_id: uuid.UUID, permission: str):
     if entry is None:
         raise NotFoundError("Échéance introuvable.", code="dues_entry_not_found")
     membership = _membership_or_404(db, user, entry.organization_id)
-    if not permission_service.can(membership.role_enum, permission):
+    if not PermissionService(db).can(membership, permission):
         raise PermissionDeniedError(
             "Votre rôle ne permet pas cette action.", code="permission_denied"
         )

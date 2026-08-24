@@ -16,7 +16,7 @@ from app.schemas.tontine import (
     TontineCreate,
     TontineUpdate,
 )
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.payout_service import PayoutService
 from app.services.tontine_service import TontineService
 
@@ -38,7 +38,7 @@ def list_tontines(
     status_filter: Annotated[TontineStatus | None, Query(alias="status")] = None,
     member_id: Annotated[uuid.UUID | None, Query(alias="memberId")] = None,
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     service = TontineService(db)
     tontines = service.list_for_organization(
         context.organization_id, status=status_filter, member_id=member_id
@@ -54,7 +54,7 @@ def list_tontines(
 def create_tontine(
     db: DbSession, context: OrgContext, payload: TontineCreate
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.create")
+    PermissionService(db).require(context.membership, "tontine.create")
     tontine = TontineService(db).create(
         organization=context.organization,
         actor=context.membership,
@@ -77,14 +77,14 @@ def create_tontine(
 
 
 @router.get("/tontines/{tontine_id}", summary="Détail d'une tontine")
-def read_tontine(context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+def read_tontine(db: DbSession, context: TontineCtx) -> dict[str, Any]:
+    PermissionService(db).require(context.membership, "tontine.view")
     return success(out.tontine(context.tontine))
 
 
 @router.get("/tontines/{tontine_id}/summary", summary="Agrégats d'une tontine")
 def read_summary(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     return success(_summary(db, TontineService(db), context.tontine))
 
 
@@ -106,7 +106,7 @@ def put_tontine(
 def change_status(
     db: DbSession, context: TontineCtx, payload: StatusChange
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.validate")
+    PermissionService(db).require(context.membership, "tontine.validate")
     tontine = TontineService(db).change_status(
         context.tontine, payload.status, context.membership
     )
@@ -115,7 +115,7 @@ def change_status(
 
 @router.get("/tontines/{tontine_id}/participants", summary="Participants")
 def list_participants(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     participants = TontineService(db).participants(context.tontine.id)
     return success([out.participant(p) for p in participants])
 
@@ -126,7 +126,7 @@ def list_participants(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 def set_order(
     db: DbSession, context: TontineCtx, payload: ParticipantOrder
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.edit")
+    PermissionService(db).require(context.membership, "tontine.edit")
     participants = TontineService(db).set_manual_order(
         context.tontine, payload.participant_ids, context.membership
     )
@@ -135,13 +135,13 @@ def set_order(
 
 @router.get("/tontines/{tontine_id}/cycles", summary="Cycles de la tontine")
 def list_cycles(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     return success(_cycles_payload(db, context.tontine.id))
 
 
 @router.get("/tontines/{tontine_id}/cycles/current", summary="Cycle en cours")
 def read_current_cycle(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     service = TontineService(db)
     current = service.current_cycle(context.tontine.id)
     if current is None:
@@ -156,14 +156,14 @@ def read_current_cycle(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 def read_tontine_cycle(
     db: DbSession, context: TontineCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     cycle = TontineService(db).cycle(cycle_id, context.organization_id)
     return success(_cycle_payload(db, cycle))
 
 
 @router.get("/cycles/{cycle_id}", summary="Détail d'un cycle")
 def read_cycle(db: DbSession, context: CycleCtx, cycle_id: uuid.UUID) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "tontine.view")
+    PermissionService(db).require(context.membership, "tontine.view")
     cycle = TontineService(db).cycle(cycle_id, context.organization_id)
     return success(_cycle_payload(db, cycle))
 
@@ -172,7 +172,7 @@ def read_cycle(db: DbSession, context: CycleCtx, cycle_id: uuid.UUID) -> dict[st
 
 
 def _update(db: DbSession, context: TontineCtx, payload: TontineUpdate):
-    permission_service.require(context.membership.role_enum, "tontine.edit")
+    PermissionService(db).require(context.membership, "tontine.edit")
     service = TontineService(db)
     data = payload.model_dump(exclude_unset=True, exclude_none=True)
     new_status = data.pop("status", None)

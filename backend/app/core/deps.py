@@ -139,3 +139,53 @@ def get_cycle_context(
 
 TontineCtx = Annotated[TontineContext, Depends(get_tontine_context)]
 CycleCtx = Annotated[TontineContext, Depends(get_cycle_context)]
+
+
+def get_cashbox_context(
+    db: DbSession,
+    user: CurrentUser,
+    cashbox_id: Annotated[uuid.UUID, Path(description="Identifiant de caisse")],
+) -> OrganizationContext:
+    """Organisation d'une caisse, avec l'appartenance de l'appelant.
+
+    Même principe que pour les tontines : l'organisation n'est pas dans l'URL,
+    elle est déduite de la caisse. Une caisse d'une autre association est
+    traitée comme inexistante.
+    """
+    from app.models.treasury import Cashbox
+
+    cashbox = db.get(Cashbox, cashbox_id)
+    if cashbox is None:
+        raise NotFoundError("Caisse introuvable.", code="cashbox_not_found")
+    return get_organization_context(db, user, cashbox.organization_id)
+
+
+def get_campaign_context(
+    db: DbSession,
+    user: CurrentUser,
+    campaign_id: Annotated[uuid.UUID, Path(description="Identifiant de cotisation")],
+) -> OrganizationContext:
+    from app.models.campaign import ContributionCampaign
+
+    campaign = db.get(ContributionCampaign, campaign_id)
+    if campaign is None:
+        raise NotFoundError("Cotisation introuvable.", code="campaign_not_found")
+    return get_organization_context(db, user, campaign.organization_id)
+
+
+def get_entry_context(
+    db: DbSession,
+    user: CurrentUser,
+    entry_id: Annotated[uuid.UUID, Path(description="Identifiant de ligne")],
+) -> OrganizationContext:
+    from app.models.campaign import CampaignEntry
+
+    entry = db.get(CampaignEntry, entry_id)
+    if entry is None:
+        raise NotFoundError("Ligne de cotisation introuvable.", code="entry_not_found")
+    return get_organization_context(db, user, entry.organization_id)
+
+
+CashboxCtx = Annotated[OrganizationContext, Depends(get_cashbox_context)]
+CampaignCtx = Annotated[OrganizationContext, Depends(get_campaign_context)]
+EntryCtx = Annotated[OrganizationContext, Depends(get_entry_context)]

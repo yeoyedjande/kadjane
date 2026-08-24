@@ -1,0 +1,66 @@
+<k-page-header
+  title="Permissions"
+  subtitle="Ce que le backend sait protéger. Les droits se cochent dans la fiche d'un rôle."
+>
+  <k-search placeholder="Code, libellé…" (search)="search.set($event)" />
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (!loading() && !error()) {
+  <article class="k-card">
+    <div class="k-card__body k-stack">
+      <p class="k-muted">
+        {{ total() }} permissions. Le catalogue décrit le produit, pas votre
+        association : il est le même pour tout le monde et ne s'administre pas.
+        Seule leur attribution aux rôles vous appartient.
+      </p>
+    </div>
+  </article>
+
+  @for (group of grouped(); track group.code) {
+    <article class="k-card">
+      <div class="k-card__header">
+        <h2 class="k-card__title">{{ group.label }}</h2>
+      </div>
+      <div class="k-table-wrap">
+        <table class="k-table">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              @for (role of columns(); track role.id) {
+                <th style="text-align: center">{{ role.name }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (permission of group.permissions; track permission.code) {
+              <tr>
+                <td>
+                  <div class="perm-item__text">
+                    <span class="perm-item__name">{{ permission.name }}</span>
+                    <span class="perm-item__desc">{{ permission.description }}</span>
+                    <code class="perm-item__code">{{ permission.code }}</code>
+                  </div>
+                </td>
+                @for (role of columns(); track role.id) {
+                  <td style="text-align: center">
+                    {{ granted(role, permission.code) ? '☑' : '☐' }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  }
+
+  @if (!grouped().length) {
+    <article class="k-card">
+      <div class="k-card__body">
+        <p class="k-muted">Aucune permission ne correspond à cette recherche.</p>
+      </div>
+    </article>
+  }
+}

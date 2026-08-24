@@ -12,7 +12,7 @@ from app.models.enums import MemberStatus, OrgRole
 from app.repositories.member_repository import MemberRepository
 from app.schemas.base import dump, dump_all
 from app.schemas.member import MemberCreate, MemberRead, MemberStats, MemberUpdate
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.member_service import MemberService
 
 router = APIRouter(tags=["membres"])
@@ -39,7 +39,7 @@ def list_members(
     `paged<T>` attendue par l'application ; `meta` reprend la pagination pour
     les clients qui la lisent à part.
     """
-    permission_service.require(context.membership.role_enum, "member.view")
+    PermissionService(db).require(context.membership, "member.view")
 
     size = page_size_snake or page_size
     term = query or search
@@ -80,7 +80,7 @@ def create_member(
     conserve qu'une empreinte. L'administrateur le transmet au membre, qui
     pourra le changer depuis l'application.
     """
-    permission_service.require(context.membership.role_enum, "member.create")
+    PermissionService(db).require(context.membership, "member.create")
     member, temporary_password = MemberService(db).create(
         context.organization_id, payload, context.membership
     )
@@ -97,7 +97,7 @@ def create_member(
 def read_member_in_organization(
     db: DbSession, context: OrgContext, member_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "member.view")
+    PermissionService(db).require(context.membership, "member.view")
     member = MemberService(db).get_in_organization(member_id, context.organization_id)
     return success(dump(MemberRead.model_validate(member)))
 
@@ -109,7 +109,7 @@ def read_member_in_organization(
 def patch_member_in_organization(
     db: DbSession, context: OrgContext, member_id: uuid.UUID, payload: MemberUpdate
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "member.edit")
+    PermissionService(db).require(context.membership, "member.edit")
     service = MemberService(db)
     member = service.get_in_organization(member_id, context.organization_id)
     return success(
@@ -128,7 +128,7 @@ def delete_member_in_organization(
 
     Refusé s'il participe à une tontine : voir `MemberService.delete`.
     """
-    permission_service.require(context.membership.role_enum, "member.delete")
+    PermissionService(db).require(context.membership, "member.delete")
     service = MemberService(db)
     member = service.get_in_organization(member_id, context.organization_id)
     service.delete(member, context.membership)
@@ -148,7 +148,7 @@ def _guarded_member(
     if member is None:
         raise NotFoundError("Membre introuvable.", code="member_not_found")
     context = get_organization_context(db, user, member.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return member, context
 
 

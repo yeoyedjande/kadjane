@@ -1,0 +1,219 @@
+<k-page-header
+  title="Rôles et permissions"
+  subtitle="Composez les droits de chaque rôle. Le backend applique ce qui est coché ici."
+>
+  @if (session.can('role.create')) {
+    <button type="button" class="k-btn" (click)="openCreate()">
+      Nouveau rôle
+    </button>
+  }
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (formOpen()) {
+  <article class="k-card">
+    <div class="k-card__header">
+      <h2 class="k-card__title">Nouveau rôle</h2>
+    </div>
+    <form class="k-card__body k-stack" [formGroup]="form" (ngSubmit)="create()">
+      <p class="k-muted">
+        Le rôle est créé sans aucun droit. Vous cochez ensuite ses permissions
+        dans la colonne de droite — vous ne pouvez accorder que des droits que
+        vous possédez vous-même.
+      </p>
+      <label class="k-field">
+        <span class="k-label">Nom</span>
+        <input
+          class="k-input"
+          formControlName="name"
+          placeholder="Responsable Cotisations"
+        />
+      </label>
+      <label class="k-field">
+        <span class="k-label">Description</span>
+        <textarea
+          class="k-textarea"
+          rows="2"
+          formControlName="description"
+          placeholder="Suit les cotisations sans toucher à la caisse."
+        ></textarea>
+      </label>
+      <div class="k-row" style="justify-content: flex-end">
+        <button
+          type="button"
+          class="k-btn k-btn--ghost"
+          (click)="formOpen.set(false)"
+        >
+          Annuler
+        </button>
+        <button type="submit" class="k-btn" [disabled]="saving()">
+          {{ saving() ? 'Création…' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </article>
+}
+
+@if (!loading() && roles().length) {
+  <div class="roles-layout">
+    <section class="k-stack">
+      @for (role of roles(); track role.id) {
+        <button
+          type="button"
+          class="k-card role-card"
+          [class.is-selected]="role.id === selectedId()"
+          (click)="select(role.id)"
+        >
+          <div class="k-card__body k-stack" style="gap: 6px">
+            <div class="k-toolbar">
+              <strong>{{ role.name }}</strong>
+              @if (role.status === 'disabled') {
+                <k-badge value="disabled" />
+              }
+            </div>
+            <div class="k-muted" style="font-size: 12px">
+              {{ role.description || 'Sans description' }}
+            </div>
+            <div class="k-muted role-card__meta">
+              <span>{{ role.memberCount }} utilisateur(s)</span>
+              <span>·</span>
+              <span>{{ role.permissionCount }} permission(s)</span>
+            </div>
+            <div class="role-card__tags">
+              @if (role.isSystem) {
+                <span class="role-tag">Système</span>
+              }
+              @if (role.isCustomized) {
+                <span class="role-tag role-tag--accent">Personnalisé</span>
+              }
+            </div>
+          </div>
+        </button>
+      }
+    </section>
+
+    @if (selected(); as role) {
+      <article class="k-card">
+        <div class="k-card__header">
+          <div class="k-toolbar">
+            <h2 class="k-card__title">{{ role.name }}</h2>
+            <div class="k-row">
+              @if (session.can('role.create')) {
+                <button
+                  type="button"
+                  class="k-btn k-btn--ghost"
+                  (click)="duplicate(role)"
+                  [disabled]="saving()"
+                >
+                  Dupliquer
+                </button>
+              }
+              @if (session.can('role.update') && !role.isSystem && role.status === 'active') {
+                <button
+                  type="button"
+                  class="k-btn k-btn--ghost"
+                  (click)="askDisable(role)"
+                >
+                  Désactiver
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="k-card__body k-stack">
+          @if (role.isSystem && !role.isCustomized) {
+            <p class="k-muted">
+              Rôle système partagé. Votre première modification en créera une
+              copie propre à votre association : les autres associations
+              garderont le rôle d'origine.
+            </p>
+          }
+          @if (!canEdit()) {
+            <p class="k-muted">
+              Vous consultez ces droits en lecture seule : la permission
+              <code>permission.assign</code> est nécessaire pour les modifier.
+            </p>
+          }
+          @if (role.updatedAt) {
+            <div class="k-muted" style="font-size: 12px">
+              Dernière modification {{ role.updatedAt | frDate }}
+            </div>
+          }
+
+          @for (group of grouped(); track group.code) {
+            <section class="perm-group">
+              <div class="k-toolbar perm-group__header">
+                <strong>{{ group.label }}</strong>
+                @if (canEdit()) {
+                  <button
+                    type="button"
+                    class="k-btn k-btn--ghost k-btn--sm"
+                    (click)="toggleCategory(group.code, categoryState(group.code) !== 'all')"
+                  >
+                    {{ categoryState(group.code) === 'all' ? 'Tout décocher' : 'Tout cocher' }}
+                  </button>
+                }
+              </div>
+              <ul class="perm-list">
+                @for (permission of group.permissions; track permission.code) {
+                  <li>
+                    <label class="perm-item" [class.is-locked]="!canEdit()">
+                      <input
+                        type="checkbox"
+                        [checked]="has(permission.code)"
+                        [disabled]="!canEdit()"
+                        (change)="toggle(permission.code)"
+                      />
+                      <span class="perm-item__text">
+                        <span class="perm-item__name">{{ permission.name }}</span>
+                        <span class="perm-item__desc">{{ permission.description }}</span>
+                        <code class="perm-item__code">{{ permission.code }}</code>
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+
+        @if (canEdit()) {
+          <div class="k-card__footer k-toolbar">
+            <span class="k-muted">
+              {{ draft().size }} permission(s) cochée(s)
+              @if (dirty()) {
+                · modifications non enregistrées
+              }
+            </span>
+            <div class="k-row">
+              <button
+                type="button"
+                class="k-btn k-btn--ghost"
+                (click)="reset()"
+                [disabled]="!dirty() || saving()"
+              >
+                Réinitialiser
+              </button>
+              <button
+                type="button"
+                class="k-btn"
+                (click)="askSave()"
+                [disabled]="!dirty() || saving()"
+              >
+                {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+              </button>
+            </div>
+          </div>
+        }
+      </article>
+    }
+  </div>
+}
+
+<k-confirm
+  [open]="confirm()"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()"
+/>

@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.audit import AuditLog
@@ -62,11 +62,44 @@ class AuditService:
         tontine_id: uuid.UUID | None = None,
         actions: list[str] | None = None,
         limit: int = 50,
+        offset: int = 0,
     ) -> list[AuditLog]:
+        return self.paginated_history(
+            organization_id,
+            tontine_id=tontine_id,
+            actions=actions,
+            limit=limit,
+            offset=offset,
+        )[0]
+
+    def paginated_history(
+        self,
+        organization_id: uuid.UUID,
+        *,
+        tontine_id: uuid.UUID | None = None,
+        actions: list[str] | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[AuditLog], int]:
+        """Journal filtré, avec le total avant découpe.
+
+        Le total permet à la console d'afficher « 50 sur 1 240 » plutôt qu'une
+        pagination aveugle qui ne sait pas si une page suivante existe.
+        """
         statement = select(AuditLog).where(AuditLog.organization_id == organization_id)
         if tontine_id is not None:
             statement = statement.where(AuditLog.tontine_id == tontine_id)
         if actions:
             statement = statement.where(AuditLog.action.in_(actions))
-        statement = statement.order_by(AuditLog.created_at.desc()).limit(limit)
-        return list(self.db.scalars(statement))
+
+        total = int(
+            self.db.scalar(select(func.count()).select_from(statement.subquery())) or 0
+        )
+        rows = list(
+            self.db.scalars(
+                statement.order_by(AuditLog.created_at.desc())
+                .offset(offset)
+                .limit(limit)
+            )
+        )
+        return rows, total

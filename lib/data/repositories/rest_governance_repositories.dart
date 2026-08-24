@@ -1,5 +1,6 @@
 import 'package:kadjane/core/network/api_client.dart';
 import 'package:kadjane/data/dto/governance_dto.dart';
+import 'package:kadjane/domain/entities/member_permissions.dart';
 import 'package:kadjane/domain/entities/reminder.dart';
 import 'package:kadjane/domain/entities/role_definition.dart';
 import 'package:kadjane/domain/enums/org_role.dart';
@@ -34,6 +35,15 @@ class RestRoleRepository implements RoleRepository {
       },
     ),
   );
+
+  @override
+  Future<List<MemberPermissions>> myPermissions({String? organizationId}) async {
+    final List<JsonMap> response = await _api.getList(
+      ApiRoutes.myPermissions,
+      query: <String, dynamic>{'organizationId': ?organizationId},
+    );
+    return response.map(MemberPermissionsDto.fromJson).toList(growable: false);
+  }
 
   @override
   Future<RoleDefinition> resetToDefault({

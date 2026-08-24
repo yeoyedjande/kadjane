@@ -1,20 +1,23 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, map, of, switchMap, tap } from 'rxjs';
 
-import { Member, Organization, OrgRole } from '../models/domain.models';
+import { Member, MyPermissions, Organization, OrgRole } from '../models/domain.models';
 import { ApiClient } from './api-client.service';
 import { AuthService } from './auth.service';
 
 const ACTIVE_ORG_KEY = 'kadjane.admin.activeOrganization';
 
-/** Matrice des droits par défaut — **copie d'affichage** de celle du backend.
+/** Repli de **lecture seule**, le temps que `/me/permissions` réponde.
  *
- *  Elle sert uniquement à masquer ce qui n'est pas permis. L'autorisation
- *  réelle reste côté FastAPI : masquer un bouton n'a jamais protégé une API.
- *  Elle est remplacée par la matrice servie par `/organizations/{id}/roles`
- *  dès qu'elle arrive.
+ *  Il ne contient que des droits de consultation. Un repli permissif — l'ancien
+ *  `ALL_PERMISSIONS` — affichait tous les boutons d'administration quand l'API
+ *  tardait : le backend refusait bien les appels, mais l'interface promettait
+ *  des actions impossibles.
+ *
+ *  L'autorisation réelle reste côté FastAPI : masquer un bouton n'a jamais
+ *  protégé une API.
  */
-const MEMBER_PERMISSIONS = [
+const READ_ONLY_FALLBACK = [
   'organization.view',
   'member.view',
   'tontine.view',
@@ -24,35 +27,6 @@ const MEMBER_PERMISSIONS = [
   'reminder.view',
 ];
 
-const FALLBACK_MATRIX: Record<OrgRole, string[]> = {
-  member: MEMBER_PERMISSIONS,
-  auditor: [...MEMBER_PERMISSIONS, 'treasury.view', 'report.view', 'audit.view'],
-  treasurer: [
-    ...MEMBER_PERMISSIONS,
-    'treasury.view',
-    'report.view',
-    'audit.view',
-    'contribution.record',
-    'contribution.confirm',
-    'contribution.cancel',
-    'payout.record',
-    'treasury.manage',
-    'reminder.send',
-  ],
-  president: [
-    ...MEMBER_PERMISSIONS,
-    'treasury.view',
-    'report.view',
-    'audit.view',
-    'tontine.validate',
-    'draw.run',
-    'member.invite',
-    'reminder.send',
-  ],
-  admin: [],
-  super_admin: [],
-};
-
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private readonly api = inject(ApiClient);
@@ -61,7 +35,8 @@ export class SessionService {
   private readonly organizationList = signal<Organization[]>([]);
   private readonly activeId = signal<string | null>(null);
   private readonly currentMembership = signal<Member | null>(null);
-  private readonly permissionMatrix = signal<Record<string, string[]>>({});
+  private readonly grantedPermissions = signal<string[]>([]);
+  private readonly roleLabel = signal<string | null>(null);
   private readonly loadingState = signal(false);
 
   readonly organizations = this.organizationList.asReadonly();
@@ -80,18 +55,21 @@ export class SessionService {
   /** Super administrateur plateforme : accès transverse. */
   readonly isPlatformAdmin = computed(() => this.role() === 'super_admin');
 
+  /** Droits réels du membre, servis par `/me/permissions`.
+   *
+   *  Lus par membre et non par rôle : un rôle sur mesure n'a pas d'entrée dans
+   *  une matrice indexée par nom de rôle.
+   */
   readonly permissions = computed<string[]>(() => {
-    const role = this.role();
-    if (!role) {
-      return [];
+    const granted = this.grantedPermissions();
+    if (granted.length) {
+      return granted;
     }
-    const served = this.permissionMatrix()[role];
-    if (served?.length) {
-      return served;
-    }
-    const fallback = FALLBACK_MATRIX[role];
-    return fallback.length ? fallback : ALL_PERMISSIONS;
+    return this.role() ? READ_ONLY_FALLBACK : [];
   });
+
+  /** Nom affichable du rôle, y compris pour un rôle sur mesure. */
+  readonly roleName = computed(() => this.roleLabel());
 
   can(permission: string): boolean {
     return this.permissions().includes(permission);
@@ -143,7 +121,8 @@ export class SessionService {
     this.organizationList.set([]);
     this.activeId.set(null);
     this.currentMembership.set(null);
-    this.permissionMatrix.set({});
+    this.grantedPermissions.set([]);
+    this.roleLabel.set(null);
   }
 
   private loadContext(organization: Organization): Observable<Organization | null> {
@@ -154,44 +133,18 @@ export class SessionService {
       .pipe(
         tap((membership) => this.currentMembership.set(membership)),
         switchMap(() =>
-          this.api.get<{ role: OrgRole; permissions: string[] }[]>(
-            `/organizations/${organization.id}/roles`,
-          ),
+          this.api.get<MyPermissions[]>('/me/permissions', {
+            organizationId: organization.id,
+          }),
         ),
-        tap((definitions) => {
-          const matrix: Record<string, string[]> = {};
-          for (const definition of definitions) {
-            matrix[definition.role] = definition.permissions;
-          }
-          this.permissionMatrix.set(matrix);
+        tap((entries) => {
+          const mine = entries.find(
+            (entry) => entry.organizationId === organization.id,
+          );
+          this.grantedPermissions.set(mine?.permissions ?? []);
+          this.roleLabel.set(mine?.roleName ?? null);
         }),
         map(() => organization),
       );
   }
 }
-
-/** Repli du rôle administrateur si le backend n'a pas encore répondu. */
-const ALL_PERMISSIONS = [
-  ...MEMBER_PERMISSIONS,
-  'organization.edit',
-  'organization.manage_officers',
-  'member.create',
-  'member.edit',
-  'member.delete',
-  'member.invite',
-  'tontine.create',
-  'tontine.edit',
-  'tontine.validate',
-  'contribution.record',
-  'contribution.confirm',
-  'contribution.cancel',
-  'draw.run',
-  'draw.override',
-  'draw.invalidate',
-  'payout.record',
-  'treasury.view',
-  'treasury.manage',
-  'report.view',
-  'audit.view',
-  'reminder.send',
-];

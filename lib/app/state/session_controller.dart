@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kadjane/app/di/providers.dart';
 import 'package:kadjane/app/state/auth_controller.dart';
 import 'package:kadjane/core/storage/key_value_store.dart';
+import 'package:kadjane/domain/entities/member_permissions.dart';
 import 'package:kadjane/domain/entities/organization.dart';
 import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/entities/role_definition.dart';
@@ -99,9 +100,45 @@ organizationRoleMatrixProvider = FutureProvider<Map<OrgRole, Set<Permission>>>((
   };
 });
 
+/// Droits du membre connecté, tels que le serveur les établit.
+///
+/// C'est la source de vérité : une matrice indexée par rôle ne sait rien d'un
+/// rôle sur mesure, dont le porteur garde l'étiquette « membre » tout en ayant
+/// des droits particuliers.
+final FutureProvider<MemberPermissions?> myPermissionsProvider =
+    FutureProvider<MemberPermissions?>((Ref ref) async {
+      final String? organizationId = await ref.watch(
+        activeOrganizationIdProvider.future,
+      );
+      if (organizationId == null) {
+        return null;
+      }
+      final List<MemberPermissions> entries = await ref
+          .watch(roleRepositoryProvider)
+          .myPermissions(organizationId: organizationId);
+      for (final MemberPermissions entry in entries) {
+        if (entry.organizationId == organizationId) {
+          return entry;
+        }
+      }
+      return entries.isEmpty ? null : entries.first;
+    });
+
 /// Permissions effectives de l'utilisateur dans l'organisation active.
+///
+/// Le serveur fait foi. Tant qu'il n'a pas répondu — démarrage, coupure
+/// réseau, mode démonstration — on retombe sur la matrice locale du rôle :
+/// l'application reste utilisable, et le backend refuse de toute façon ce
+/// qu'elle laisserait passer à tort.
 final Provider<Set<Permission>> currentPermissionsProvider =
     Provider<Set<Permission>>((Ref ref) {
+      final MemberPermissions? served = ref
+          .watch(myPermissionsProvider)
+          .valueOrNull;
+      if (served != null && served.permissions.isNotEmpty) {
+        return served.permissions;
+      }
+
       final OrganizationMember? membership = ref
           .watch(currentMembershipProvider)
           .valueOrNull;
@@ -115,6 +152,15 @@ final Provider<Set<Permission>> currentPermissionsProvider =
           .watch(permissionServiceProvider)
           .permissionsOf(membership.role, overrides: overrides);
     });
+
+/// Nom du rôle à afficher, rôle sur mesure compris.
+final Provider<String?> currentRoleNameProvider = Provider<String?>((Ref ref) {
+  final MemberPermissions? served = ref.watch(myPermissionsProvider).valueOrNull;
+  if (served != null && served.roleName.isNotEmpty) {
+    return served.roleName;
+  }
+  return ref.watch(currentMembershipProvider).valueOrNull?.role.code;
+});
 
 /// Helper : `ref.watch(canProvider(Permission.drawRun))`.
 final ProviderFamily<bool, Permission> canProvider =

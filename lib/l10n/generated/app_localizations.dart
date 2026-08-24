@@ -1844,6 +1844,264 @@ abstract class AppLocalizations {
   /// **'Opération enregistrée'**
   String get treasurySaved;
 
+  /// No description provided for @treasuryCashboxes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caisses'**
+  String get treasuryCashboxes;
+
+  /// No description provided for @treasuryCashboxCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer une caisse'**
+  String get treasuryCashboxCreate;
+
+  /// No description provided for @treasuryCashboxName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de la caisse'**
+  String get treasuryCashboxName;
+
+  /// No description provided for @treasuryOpeningBalance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde d\'ouverture'**
+  String get treasuryOpeningBalance;
+
+  /// No description provided for @treasuryCashboxSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caisse ouverte'**
+  String get treasuryCashboxSaved;
+
+  /// No description provided for @treasuryMonthFlows.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce mois-ci'**
+  String get treasuryMonthFlows;
+
+  /// No description provided for @treasuryExpected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attendu'**
+  String get treasuryExpected;
+
+  /// No description provided for @treasuryCollected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaissé'**
+  String get treasuryCollected;
+
+  /// No description provided for @treasuryRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reste à encaisser'**
+  String get treasuryRemaining;
+
+  /// No description provided for @treasuryLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get treasuryLate;
+
+  /// No description provided for @treasuryRecoveryRate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recouvrement'**
+  String get treasuryRecoveryRate;
+
+  /// No description provided for @campaignsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisations'**
+  String get campaignsTitle;
+
+  /// No description provided for @campaignsCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle cotisation'**
+  String get campaignsCreate;
+
+  /// No description provided for @campaignsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune cotisation. Une cotisation est un engagement : la caisse n\'augmente que lorsqu\'un membre paie.'**
+  String get campaignsEmpty;
+
+  /// No description provided for @campaignTitleField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get campaignTitleField;
+
+  /// No description provided for @campaignType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nature'**
+  String get campaignType;
+
+  /// No description provided for @campaignTypeAssociation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Associative'**
+  String get campaignTypeAssociation;
+
+  /// No description provided for @campaignTypeExceptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exceptionnelle'**
+  String get campaignTypeExceptional;
+
+  /// No description provided for @campaignTypeVoluntary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Volontaire'**
+  String get campaignTypeVoluntary;
+
+  /// No description provided for @campaignAmountMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant'**
+  String get campaignAmountMode;
+
+  /// No description provided for @campaignAmountFixed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant fixe'**
+  String get campaignAmountFixed;
+
+  /// No description provided for @campaignAmountFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant libre'**
+  String get campaignAmountFree;
+
+  /// No description provided for @campaignAmountPerMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant par membre'**
+  String get campaignAmountPerMember;
+
+  /// No description provided for @campaignDueDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date limite'**
+  String get campaignDueDate;
+
+  /// No description provided for @campaignCashbox.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caisse destinataire'**
+  String get campaignCashbox;
+
+  /// No description provided for @campaignMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres concernés'**
+  String get campaignMembers;
+
+  /// No description provided for @campaignAllMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les membres actifs'**
+  String get campaignAllMembers;
+
+  /// No description provided for @campaignMandatory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Obligatoire'**
+  String get campaignMandatory;
+
+  /// No description provided for @campaignCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation créée'**
+  String get campaignCreated;
+
+  /// No description provided for @campaignMembersCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} membre(s)'**
+  String campaignMembersCount(int count);
+
+  /// No description provided for @campaignPay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer un paiement'**
+  String get campaignPay;
+
+  /// No description provided for @campaignPaymentAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant reçu'**
+  String get campaignPaymentAmount;
+
+  /// No description provided for @campaignPaymentMethod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moyen de paiement'**
+  String get campaignPaymentMethod;
+
+  /// No description provided for @campaignPaymentReference.
+  ///
+  /// In fr, this message translates to:
+  /// **'Référence'**
+  String get campaignPaymentReference;
+
+  /// No description provided for @campaignPaymentSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement enregistré et porté en caisse'**
+  String get campaignPaymentSaved;
+
+  /// No description provided for @campaignExempt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exempter'**
+  String get campaignExempt;
+
+  /// No description provided for @campaignExemptReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'exemption'**
+  String get campaignExemptReason;
+
+  /// No description provided for @campaignExempted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre exempté'**
+  String get campaignExempted;
+
+  /// No description provided for @campaignPaidOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'{paid} sur {expected}'**
+  String campaignPaidOf(String paid, String expected);
+
+  /// No description provided for @unpaidTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impayés'**
+  String get unpaidTitle;
+
+  /// No description provided for @unpaidEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun impayé. Tout ce qui était attendu a été encaissé.'**
+  String get unpaidEmpty;
+
+  /// No description provided for @unpaidDaysLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jour(s) de retard'**
+  String unpaidDaysLate(int days);
+
+  /// No description provided for @roleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôle'**
+  String get roleLabel;
+
   /// No description provided for @reportsTitle.
   ///
   /// In fr, this message translates to:

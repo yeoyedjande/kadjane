@@ -12,6 +12,8 @@ import 'package:kadjane/features/auth/presentation/screens/otp_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:kadjane/features/auth/presentation/screens/splash_screen.dart';
 import 'package:kadjane/features/beneficiary/presentation/screens/beneficiary_screen.dart';
+import 'package:kadjane/features/contributions/presentation/screens/campaign_detail_screen.dart';
+import 'package:kadjane/features/contributions/presentation/screens/campaigns_screen.dart';
 import 'package:kadjane/features/contributions/presentation/screens/contributions_screen.dart';
 import 'package:kadjane/features/contributions/presentation/screens/cycle_contributions_screen.dart';
 import 'package:kadjane/features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -33,6 +35,7 @@ import 'package:kadjane/features/tontines/presentation/screens/tontine_detail_sc
 import 'package:kadjane/features/tontines/presentation/screens/tontine_wizard_screen.dart';
 import 'package:kadjane/features/tontines/presentation/screens/tontines_screen.dart';
 import 'package:kadjane/features/treasury/presentation/screens/treasury_screen.dart';
+import 'package:kadjane/features/treasury/presentation/screens/unpaid_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -241,6 +244,17 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         path: AppRoutes.duesCollect,
         builder: (_, _) => const DuesManagementScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.campaigns,
+        builder: (_, _) => const CampaignsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.campaignDetailPattern,
+        builder: (_, GoRouterState state) => CampaignDetailScreen(
+          campaignId: state.pathParameters['campaignId']!,
+        ),
+      ),
+      GoRoute(path: AppRoutes.unpaid, builder: (_, _) => const UnpaidScreen()),
       GoRoute(
         path: AppRoutes.reminders,
         builder: (_, _) => const RemindersScreen(),

@@ -12,7 +12,7 @@ from app.models.payout import Beneficiary, Payout
 from app.models.tontine import TontineParticipant
 from app.schemas import serializers as out
 from app.schemas.tontine import BeneficiaryDesignate, PayoutClose, PayoutCreate
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.payout_service import PayoutService
 from app.services.tontine_service import TontineService
 
@@ -24,7 +24,7 @@ router = APIRouter(tags=["bénéficiaires et versements"])
 
 @router.get("/tontines/{tontine_id}/beneficiaries", summary="Bénéficiaires")
 def list_beneficiaries(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "payout.view")
+    PermissionService(db).require(context.membership, "payout.view")
     beneficiaries = PayoutService(db).for_tontine(context.tontine.id)
     return success([out.beneficiary(b) for b in beneficiaries])
 
@@ -33,7 +33,7 @@ def list_beneficiaries(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 def read_cycle_beneficiary(
     db: DbSession, context: CycleCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "payout.view")
+    PermissionService(db).require(context.membership, "payout.view")
     beneficiary = PayoutService(db).of_cycle(cycle_id)
     return success(out.beneficiary(beneficiary) if beneficiary else None)
 
@@ -49,7 +49,7 @@ def designate_beneficiary(
     cycle_id: uuid.UUID,
     payload: BeneficiaryDesignate,
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "draw.override")
+    PermissionService(db).require(context.membership, "draw.override")
     service = TontineService(db)
     cycle = service.cycle(cycle_id, context.organization_id)
     participant = db.get(TontineParticipant, payload.participant_id)
@@ -79,7 +79,7 @@ def read_beneficiary(
 
 @router.get("/tontines/{tontine_id}/payouts", summary="Versements d'une tontine")
 def list_payouts(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "payout.view")
+    PermissionService(db).require(context.membership, "payout.view")
     payouts = PayoutService(db).payouts_of_tontine(context.tontine.id)
     return success([out.payout(p) for p in payouts])
 
@@ -88,7 +88,7 @@ def list_payouts(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 def read_cycle_payout(
     db: DbSession, context: CycleCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "payout.view")
+    PermissionService(db).require(context.membership, "payout.view")
     payout = PayoutService(db).payout_of_cycle(cycle_id)
     return success(out.payout(payout) if payout else None)
 
@@ -147,7 +147,7 @@ def fail_payout(
 def member_payout_total(
     db: DbSession, context: OrgContext, member_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "payout.view")
+    PermissionService(db).require(context.membership, "payout.view")
     total = PayoutService(db).total_received_by(context.organization_id, member_id)
     return success({"total": out.money(total)})
 
@@ -164,7 +164,7 @@ def _guarded_beneficiary(
     if beneficiary is None:
         raise NotFoundError("Bénéficiaire introuvable.", code="beneficiary_not_found")
     context = get_organization_context(db, user, beneficiary.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return beneficiary, context
 
 
@@ -177,5 +177,5 @@ def _guarded_payout(
     if payout is None:
         raise NotFoundError("Versement introuvable.", code="payout_not_found")
     context = get_organization_context(db, user, payout.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return payout, context

@@ -1,0 +1,262 @@
+<k-page-header
+  title="Caisses"
+  subtitle="Le solde n'est pas une colonne : il se recompose depuis le journal."
+>
+  @if (session.can('cashbox.create')) {
+    <button type="button" class="k-btn" (click)="openCreate()">
+      Créer une caisse
+    </button>
+  }
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (createOpen()) {
+  <article class="k-card">
+    <div class="k-card__header">
+      <h2 class="k-card__title">Nouvelle caisse</h2>
+    </div>
+    <form class="k-card__body k-stack" [formGroup]="createForm" (ngSubmit)="create()">
+      <label class="k-field">
+        <span class="k-label">Nom</span>
+        <input class="k-input" formControlName="name" placeholder="Caisse sociale" />
+      </label>
+      <label class="k-field">
+        <span class="k-label">Description</span>
+        <textarea class="k-textarea" rows="2" formControlName="description"></textarea>
+      </label>
+      <label class="k-field">
+        <span class="k-label">Solde d'ouverture</span>
+        <input class="k-input" type="number" min="0" formControlName="openingBalance" />
+        <span class="k-muted" style="font-size: 12px">
+          Ce qui se trouve déjà dans la caisse au moment de l'ouvrir ici.
+        </span>
+      </label>
+      <label class="k-row" style="gap: 8px; align-items: center">
+        <input type="checkbox" formControlName="isDefault" />
+        <span>Caisse par défaut — elle reçoit les encaissements non affectés</span>
+      </label>
+      <div class="k-row" style="justify-content: flex-end">
+        <button type="button" class="k-btn k-btn--ghost" (click)="createOpen.set(false)">
+          Annuler
+        </button>
+        <button type="submit" class="k-btn" [disabled]="saving()">
+          {{ saving() ? 'Ouverture…' : 'Ouvrir la caisse' }}
+        </button>
+      </div>
+    </form>
+  </article>
+}
+
+@if (!loading() && !boxes().length) {
+  <article class="k-card">
+    <div class="k-card__body k-stack">
+      <p class="k-muted">
+        Aucune caisse. Une caisse représente les fonds réellement détenus par
+        l'association — à ne pas confondre avec les cotisations attendues.
+        Plusieurs peuvent coexister : caisse principale, caisse sociale,
+        événements.
+      </p>
+    </div>
+  </article>
+}
+
+@if (boxes().length) {
+  <section class="k-grid k-grid--3">
+    <k-stat label="Solde global" [value]="globalBalance() | money" [accent]="true" />
+    <k-stat label="Caisses" [value]="boxes().length.toString()" />
+  </section>
+
+  <section class="k-grid k-grid--3">
+    @for (box of boxes(); track box.id) {
+      <button
+        type="button"
+        class="k-card cashbox-card"
+        [class.is-selected]="box.id === selectedId()"
+        (click)="select(box.id)"
+      >
+        <div class="k-card__body k-stack" style="gap: 6px">
+          <div class="k-toolbar">
+            <strong>{{ box.name }}</strong>
+            <k-badge [value]="box.status" />
+          </div>
+          <div class="cashbox-card__balance">{{ box.currentBalance | money }}</div>
+          <div class="k-muted cashbox-card__flows">
+            <span>↑ {{ box.inflows | money }}</span>
+            <span>↓ {{ box.outflows | money }}</span>
+          </div>
+          @if (box.isDefault) {
+            <span class="role-tag role-tag--accent">Par défaut</span>
+          }
+        </div>
+      </button>
+    }
+  </section>
+
+  @if (selected(); as box) {
+    <article class="k-card">
+      <div class="k-card__header">
+        <div class="k-toolbar">
+          <h2 class="k-card__title">{{ box.name }}</h2>
+          <div class="k-row">
+            @if (session.can('cash_transaction.create') && box.status === 'open') {
+              <button type="button" class="k-btn" (click)="openMovement('income')">
+                Nouvelle entrée
+              </button>
+              <button
+                type="button"
+                class="k-btn k-btn--ghost"
+                (click)="openMovement('expense')"
+              >
+                Nouvelle sortie
+              </button>
+            }
+            @if (session.can('cashbox.close') && box.status === 'open') {
+              <button
+                type="button"
+                class="k-btn k-btn--ghost"
+                (click)="askClose(box)"
+              >
+                Fermer
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      @if (movementOpen()) {
+        <form
+          class="k-card__body k-stack"
+          [formGroup]="movementForm"
+          (ngSubmit)="record()"
+        >
+          <div class="k-grid k-grid--3">
+            <label class="k-field">
+              <span class="k-label">Sens</span>
+              <select class="k-select" formControlName="type">
+                <option value="income">Entrée</option>
+                <option value="expense">Sortie</option>
+                <option value="adjustment">Ajustement d'inventaire</option>
+              </select>
+            </label>
+            <label class="k-field">
+              <span class="k-label">Catégorie</span>
+              <select class="k-select" formControlName="category">
+                @for (item of categoriesFor(movementForm.controls.type.value); track item.value) {
+                  <option [value]="item.value">{{ item.label }}</option>
+                }
+              </select>
+            </label>
+            <label class="k-field">
+              <span class="k-label">Montant</span>
+              <input class="k-input" type="number" min="1" formControlName="amount" />
+            </label>
+          </div>
+          <label class="k-field">
+            <span class="k-label">Description</span>
+            <input class="k-input" formControlName="description" />
+          </label>
+          <label class="k-field">
+            <span class="k-label">Référence</span>
+            <input
+              class="k-input"
+              formControlName="reference"
+              placeholder="N° de reçu, transaction Mobile Money…"
+            />
+          </label>
+          <div class="k-row" style="justify-content: flex-end">
+            <button
+              type="button"
+              class="k-btn k-btn--ghost"
+              (click)="movementOpen.set(false)"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="k-btn" [disabled]="saving()">
+              {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      <div class="k-table-wrap">
+        <table class="k-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Catégorie</th>
+              <th style="text-align: right">Montant</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of transactions(); track item.id) {
+              <tr [class.is-voided]="item.status !== 'confirmed'">
+                <td>{{ item.date | frDate }}</td>
+                <td>
+                  {{ item.description || '—' }}
+                  @if (item.reference) {
+                    <div class="k-muted" style="font-size: 12px">
+                      Réf. {{ item.reference }}
+                    </div>
+                  }
+                  @if (item.cancelReason) {
+                    <div class="k-muted" style="font-size: 12px">
+                      {{ item.cancelReason }}
+                    </div>
+                  }
+                </td>
+                <td>{{ item.category | label }}</td>
+                <td style="text-align: right">
+                  {{ item.type === 'expense' ? '−' : '+' }}{{ item.amount | money }}
+                </td>
+                <td><k-badge [value]="item.status" /></td>
+                <td style="text-align: right">
+                  @if (
+                    session.can('cash_transaction.cancel') &&
+                    item.status === 'confirmed'
+                  ) {
+                    <button
+                      type="button"
+                      class="k-btn k-btn--ghost k-btn--sm"
+                      (click)="askCancel(item)"
+                    >
+                      Annuler
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+            @if (!transactions().length && !loadingJournal()) {
+              <tr>
+                <td colspan="6" class="k-muted">
+                  Aucun mouvement dans cette caisse.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (total() > pageSize) {
+        <div class="k-card__footer">
+          <k-pagination
+            [page]="page()"
+            [pageSize]="pageSize"
+            [total]="total()"
+            [hasMore]="(page() + 1) * pageSize < total()"
+            (go)="goToPage($event)"
+          />
+        </div>
+      }
+    </article>
+  }
+}
+
+<k-confirm
+  [open]="confirm()"
+  (confirmed)="dispatch($event)"
+  (cancelled)="onCancelled()"
+/>

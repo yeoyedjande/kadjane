@@ -1,0 +1,423 @@
+<k-page-header
+  title="Cotisations"
+  subtitle="Ce que l'association attend — à ne pas confondre avec ce qu'elle a encaissé."
+>
+  @if (session.can('contribution.create')) {
+    <button type="button" class="k-btn" (click)="openCreate()">
+      Nouvelle cotisation
+    </button>
+  }
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (formOpen()) {
+  <article class="k-card">
+    <div class="k-card__header">
+      <h2 class="k-card__title">Nouvelle cotisation</h2>
+    </div>
+    <form class="k-card__body k-stack" [formGroup]="form" (ngSubmit)="create()">
+      <div class="k-grid k-grid--3">
+        <label class="k-field">
+          <span class="k-label">Nature</span>
+          <select class="k-select" formControlName="contributionType">
+            @for (item of types; track item.value) {
+              <option [value]="item.value">{{ item.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="k-field">
+          <span class="k-label">Montant</span>
+          <select class="k-select" formControlName="amountMode">
+            <option value="fixed">Montant fixe</option>
+            <option value="free">Montant libre</option>
+          </select>
+        </label>
+        @if (!freeAmount()) {
+          <label class="k-field">
+            <span class="k-label">Montant par membre</span>
+            <input class="k-input" type="number" min="1" formControlName="amount" />
+          </label>
+        }
+      </div>
+
+      <label class="k-field">
+        <span class="k-label">Titre</span>
+        <input
+          class="k-input"
+          formControlName="title"
+          placeholder="Soutien mariage de M. X"
+        />
+      </label>
+      <label class="k-field">
+        <span class="k-label">Description</span>
+        <textarea class="k-textarea" rows="2" formControlName="description"></textarea>
+      </label>
+
+      <div class="k-grid k-grid--3">
+        <label class="k-field">
+          <span class="k-label">Date limite</span>
+          <input class="k-input" type="date" formControlName="dueDate" />
+        </label>
+        <label class="k-field">
+          <span class="k-label">Caisse destinataire</span>
+          <select class="k-select" formControlName="cashboxId">
+            <option value="">Caisse par défaut</option>
+            @for (box of boxes(); track box.id) {
+              <option [value]="box.id">{{ box.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="k-field">
+          <span class="k-label">Pénalité de retard</span>
+          <input
+            class="k-input"
+            type="number"
+            min="0"
+            formControlName="penaltyAmount"
+          />
+        </label>
+      </div>
+
+      <div class="k-row" style="gap: 18px">
+        <label class="k-row" style="gap: 8px; align-items: center">
+          <input type="checkbox" formControlName="mandatory" />
+          <span>Obligatoire</span>
+        </label>
+        <label class="k-row" style="gap: 8px; align-items: center">
+          <input type="checkbox" formControlName="penaltyEnabled" />
+          <span>Appliquer une pénalité</span>
+        </label>
+      </div>
+
+      <div class="k-field">
+        <div class="k-toolbar">
+          <span class="k-label">Membres concernés</span>
+          <button
+            type="button"
+            class="k-btn k-btn--ghost k-btn--sm"
+            (click)="toggleAll()"
+          >
+            {{ chosen().size === roster().length ? 'Tout décocher' : 'Tout cocher' }}
+          </button>
+        </div>
+        <div class="member-picker">
+          @for (member of roster(); track member.id) {
+            <label class="member-picker__row">
+              <input
+                type="checkbox"
+                [checked]="isChosen(member.id)"
+                (change)="toggleMember(member.id)"
+              />
+              <k-avatar [name]="member.user.firstName + ' ' + member.user.lastName" />
+              <span>{{ member.user.firstName }} {{ member.user.lastName }}</span>
+            </label>
+          }
+          @if (!roster().length) {
+            <p class="k-muted" style="padding: 8px">Chargement des membres…</p>
+          }
+        </div>
+        <span class="k-muted" style="font-size: 12px">
+          {{ chosen().size }} sélectionné(s). Aucun coché : tous les membres
+          actifs sont concernés.
+        </span>
+      </div>
+
+      <div class="k-row" style="justify-content: flex-end">
+        <button type="button" class="k-btn k-btn--ghost" (click)="formOpen.set(false)">
+          Annuler
+        </button>
+        <button type="submit" class="k-btn" [disabled]="saving()">
+          {{ saving() ? 'Création…' : 'Créer la cotisation' }}
+        </button>
+      </div>
+    </form>
+  </article>
+}
+
+@if (selected(); as campaign) {
+  <article class="k-card">
+    <div class="k-card__header">
+      <div class="k-toolbar">
+        <h2 class="k-card__title">{{ campaign.title }}</h2>
+        <div class="k-row">
+          <k-badge [value]="campaign.status" />
+          <button type="button" class="k-btn k-btn--ghost" (click)="closeDetail()">
+            Retour à la liste
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="k-card__body k-stack">
+      <div class="k-muted">
+        {{ typeLabel(campaign.contributionType) }} ·
+        {{ campaign.amountMode === 'free' ? 'montant libre' : (campaign.amount | money) + ' par membre' }}
+        · {{ cashboxName(campaign.cashboxId) }}
+        @if (campaign.dueDate) {
+          · échéance {{ campaign.dueDate | frDate }}
+        }
+      </div>
+
+      @if (campaign.summary; as summary) {
+        <section class="k-grid k-grid--3">
+          <k-stat label="Attendu" [value]="summary.expected | money" />
+          <k-stat label="Encaissé" [value]="summary.collected | money" [accent]="true" />
+          <k-stat label="Reste à encaisser" [value]="summary.remaining | money" />
+          <k-stat
+            label="Recouvrement"
+            [value]="summary.recoveryRate === null ? '—' : summary.recoveryRate + ' %'"
+            [hint]="summary.recoveryRate === null ? 'Montant libre : sans objet' : null"
+          />
+          <k-stat
+            label="Payé / partiel"
+            [value]="summary.paidCount + ' / ' + summary.partialCount"
+          />
+          <k-stat
+            label="En attente / en retard"
+            [value]="summary.pendingCount + ' / ' + summary.lateCount"
+          />
+        </section>
+      }
+
+      <k-search placeholder="Nom d'un membre…" (search)="search.set($event)" />
+    </div>
+
+    <div class="k-table-wrap">
+      <table class="k-table">
+        <thead>
+          <tr>
+            <th>Membre</th>
+            <th style="text-align: right">Payé / attendu</th>
+            <th style="text-align: right">Reste</th>
+            <th>Statut</th>
+            <th>Dernier règlement</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of visibleEntries(); track entry.id) {
+            <tr>
+              <td>
+                <div class="k-row" style="gap: 8px; align-items: center">
+                  <k-avatar [name]="entry.memberName" />
+                  <span>{{ entry.memberName }}</span>
+                </div>
+              </td>
+              <td style="text-align: right">
+                {{ entry.paidAmount | money }} / {{ entry.expectedAmount | money }}
+              </td>
+              <td style="text-align: right">{{ entry.remainingAmount | money }}</td>
+              <td>
+                <k-badge [value]="entry.status" />
+                @if (entry.daysLate > 0) {
+                  <div class="k-muted" style="font-size: 12px">
+                    {{ entry.daysLate }} jour(s)
+                  </div>
+                }
+              </td>
+              <td>
+                {{ entry.lastPaymentAt ? (entry.lastPaymentAt | frDate) : '—' }}
+              </td>
+              <td style="text-align: right">
+                <div class="k-row" style="justify-content: flex-end">
+                  @if (
+                    session.canAny('payment.create', 'contribution.record') &&
+                    entry.status !== 'paid' &&
+                    entry.status !== 'exempted' &&
+                    campaign.status === 'active'
+                  ) {
+                    <button
+                      type="button"
+                      class="k-btn k-btn--sm"
+                      (click)="openPayment(entry)"
+                    >
+                      Enregistrer un paiement
+                    </button>
+                  }
+                  @if (
+                    session.can('contribution.exempt') &&
+                    entry.status !== 'exempted' &&
+                    entry.paidAmount === 0
+                  ) {
+                    <button
+                      type="button"
+                      class="k-btn k-btn--ghost k-btn--sm"
+                      (click)="askExempt(entry)"
+                    >
+                      Exempter
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+
+            @if (payingId() === entry.id) {
+              <tr>
+                <td colspan="6">
+                  <form
+                    class="k-stack"
+                    [formGroup]="payForm"
+                    (ngSubmit)="pay(entry)"
+                  >
+                    <div class="k-grid k-grid--3">
+                      <label class="k-field">
+                        <span class="k-label">Montant</span>
+                        <input
+                          class="k-input"
+                          type="number"
+                          min="1"
+                          formControlName="amount"
+                        />
+                      </label>
+                      <label class="k-field">
+                        <span class="k-label">Moyen</span>
+                        <select class="k-select" formControlName="paymentMethod">
+                          @for (method of methods; track method.value) {
+                            <option [value]="method.value">{{ method.label }}</option>
+                          }
+                        </select>
+                      </label>
+                      <label class="k-field">
+                        <span class="k-label">Référence</span>
+                        <input class="k-input" formControlName="reference" />
+                      </label>
+                    </div>
+                    <label class="k-field">
+                      <span class="k-label">Commentaire</span>
+                      <input class="k-input" formControlName="comment" />
+                    </label>
+                    <p class="k-muted" style="font-size: 12px">
+                      Ce paiement créera l'écriture de caisse correspondante et
+                      recalculera le solde : rien d'autre n'est à saisir.
+                    </p>
+                    <div class="k-row" style="justify-content: flex-end">
+                      <button
+                        type="button"
+                        class="k-btn k-btn--ghost"
+                        (click)="payingId.set(null)"
+                      >
+                        Annuler
+                      </button>
+                      <button type="submit" class="k-btn" [disabled]="saving()">
+                        {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+                      </button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+}
+
+@if (!selected() && !loading()) {
+  <article class="k-card">
+    <div class="k-card__body">
+      <div class="k-toolbar">
+        <k-search placeholder="Titre…" (search)="search.set($event)" />
+        <select
+          class="k-select"
+          (change)="typeFilter.set($any($event.target).value); onFilter()"
+        >
+          <option value="">Toutes les natures</option>
+          @for (item of types; track item.value) {
+            <option [value]="item.value">{{ item.label }}</option>
+          }
+        </select>
+        <select
+          class="k-select"
+          (change)="statusFilter.set($any($event.target).value); onFilter()"
+        >
+          <option value="">Tous les statuts</option>
+          <option value="active">En cours</option>
+          <option value="closed">Terminées</option>
+          <option value="cancelled">Annulées</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="k-table-wrap">
+      <table class="k-table">
+        <thead>
+          <tr>
+            <th>Cotisation</th>
+            <th>Nature</th>
+            <th style="text-align: right">Attendu</th>
+            <th style="text-align: right">Encaissé</th>
+            <th style="text-align: right">Reste</th>
+            <th>Recouvrement</th>
+            <th>Échéance</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (campaign of filtered(); track campaign.id) {
+            <tr>
+              <td>
+                <strong>{{ campaign.title }}</strong>
+                <div class="k-muted" style="font-size: 12px">
+                  {{ campaign.summary?.membersCount ?? 0 }} membre(s)
+                </div>
+              </td>
+              <td>{{ typeLabel(campaign.contributionType) }}</td>
+              <td style="text-align: right">
+                {{ campaign.summary?.expected ?? 0 | money }}
+              </td>
+              <td style="text-align: right">
+                {{ campaign.summary?.collected ?? 0 | money }}
+              </td>
+              <td style="text-align: right">
+                {{ campaign.summary?.remaining ?? 0 | money }}
+              </td>
+              <td>
+                @if (campaign.summary?.recoveryRate === null) {
+                  <span class="k-muted">—</span>
+                } @else {
+                  <div class="recovery">
+                    <div class="k-progress" style="flex: 1">
+                      <div
+                        class="k-progress__bar"
+                        [style.width.%]="campaign.summary?.recoveryRate ?? 0"
+                      ></div>
+                    </div>
+                    <span class="recovery__value">
+                      {{ campaign.summary?.recoveryRate ?? 0 }} %
+                    </span>
+                  </div>
+                }
+              </td>
+              <td>{{ campaign.dueDate ? (campaign.dueDate | frDate) : '—' }}</td>
+              <td style="text-align: right">
+                <button
+                  type="button"
+                  class="k-btn k-btn--ghost k-btn--sm"
+                  (click)="openDetail(campaign)"
+                >
+                  Ouvrir
+                </button>
+              </td>
+            </tr>
+          }
+          @if (!filtered().length) {
+            <tr>
+              <td colspan="8" class="k-muted">
+                Aucune cotisation. Une cotisation est un engagement financier :
+                elle n'augmente pas la caisse tant que personne n'a payé.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+}
+
+<k-confirm
+  [open]="confirm()"
+  (confirmed)="onConfirmed($event)"
+  (cancelled)="onCancelled()"
+/>

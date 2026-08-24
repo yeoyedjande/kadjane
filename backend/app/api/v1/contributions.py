@@ -12,7 +12,7 @@ from app.models.contribution import Contribution
 from app.models.enums import ContributionStatus, PaymentStatus
 from app.schemas import serializers as out
 from app.schemas.tontine import PaymentClose, PaymentCreate
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.contribution_service import ContributionService
 from app.services.tontine_service import TontineService
 
@@ -33,7 +33,7 @@ def cycle_slots(
     search: Annotated[str, Query(description="Recherche par nom")] = "",
     status_filter: Annotated[ContributionStatus | None, Query(alias="status")] = None,
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "contribution.view")
+    PermissionService(db).require(context.membership, "contribution.view")
     lines = _filtered(
         ContributionService(db).for_cycle(cycle_id), search, status_filter
     )
@@ -44,7 +44,7 @@ def cycle_slots(
 def cycle_contributions(
     db: DbSession, context: CycleCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "contribution.view")
+    PermissionService(db).require(context.membership, "contribution.view")
     return success(_payments_of(ContributionService(db).for_cycle(cycle_id)))
 
 
@@ -60,7 +60,7 @@ def tontine_cycle_contributions(
     status_filter: Annotated[ContributionStatus | None, Query(alias="status")] = None,
 ) -> dict[str, Any]:
     """Vue « ce que chacun doit » : attendu, payé, restant, statut."""
-    permission_service.require(context.membership.role_enum, "contribution.view")
+    PermissionService(db).require(context.membership, "contribution.view")
     TontineService(db).cycle(cycle_id, context.organization_id)
     lines = _filtered(
         ContributionService(db).for_cycle(cycle_id), search, status_filter
@@ -86,7 +86,7 @@ def tontine_cycle_contributions(
 
 @router.get("/tontines/{tontine_id}/contributions", summary="Paiements d'une tontine")
 def tontine_contributions(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "contribution.view")
+    PermissionService(db).require(context.membership, "contribution.view")
     return success(_payments_of(ContributionService(db).for_tontine(context.tontine.id)))
 
 
@@ -97,7 +97,7 @@ def tontine_contributions(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 def member_contributions(
     db: DbSession, context: OrgContext, member_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "contribution.view")
+    PermissionService(db).require(context.membership, "contribution.view")
     lines = ContributionService(db).for_member(context.organization_id, member_id)
     return success(_payments_of(lines))
 
@@ -114,7 +114,7 @@ def record_contribution(
     db: DbSession, context: TontineCtx, payload: PaymentCreate
 ) -> dict[str, Any]:
     """Route du contrat mobile : le paiement vise un membre et un cycle."""
-    permission_service.require(context.membership.role_enum, "contribution.record")
+    PermissionService(db).require(context.membership, "contribution.record")
     service = ContributionService(db)
 
     if payload.contribution_id is not None:
@@ -250,7 +250,7 @@ def _guarded_contribution(
     if contribution is None:
         raise NotFoundError("Cotisation introuvable.", code="contribution_not_found")
     context = get_organization_context(db, user, contribution.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return contribution, context
 
 
@@ -264,5 +264,5 @@ def _guarded_payment(
     if payment is None:
         raise NotFoundError("Paiement introuvable.", code="payment_not_found")
     context = get_organization_context(db, user, payment.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return payment, context

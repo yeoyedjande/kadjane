@@ -53,10 +53,20 @@ const NAVIGATION: { section: string; entries: NavEntry[] }[] = [
     ],
   },
   {
-    section: 'Finances',
+    // L'espace du trésorier : les fonds détenus, ce qui est attendu, et ce
+    // qui manque encore. Les trois sont volontairement des entrées distinctes.
+    section: 'Trésorerie',
     entries: [
-      { path: '/dues', label: 'Caisse', icon: '◈', permission: 'dues.view' },
-      { path: '/treasury', label: 'Trésorerie', icon: '▤', permission: 'treasury.view' },
+      { path: '/treasury', label: 'Tableau de bord', icon: '▤', permission: 'treasury.view' },
+      { path: '/cashboxes', label: 'Caisses', icon: '▣', permission: 'cashbox.view' },
+      {
+        path: '/contributions/campaigns',
+        label: 'Cotisations',
+        icon: '≡',
+        permission: 'contribution.view',
+      },
+      { path: '/unpaid', label: 'Impayés', icon: '⚠', permission: 'contribution.view' },
+      { path: '/dues', label: 'Plans de caisse', icon: '◈', permission: 'dues.view' },
       { path: '/reminders', label: 'Relances', icon: '!', permission: 'reminder.view' },
     ],
   },
@@ -65,6 +75,13 @@ const NAVIGATION: { section: string; entries: NavEntry[] }[] = [
     entries: [
       { path: '/notifications', label: 'Notifications', icon: '◔' },
       { path: '/audit', label: 'Audit', icon: '◈', permission: 'audit.view' },
+      { path: '/settings/roles', label: 'Rôles', icon: '⚑', permission: 'role.view' },
+      {
+        path: '/settings/permissions',
+        label: 'Permissions',
+        icon: '⚿',
+        permission: 'permission.view',
+      },
       { path: '/settings', label: 'Paramètres', icon: '⚙', permission: 'organization.view' },
       { path: '/platform', label: 'Plateforme', icon: '⬢', permission: 'organization.edit' },
     ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kadjane/app/di/providers.dart';
+import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/app/state/session_controller.dart';
 import 'package:kadjane/core/error/error_mapper.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
@@ -16,12 +18,15 @@ import 'package:kadjane/design_system/widgets/k_stat_tile.dart';
 import 'package:kadjane/design_system/widgets/k_states.dart';
 import 'package:kadjane/design_system/widgets/k_text_field.dart';
 import 'package:kadjane/domain/entities/cash_transaction.dart';
+import 'package:kadjane/domain/entities/cashbox.dart';
+import 'package:kadjane/domain/entities/contribution_campaign.dart';
 import 'package:kadjane/domain/entities/organization.dart';
 import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/enums/currency.dart';
 import 'package:kadjane/domain/enums/permission.dart';
 import 'package:kadjane/domain/enums/transaction_enums.dart';
 import 'package:kadjane/domain/repositories/treasury_repository.dart';
+import 'package:kadjane/features/treasury/presentation/providers/treasury_providers.dart';
 
 /// Caisse de l'organisation : solde, entrées, sorties.
 final AutoDisposeFutureProvider<TreasurySnapshot?> treasuryProvider =
@@ -72,6 +77,7 @@ class TreasuryScreen extends ConsumerWidget {
             KSpacing.giant,
           ),
           children: <Widget>[
+            const _TreasurerBoard(),
             KCard(
               elevated: true,
               child: Column(
@@ -320,6 +326,119 @@ class _TransactionSheetState extends ConsumerState<_TransactionSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// Bloc du trésorier : ce qu'il détient, et ce qu'il attend encore.
+///
+/// Le solde des caisses et les cotisations sont deux réalités distinctes :
+/// 60 000 attendus ne sont pas 40 000 encaissés, et aucun des deux n'est le
+/// solde. Les afficher côte à côte, et non additionnés, est le propos de ce
+/// bloc.
+///
+/// Il s'ajoute au-dessus de l'écran existant : le journal des mouvements, en
+/// dessous, ne bouge pas.
+class _TreasurerBoard extends ConsumerWidget {
+  const _TreasurerBoard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<FinancialDashboard?> dashboard = ref.watch(
+      financialDashboardProvider,
+    );
+    final Organization? organization = ref
+        .watch(activeOrganizationProvider)
+        .valueOrNull;
+    final Currency currency = organization?.currency ?? Currency.xof;
+    final FinancialDashboard? data = dashboard.valueOrNull;
+
+    // Absent, le bloc disparaît sans bruit : l'écran historique reste complet,
+    // et une API plus ancienne n'empêche pas le trésorier de travailler.
+    if (data == null) {
+      return const SizedBox.shrink();
+    }
+
+    final bool canSeeCampaigns = ref.watch(
+      canProvider(Permission.contributionView),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        KStatGrid(
+          tiles: <Widget>[
+            KStatTile(
+              label: context.l10n.treasuryExpected,
+              value: MoneyFormatter.compact(data.expected, currency),
+              icon: Icons.receipt_long_outlined,
+            ),
+            KStatTile(
+              label: context.l10n.treasuryCollected,
+              value: MoneyFormatter.compact(data.collected, currency),
+              icon: Icons.savings_outlined,
+              accent: context.colors.success,
+            ),
+            KStatTile(
+              label: context.l10n.treasuryRemaining,
+              value: MoneyFormatter.compact(data.remaining, currency),
+              icon: Icons.hourglass_bottom,
+            ),
+            KStatTile(
+              label: context.l10n.treasuryLate,
+              value: MoneyFormatter.compact(data.lateAmount, currency),
+              icon: Icons.warning_amber_outlined,
+              accent: context.colors.danger,
+              onTap: canSeeCampaigns
+                  ? () => context.push(AppRoutes.unpaid)
+                  : null,
+            ),
+          ],
+        ),
+        if (data.cashboxes.length > 1) ...<Widget>[
+          KSpacing.gapLg,
+          KSectionHeader(title: context.l10n.treasuryCashboxes),
+          ...data.cashboxes.map(
+            (Cashbox box) => Padding(
+              padding: const EdgeInsets.only(bottom: KSpacing.sm),
+              child: KCard(
+                padding: const EdgeInsets.all(KSpacing.md),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(box.name, style: context.text.titleSmall),
+                    ),
+                    Text(
+                      MoneyFormatter.format(box.currentBalance, currency),
+                      style: context.text.titleSmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+        if (canSeeCampaigns) ...<Widget>[
+          KSpacing.gapMd,
+          Row(
+            children: <Widget>[
+              KButton.secondary(
+                label: context.l10n.campaignsTitle,
+                expanded: false,
+                size: KButtonSize.small,
+                onPressed: () => context.push(AppRoutes.campaigns),
+              ),
+              const SizedBox(width: KSpacing.sm),
+              KButton.ghost(
+                label: context.l10n.unpaidTitle,
+                onPressed: () => context.push(AppRoutes.unpaid),
+              ),
+            ],
+          ),
+        ],
+        KSpacing.gapLg,
+      ],
     );
   }
 }

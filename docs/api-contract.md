@@ -454,6 +454,73 @@ plus.
 | POST | `/notifications/read-all` | — |
 | POST | `/notifications/devices` | `{ "registered": true, "deviceId": "…" }` |
 | POST | `/notifications/devices/unregister` | `{ "unregistered": true }` |
+
+### Rôles et permissions
+
+Détail : **[`rbac.md`](rbac.md)** et **[`permissions.md`](permissions.md)**.
+
+| Méthode | Route | Permission |
+|---|---|---|
+| GET | `/permissions` | session |
+| GET | `/me/permissions?organizationId=` | session |
+| GET | `/organizations/{id}/roles` | membre |
+| POST | `/organizations/{id}/roles` | `role.create` |
+| PATCH | `/organizations/{id}/roles/{roleId}` | `role.update` |
+| PUT | `/organizations/{id}/roles/{roleId}/permissions` | `permission.assign` |
+| PATCH | `/organizations/{id}/members/{memberId}/role` | `role.assign` |
+
+`GET /me/permissions` renvoie **toujours un tableau**, une entrée par
+appartenance : le rôle dépend de l'organisation.
+
+```jsonc
+[
+  {
+    "organizationId": "org_1",
+    "memberId": "mbr_1",
+    "role": "treasurer",
+    "roleId": "rol_1",
+    "roleName": "Trésorier",
+    "permissions": ["cashbox.view", "payment.confirm", "…"]
+  }
+]
+```
+
+### Caisses et cotisations
+
+Détail : **[`treasury.md`](treasury.md)**.
+
+| Méthode | Route | Permission |
+|---|---|---|
+| GET | `/organizations/{id}/cashboxes` | `cashbox.view` |
+| POST | `/organizations/{id}/cashboxes` | `cashbox.create` |
+| GET | `/cashboxes/{id}` | `cashbox.view` |
+| PATCH | `/cashboxes/{id}` | `cashbox.update` |
+| POST | `/cashboxes/{id}/close` | `cashbox.close` |
+| GET | `/cashboxes/{id}/transactions?limit=&offset=` | `cashbox.view` |
+| POST | `/cashboxes/{id}/transactions` | `cash_transaction.create` |
+| POST | `/cash-transactions/{id}/cancel` | `cash_transaction.cancel` |
+| GET | `/organizations/{id}/contribution-campaigns?type=&status=` | `contribution.view` |
+| POST | `/organizations/{id}/contribution-campaigns` | `contribution.create` |
+| GET | `/contribution-campaigns/{id}` | `contribution.view` |
+| PATCH | `/contribution-campaigns/{id}` | `contribution.update` |
+| GET | `/contribution-campaigns/{id}/entries` | `contribution.view` |
+| GET | `/contribution-entries/{id}` | `contribution.view` |
+| POST | `/contribution-entries/{id}/payments` | `payment.create` **ou** `contribution.record` |
+| POST | `/contribution-entries/{id}/exempt` | `contribution.exempt` |
+| POST | `/contribution-payments/{id}/cancel` | `payment.cancel` |
+| GET | `/organizations/{id}/unpaid?limit=&offset=` | `contribution.view` |
+| GET | `/organizations/{id}/financial-dashboard` | `treasury.view` |
+
+> **Le solde d'une caisse est calculé, pas stocké.** `currentBalance` se
+> recompose depuis le journal à chaque lecture ; il n'existe pas de colonne
+> correspondante. Le client ne le recalcule jamais non plus : une somme faite
+> sur une page partielle serait fausse, et convaincante.
+
+> **Un règlement de cotisation produit son écriture de caisse.** Le trésorier
+> ne saisit **pas** l'entrée en plus : `POST /contribution-entries/{id}/payments`
+> met à jour le suivi, le reste, le statut, la caisse, le solde, l'audit et la
+> notification, dans une seule transaction. `campaignPayment.cashTransactionId`
+> porte le lien.
 | GET | `/organizations/{id}/treasury` | `treasurySnapshot` |
 | POST | `/organizations/{id}/transactions` | `transaction` |
 | GET | `/organizations/{id}/dashboard?memberId=` | `dashboardSnapshot` |

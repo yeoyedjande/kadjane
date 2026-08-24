@@ -10,6 +10,7 @@ import 'package:kadjane/data/mock/mock_database.dart';
 import 'package:kadjane/data/remote/http_api_client.dart';
 import 'package:kadjane/data/repositories/mock_audit_repository.dart';
 import 'package:kadjane/data/repositories/mock_auth_repository.dart';
+import 'package:kadjane/data/repositories/mock_cashbox_repository.dart';
 import 'package:kadjane/data/repositories/mock_contribution_repository.dart';
 import 'package:kadjane/data/repositories/mock_dashboard_repository.dart';
 import 'package:kadjane/data/repositories/mock_draw_repository.dart';
@@ -24,6 +25,7 @@ import 'package:kadjane/data/repositories/mock_role_repository.dart';
 import 'package:kadjane/data/repositories/mock_tontine_repository.dart';
 import 'package:kadjane/data/repositories/mock_treasury_repository.dart';
 import 'package:kadjane/data/repositories/rest_auth_repository.dart';
+import 'package:kadjane/data/repositories/rest_cashbox_repository.dart';
 import 'package:kadjane/data/repositories/rest_contribution_repository.dart';
 import 'package:kadjane/data/repositories/rest_draw_repository.dart';
 import 'package:kadjane/data/repositories/rest_governance_repositories.dart';
@@ -34,6 +36,7 @@ import 'package:kadjane/data/repositories/rest_support_repositories.dart';
 import 'package:kadjane/data/repositories/rest_tontine_repository.dart';
 import 'package:kadjane/domain/repositories/audit_repository.dart';
 import 'package:kadjane/domain/repositories/auth_repository.dart';
+import 'package:kadjane/domain/repositories/cashbox_repository.dart';
 import 'package:kadjane/domain/repositories/contribution_repository.dart';
 import 'package:kadjane/domain/repositories/dashboard_repository.dart';
 import 'package:kadjane/domain/repositories/draw_repository.dart';
@@ -242,6 +245,14 @@ final Provider<ReportRepository> reportRepositoryProvider =
       (Ref ref) => ref.watch(useMockDataProvider)
           ? MockReportRepository(ref.watch(mockDatabaseProvider))
           : RestReportRepository(ref.watch(apiClientProvider)),
+    );
+
+/// Caisses et cotisations de l'association.
+final Provider<CashboxRepository> cashboxRepositoryProvider =
+    Provider<CashboxRepository>(
+      (Ref ref) => ref.watch(useMockDataProvider)
+          ? MockCashboxRepository(ref.watch(mockDatabaseProvider))
+          : RestCashboxRepository(ref.watch(apiClientProvider)),
     );
 
 final Provider<RoleRepository> roleRepositoryProvider =

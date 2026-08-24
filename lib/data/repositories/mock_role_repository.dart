@@ -1,4 +1,6 @@
 import 'package:kadjane/data/mock/mock_database.dart';
+import 'package:kadjane/domain/entities/member_permissions.dart';
+import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/entities/role_definition.dart';
 import 'package:kadjane/domain/enums/audit_action.dart';
 import 'package:kadjane/domain/enums/org_role.dart';
@@ -12,7 +14,6 @@ import 'package:kadjane/domain/services/permission_service.dart';
 /// Les définitions sont créées à la volée à partir de la matrice par défaut :
 /// une organisation qui n'a jamais personnalisé ses rôles n'a rien à stocker.
 ///
-/// TODO(api): remplacer par `RestRoleRepository` (/organizations/{id}/roles).
 class MockRoleRepository implements RoleRepository {
   MockRoleRepository(
     this._db,
@@ -36,6 +37,30 @@ class MockRoleRepository implements RoleRepository {
           result.add(_definitionFor(organizationId, role));
         }
         return List<RoleDefinition>.unmodifiable(result);
+      });
+
+  /// Hors ligne, les droits se déduisent du rôle : le mode démonstration n'a
+  /// pas de rôles sur mesure, qui ne vivent que côté serveur.
+  @override
+  Future<List<MemberPermissions>> myPermissions({String? organizationId}) =>
+      _db.withLatency(() {
+        final List<MemberPermissions> result = <MemberPermissions>[];
+        for (final OrganizationMember membership in _db.members) {
+          if (organizationId != null &&
+              membership.organizationId != organizationId) {
+            continue;
+          }
+          result.add(
+            MemberPermissions(
+              organizationId: membership.organizationId,
+              memberId: membership.id,
+              roleCode: membership.role.code,
+              roleName: membership.role.code,
+              permissions: _permissions.permissionsOf(membership.role),
+            ),
+          );
+        }
+        return List<MemberPermissions>.unmodifiable(result);
       });
 
   @override

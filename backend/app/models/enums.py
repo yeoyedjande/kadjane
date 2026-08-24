@@ -10,12 +10,12 @@ from enum import StrEnum
 
 
 class OrgRole(StrEnum):
-    """Rôles dans une organisation, du plus fort au plus faible.
+    """Rôles système d'une organisation, du plus fort au plus faible.
 
-    TODO(roles): migrer vers un vrai système Role/Permission persisté
-    (tables `roles` et `role_permissions`) quand la console d'administration
-    devra créer des rôles sur mesure. Les permissions par défaut vivent déjà
-    dans `app/services/permission_service.py`, prêtes à être surchargées.
+    Ces valeurs restent l'**étiquette** du membre : elles portent la hiérarchie
+    (`level`), donc l'anti-escalade lors d'un changement de rôle. Les droits,
+    eux, viennent des tables `roles` / `role_permissions` — un membre peut
+    porter un rôle personnalisé qui n'a pas d'équivalent ici.
     """
 
     SUPER_ADMIN = "super_admin"
@@ -114,13 +114,26 @@ class CycleStatus(StrEnum):
 
 
 class ContributionStatus(StrEnum):
-    """Statut de la ligne attendue d'un participant pour un cycle."""
+    """Statut d'une ligne attendue : cycle de tontine, caisse ou campagne.
+
+    `EXEMPTED` dispense un membre d'une campagne sans fausser le taux de
+    recouvrement : la ligne sort de l'attendu au lieu de rester impayée.
+    """
 
     PENDING = "pending"
     PARTIAL = "partial"
     PAID = "paid"
     LATE = "late"
+    EXEMPTED = "exempted"
     CANCELLED = "cancelled"
+
+    @property
+    def is_owed(self) -> bool:
+        """Vrai si la ligne pèse encore sur l'attendu."""
+        return self not in {
+            ContributionStatus.EXEMPTED,
+            ContributionStatus.CANCELLED,
+        }
 
 
 class PaymentStatus(StrEnum):
@@ -137,6 +150,48 @@ class PaymentStatus(StrEnum):
     @property
     def counts_as_collected(self) -> bool:
         return self is PaymentStatus.CONFIRMED
+
+
+class ContributionType(StrEnum):
+    """Nature d'une cotisation — elle décide d'où va l'argent.
+
+    `TONTINE` ne passe **pas** par les campagnes : ces cotisations vivent dans
+    `contributions`, alimentent la cagnotte du cycle et ne touchent jamais la
+    caisse de l'association. La valeur existe pour que les rapports puissent
+    nommer les quatre natures d'un même vocabulaire.
+    """
+
+    TONTINE = "tontine"
+    ASSOCIATION = "association"
+    EXCEPTIONAL = "exceptional"
+    VOLUNTARY = "voluntary"
+
+    @property
+    def feeds_cashbox(self) -> bool:
+        return self is not ContributionType.TONTINE
+
+
+class AmountMode(StrEnum):
+    """`FREE` : chacun donne ce qu'il veut — l'attendu n'a pas de sens."""
+
+    FIXED = "fixed"
+    FREE = "free"
+
+
+class CampaignStatus(StrEnum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    CLOSED = "closed"
+    CANCELLED = "cancelled"
+
+    @property
+    def accepts_payments(self) -> bool:
+        return self is CampaignStatus.ACTIVE
+
+
+class RoleStatus(StrEnum):
+    ACTIVE = "active"
+    DISABLED = "disabled"
 
 
 class PaymentMethod(StrEnum):
@@ -204,11 +259,67 @@ class AuditAction(StrEnum):
     DUES_PAYMENT_CANCELLED = "dues.payment_cancelled"
     REMINDER_SENT = "reminder.sent"
     ORGANIZATION_UPDATED = "organization.updated"
+    CASHBOX_CREATED = "cashbox.created"
+    CASHBOX_UPDATED = "cashbox.updated"
+    CASHBOX_CLOSED = "cashbox.closed"
+    TRANSACTION_CANCELLED = "transaction.cancelled"
+    CAMPAIGN_CREATED = "campaign.created"
+    CAMPAIGN_UPDATED = "campaign.updated"
+    CAMPAIGN_CLOSED = "campaign.closed"
+    CAMPAIGN_PAYMENT_RECORDED = "campaign.payment_recorded"
+    CAMPAIGN_PAYMENT_CANCELLED = "campaign.payment_cancelled"
+    CAMPAIGN_MEMBER_EXEMPTED = "campaign.member_exempted"
+    ROLE_CREATED = "role.created"
+    ROLE_UPDATED = "role.updated"
+    ROLE_PERMISSIONS_CHANGED = "role.permissions_changed"
 
 
 class TransactionType(StrEnum):
     INCOME = "income"
     EXPENSE = "expense"
+    # Mouvement entre deux caisses de la même organisation : la sortie de
+    # l'une et l'entrée de l'autre sont deux lignes, pour que chaque caisse
+    # garde un journal lisible.
+    TRANSFER = "transfer"
+    # Correction d'écart constatée à l'inventaire. Signée : le montant peut
+    # être négatif, contrairement aux autres types.
+    ADJUSTMENT = "adjustment"
+
+    @property
+    def direction(self) -> int:
+        """Signe du mouvement sur le solde : +1, -1, ou 0 si porté par le montant."""
+        if self is TransactionType.INCOME:
+            return 1
+        if self is TransactionType.EXPENSE or self is TransactionType.TRANSFER:
+            return -1
+        return 0
+
+
+class CashTransactionStatus(StrEnum):
+    """Une écriture financière ne se supprime pas — elle change d'état.
+
+    `CANCELLED` annule une saisie erronée, `REVERSED` contrepasse une écriture
+    valide. Ni l'une ni l'autre ne compte dans le solde ; les deux restent
+    dans le journal et dans l'audit.
+    """
+
+    CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+    REVERSED = "reversed"
+
+    @property
+    def counts_in_balance(self) -> bool:
+        return self is CashTransactionStatus.CONFIRMED
+
+
+class CashboxStatus(StrEnum):
+    OPEN = "open"
+    CLOSED = "closed"
+    SUSPENDED = "suspended"
+
+    @property
+    def accepts_transactions(self) -> bool:
+        return self is CashboxStatus.OPEN
 
 
 class TransactionCategory(StrEnum):
@@ -218,6 +329,10 @@ class TransactionCategory(StrEnum):
     FEE = "fee"
     EVENT = "event"
     SOCIAL_AID = "social_aid"
+    PENALTY = "penalty"
+    REFUND = "refund"
+    ADMINISTRATIVE = "administrative"
+    TRANSFER = "transfer"
     OTHER = "other"
 
 

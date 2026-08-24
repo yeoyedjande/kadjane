@@ -250,14 +250,27 @@ describe('SessionService et permissions', () => {
     http
       .expectOne((r) => r.url === `${API}/organizations/org-1/membership`)
       .flush({ success: true, data: { id: 'mbr-1', role } });
-    http.expectOne(`${API}/organizations/org-1/roles`).flush({
-      success: true,
-      data: [{ role, permissions }],
-    });
+    // Les droits sont désormais lus par membre, et non par nom de rôle : un
+    // rôle sur mesure n'a pas d'entrée dans une matrice indexée par rôle.
+    http
+      .expectOne((r) => r.url === `${API}/me/permissions`)
+      .flush({
+        success: true,
+        data: [
+          {
+            organizationId: 'org-1',
+            memberId: 'mbr-1',
+            role,
+            roleId: null,
+            roleName: role,
+            permissions,
+          },
+        ],
+      });
     return promise;
   }
 
-  it("sélectionne l'organisation et applique la matrice du serveur", async () => {
+  it("sélectionne l'organisation et applique les droits du serveur", async () => {
     await load('treasurer', ['contribution.record', 'treasury.view']);
 
     expect(session.organizationId()).toBe('org-1');
