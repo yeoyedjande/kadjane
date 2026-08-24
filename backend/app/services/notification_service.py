@@ -1,9 +1,8 @@
 """Notifications in-app.
 
 Le backend crée les notifications au fil des événements métier. Le canal
-in-app fonctionne dès maintenant ; l'envoi push consommera les mêmes lignes.
-
-TODO(push): livrer ces notifications via Firebase à partir de `device_tokens`.
+in-app est alimenté par cette table ; `PushService` relaie les mêmes libellés
+vers les appareils enregistrés dans `device_tokens`.
 """
 
 from __future__ import annotations
@@ -12,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.models.enums import NotificationType
@@ -147,6 +146,22 @@ class NotificationService:
         self.db.commit()
         self.db.refresh(device)
         return device
+
+    def unregister_device(self, user_id: uuid.UUID, token: str) -> bool:
+        """Détache l'appareil du compte, à la déconnexion.
+
+        Le jeton reste valide côté Firebase : sans cette purge, l'appareil
+        continuerait de recevoir les relances de l'utilisateur qui vient de se
+        déconnecter. Le filtre sur `user_id` empêche un compte de désenregistrer
+        l'appareil d'un autre.
+        """
+        result = self.db.execute(
+            delete(DeviceToken).where(
+                DeviceToken.token == token, DeviceToken.user_id == user_id
+            )
+        )
+        self.db.commit()
+        return bool(result.rowcount)
 
     @staticmethod
     def serialize(notification: Notification) -> dict[str, Any]:

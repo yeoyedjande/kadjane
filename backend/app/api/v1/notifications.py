@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 
 from app.core.deps import CurrentUser, DbSession
 from app.core.responses import success
-from app.schemas.treasury import DeviceRegistration
+from app.schemas.treasury import DeviceRegistration, DeviceUnregistration
 from app.services.notification_service import NotificationService
 
 router = APIRouter(tags=["notifications"])
@@ -53,8 +53,27 @@ def mark_read(
 def register_device(
     db: DbSession, user: CurrentUser, payload: DeviceRegistration
 ) -> dict[str, Any]:
-    """Le jeton est conservé ; l'envoi push reste à brancher (TODO Firebase)."""
+    """Rattache le jeton Firebase de cet appareil au compte connecté.
+
+    Un jeton déjà connu est réattribué : c'est ce qui se produit quand un autre
+    membre se connecte sur le même téléphone.
+    """
     device = NotificationService(db).register_device(
         user.id, payload.token, payload.platform
     )
     return success({"registered": True, "deviceId": str(device.id)})
+
+
+@router.post(
+    "/notifications/devices/unregister", summary="Détacher un appareil"
+)
+def unregister_device(
+    db: DbSession, user: CurrentUser, payload: DeviceUnregistration
+) -> dict[str, Any]:
+    """Appelé à la déconnexion, avant la purge de la session.
+
+    Le jeton voyage dans le corps de la requête, jamais dans l'URL : il
+    identifie l'appareil et n'a rien à faire dans les journaux d'accès.
+    """
+    removed = NotificationService(db).unregister_device(user.id, payload.token)
+    return success({"unregistered": removed})

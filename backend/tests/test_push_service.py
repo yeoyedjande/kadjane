@@ -11,12 +11,14 @@ import json
 import uuid
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.notification import DeviceToken
 from app.services import push_service
 from app.services.push_service import PushService
+from tests.conftest import auth_headers, register
 
 # Structure d'un compte de service, sans clé réelle : on vérifie la lecture,
 # pas la cryptographie.
@@ -115,3 +117,50 @@ def test_une_cle_invalide_ne_fait_pas_echouer_l_envoi(
     )
 
     assert sent == 0
+
+
+def test_l_appareil_est_detache_a_la_deconnexion(client: TestClient) -> None:
+    """Sinon le téléphone reçoit encore les relances du compte précédent."""
+    headers = auth_headers(register(client, "+225 07 00 00 90 01"))
+
+    registered = client.post(
+        "/api/v1/notifications/devices",
+        json={"token": "jeton-appareil-1", "platform": "android"},
+        headers=headers,
+    )
+    assert registered.status_code == 200, registered.text
+
+    removed = client.post(
+        "/api/v1/notifications/devices/unregister",
+        json={"token": "jeton-appareil-1"},
+        headers=headers,
+    )
+    assert removed.status_code == 200, removed.text
+    assert removed.json()["data"]["unregistered"] is True
+
+    # Idempotent : la déconnexion ne doit pas échouer sur un jeton déjà retiré.
+    again = client.post(
+        "/api/v1/notifications/devices/unregister",
+        json={"token": "jeton-appareil-1"},
+        headers=headers,
+    )
+    assert again.json()["data"]["unregistered"] is False
+
+
+def test_un_compte_ne_detache_pas_l_appareil_d_un_autre(client: TestClient) -> None:
+    proprietaire = auth_headers(register(client, "+225 07 00 00 90 02"))
+    tiers = auth_headers(register(client, "+225 07 00 00 90 03"))
+
+    client.post(
+        "/api/v1/notifications/devices",
+        json={"token": "jeton-appareil-2", "platform": "android"},
+        headers=proprietaire,
+    )
+
+    response = client.post(
+        "/api/v1/notifications/devices/unregister",
+        json={"token": "jeton-appareil-2"},
+        headers=tiers,
+    )
+
+    assert response.json()["data"]["unregistered"] is False

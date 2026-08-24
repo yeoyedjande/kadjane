@@ -787,7 +787,6 @@ Trois responsabilités serveur sont structurantes :
 | Zone | Intégration attendue |
 |---|---|
 | `FileStorage` | Stockage objet S3 / MinIO (URL pré-signées) |
-| Notifications push | SDK Firebase ; la route `/notifications/devices` est prête |
 | Cache hors ligne | Persistance locale et file de synchronisation |
 
 ## 13. Console d'administration
@@ -1000,6 +999,23 @@ renouvellement par Firebase. Tout y échoue en douceur — un appareil sans
 services Google, une permission refusée ou un `google-services.json` absent ne
 doivent jamais empêcher l'application de fonctionner.
 
+**Le jeton est retiré à la déconnexion**, par
+`POST /notifications/devices/unregister`, appelé pendant que la session est
+encore valide. Sans cette étape, le téléphone continuerait de recevoir les
+relances du compte précédent : Firebase ne renouvelle pas un jeton parce qu'une
+session a pris fin. Un jeton déjà connu qui se réenregistre est simplement
+réattribué — c'est le cas d'un second membre qui se connecte sur le même
+téléphone.
+
+**Toucher la notification ouvre l'écran concerné.** Le serveur place la
+destination dans `targetRoute`, en base pour le canal in-app et dans le
+`data` du message Firebase pour le canal push ; les trois entrées possibles —
+message au premier plan, application en arrière-plan, application fermée —
+aboutissent au même écran. Le chemin venant du serveur, il est confronté aux
+routes réelles par `AppRoutes.resolveDeepLink` avant toute navigation : une
+route inconnue laisse l'utilisateur là où il est, plutôt que sur la page
+d'erreur de go_router.
+
 L'envoi côté serveur demande une clé de compte de service, à coller telle
 quelle dans la variable — son contenu JSON, ou le chemin d'un fichier :
 
@@ -1026,11 +1042,47 @@ L'icône de la barre d'état (`res/drawable-*/ic_notification.png`) est
 **monochrome** : Android n'en affiche que le masque alpha, une image en
 couleurs y apparaîtrait comme un carré blanc.
 
-> **Erreur TLS au build Gradle ?** Un antivirus qui inspecte le HTTPS (Avast,
-> Kaspersky, ESET…) présente son propre certificat. Windows lui fait confiance,
-> mais la JVM de Gradle a son magasin à part et refuse la connexion : aucune
-> nouvelle dépendance ne peut alors être téléchargée. Désactiver l'analyse
-> HTTPS, ou importer le certificat de l'antivirus dans le magasin de la JVM.
+> **`Plugin ... was not found` au build Gradle ?** Un antivirus qui inspecte le
+> HTTPS (Avast, Kaspersky, ESET…) présente son propre certificat. Windows lui
+> fait confiance — `curl` passe, ce qui égare le diagnostic — mais la JVM de
+> Gradle a son magasin à part et refuse la connexion. Gradle n'en dit rien :
+> il rapporte un artefact « introuvable », jamais l'erreur TLS. Aucune
+> **nouvelle** dépendance ne peut alors être téléchargée ; celles déjà en cache
+> continuent de fonctionner, d'où un projet qui compilait hier et plus
+> aujourd'hui.
+>
+> Confirmer le diagnostic avec la JVM que Gradle utilise — elle, nomme
+> l'erreur. Dans un fichier `NetTest.java` :
+>
+> ```java
+> public class NetTest {
+>   public static void main(String[] a) throws Exception {
+>     new java.net.URI("https://dl.google.com/dl/android/maven2/")
+>         .toURL().openStream().close();
+>     System.out.println("ok");
+>   }
+> }
+> ```
+>
+> ```bash
+> "C:/Program Files/Android/Android Studio/jbr/bin/java" NetTest.java
+> ```
+>
+> `PKIX path building failed` confirme le cas ; `ok` l'écarte. Deux issues, au choix :
+>
+> 1. **Désactiver l'analyse HTTPS** de l'antivirus le temps du build — Avast :
+>    *Menu → Paramètres → Protection → Agents principaux → Agent Web → Analyser
+>    les connexions chiffrées*.
+> 2. **Importer le certificat de l'antivirus** dans le magasin de la JVM, une
+>    fois pour toutes. L'exporter depuis le magasin Windows, puis, dans un
+>    terminal **administrateur** :
+>
+>    ```bash
+>    keytool -importcert -alias avast -cacerts -storepass changeit -file avast-root.cer
+>    ```
+>
+>    Le magasin visé est celui du JDK qu'utilise Gradle — `flutter doctor -v`
+>    donne le chemin exact (*Java binary at*).
 
 ### Déploiement du back-office
 

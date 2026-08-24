@@ -15,8 +15,9 @@ class Notification(Base, TimestampMixin):
     """Notification destinée à un utilisateur.
 
     Elle est créée par le backend au fil des événements métier (paiement
-    confirmé, tirage, versement…). L'envoi push reste à brancher : le canal
-    « in-app » fonctionne déjà, c'est cette table qui l'alimente.
+    confirmé, tirage, versement…). Cette table alimente le centre de
+    notifications de l'application ; `PushService` relaie les mêmes libellés
+    vers l'écran verrouillé.
     """
 
     __tablename__ = "notifications"
@@ -46,7 +47,9 @@ class Notification(Base, TimestampMixin):
 class DeviceToken(Base, TimestampMixin):
     """Appareil enregistré pour les notifications push.
 
-    TODO(push): consommer ces jetons depuis un service Firebase.
+    Le jeton est unique : Firebase le réattribue au compte qui se connecte sur
+    l'appareil, et il est retiré à la déconnexion — sans quoi les relances de
+    l'utilisateur précédent continueraient d'y arriver.
     """
 
     __tablename__ = "device_tokens"

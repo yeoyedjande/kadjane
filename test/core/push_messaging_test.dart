@@ -29,4 +29,8 @@ void main() {
     expect(await push.onMessage.isEmpty, isTrue);
     expect(await push.onMessageOpenedApp.isEmpty, isTrue);
   });
+
+  test('le message initial vaut null plutot que de lever', () async {
+    expect(await PushMessaging().initialMessage(), isNull);
+  });
 }
