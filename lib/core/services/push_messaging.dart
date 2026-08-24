@@ -109,6 +109,23 @@ class PushMessaging {
       ? FirebaseMessaging.onMessageOpenedApp
       : const Stream<RemoteMessage>.empty();
 
+  /// Notification ayant lancé l'application depuis un état fermé.
+  ///
+  /// Elle ne passe pas par [onMessageOpenedApp] : le flux n'existait pas
+  /// encore au moment du geste. Sans cette lecture, toucher une relance
+  /// application fermée ouvrirait l'accueil au lieu de l'écran visé.
+  Future<RemoteMessage?> initialMessage() async {
+    if (!await initialize()) {
+      return null;
+    }
+    try {
+      return await _resolved!.getInitialMessage();
+    } on Object catch (error, stackTrace) {
+      _logger.error('Message initial illisible', error, stackTrace);
+      return null;
+    }
+  }
+
   /// Firebase Messaging ne vise ici qu'Android et iOS.
   ///
   /// Le web demanderait une clé VAPID et un service worker ; le bureau n'est

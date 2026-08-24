@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kadjane/app/di/providers.dart';
+import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/app/state/auth_controller.dart';
 import 'package:kadjane/app/state/session_controller.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
@@ -77,6 +79,16 @@ class NotificationsScreen extends ConsumerWidget {
                     .read(notificationRepositoryProvider)
                     .markAsRead(notification.id);
                 ref.invalidate(notificationsProvider);
+
+                // La notification désigne souvent l'écran qui l'explique :
+                // la lire, c'est vouloir y aller. Une route inconnue laisse
+                // simplement l'utilisateur sur la liste.
+                final String? target = AppRoutes.resolveDeepLink(
+                  notification.targetRoute,
+                );
+                if (target != null && context.mounted) {
+                  context.go(target);
+                }
               },
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

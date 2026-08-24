@@ -31,3 +31,7 @@ class TransactionCreate(CamelModel):
 class DeviceRegistration(CamelModel):
     token: str = Field(min_length=8, max_length=512)
     platform: str = Field(default="unknown", max_length=20)
+
+
+class DeviceUnregistration(CamelModel):
+    token: str = Field(min_length=8, max_length=512)

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:kadjane/core/network/api_client.dart';
 import 'package:kadjane/data/dto/activity_dto.dart';
 import 'package:kadjane/data/dto/dues_dto.dart';
@@ -130,8 +132,29 @@ class RestNotificationRepository implements NotificationRepository {
   Future<void> registerDeviceToken(String token) async {
     await _api.post(
       ApiRoutes.notificationDevices,
-      body: <String, dynamic>{'token': token, 'platform': 'flutter'},
+      body: <String, dynamic>{'token': token, 'platform': _platform},
     );
+  }
+
+  @override
+  Future<void> unregisterDeviceToken(String token) async {
+    await _api.post(
+      ApiRoutes.notificationDevicesUnregister,
+      body: <String, dynamic>{'token': token},
+    );
+  }
+
+  /// Renseigné pour le diagnostic côté serveur : un jeton refusé par Firebase
+  /// ne se lit pas de la même façon selon la plateforme.
+  static String get _platform {
+    if (kIsWeb) {
+      return 'web';
+    }
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => 'android',
+      TargetPlatform.iOS => 'ios',
+      _ => 'unknown',
+    };
   }
 }
 

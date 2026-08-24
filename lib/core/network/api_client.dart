@@ -187,6 +187,9 @@ class ApiRoutes {
 
   static const String notificationDevices = '/notifications/devices';
 
+  static const String notificationDevicesUnregister =
+      '/notifications/devices/unregister';
+
   static String notificationRead(String notificationId) =>
       '/notifications/$notificationId/read';
 

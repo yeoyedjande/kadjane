@@ -3,6 +3,7 @@ import 'package:kadjane/app/di/providers.dart';
 import 'package:kadjane/domain/entities/auth_session.dart';
 import 'package:kadjane/domain/entities/user.dart';
 import 'package:kadjane/domain/repositories/auth_repository.dart';
+import 'package:kadjane/features/notifications/presentation/providers/push_providers.dart';
 
 /// Session de l'utilisateur connecté.
 ///
@@ -32,6 +33,10 @@ class AuthController extends AsyncNotifier<AuthSession?> {
   }
 
   Future<void> signOut() async {
+    // Avant la purge de la session : détacher l'appareil demande un appel
+    // authentifié, et sans lui le téléphone continuerait de recevoir les
+    // relances de l'utilisateur qui part.
+    await ref.read(pushRegistrarProvider).detach();
     await _repository.signOut();
     state = const AsyncValue<AuthSession?>.data(null);
   }

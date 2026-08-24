@@ -520,7 +520,7 @@ class DrawService:
                 f"Vous recevez la cagnotte de {cycle.period_label} "
                 f"({cycle.expected_amount:.0f})."
             ),
-            target_route=f"/tontines/{tontine.id}",
+            target_route=f"/tontine/{tontine.id}",
             data={"cycleId": str(cycle.id), "winner": "true"},
         )
         for participant in eligible:
@@ -532,7 +532,7 @@ class DrawService:
                 type_=NotificationType.DRAW_RESULT,
                 title=f"Tirage de {cycle.period_label}",
                 body=f"{winner.display_name} est le bénéficiaire de la période.",
-                target_route=f"/tontines/{tontine.id}",
+                target_route=f"/tontine/{tontine.id}",
                 data={"cycleId": str(cycle.id)},
             )
 

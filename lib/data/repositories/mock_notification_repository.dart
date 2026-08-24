@@ -70,8 +70,11 @@ class MockNotificationRepository implements NotificationRepository {
     }
   });
 
+  /// Les mocks n'ont pas de serveur à prévenir : le jeton n'a de sens que
+  /// face à l'API réelle.
   @override
-  Future<void> registerDeviceToken(String token) async {
-    // TODO(api): POST /notifications/devices avec le token FCM.
-  }
+  Future<void> registerDeviceToken(String token) async {}
+
+  @override
+  Future<void> unregisterDeviceToken(String token) async {}
 }

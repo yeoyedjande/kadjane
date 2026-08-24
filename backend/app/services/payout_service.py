@@ -379,7 +379,7 @@ class PayoutService:
             type_=NotificationType.PAYOUT_DONE,
             title="Cagnotte versée",
             body=f"Votre cagnotte de {payout.amount:.0f} a été versée.",
-            target_route=f"/tontines/{beneficiary.tontine_id}",
+            target_route=f"/tontine/{beneficiary.tontine_id}",
             data={"payoutId": str(payout.id)},
         )
         self.db.flush()

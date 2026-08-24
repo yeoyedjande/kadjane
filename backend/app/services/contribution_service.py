@@ -310,7 +310,7 @@ class ContributionService:
                 f"Votre cotisation de {payment.amount:.0f} pour "
                 f"{cycle.period_label if cycle else 'la période'} a été enregistrée."
             ),
-            target_route=f"/tontines/{contribution.tontine_id}",
+            target_route=f"/tontine/{contribution.tontine_id}",
             data={"cycleId": str(contribution.cycle_id)},
         )
 

@@ -67,4 +67,55 @@ class AppRoutes {
     otp,
     resetPassword,
   };
+
+  /// Routes fixes atteignables une fois connecté.
+  static const Set<String> _privateRoutes = <String>{
+    home,
+    tontines,
+    contributions,
+    activity,
+    profile,
+    tontineCreate,
+    members,
+    memberCreate,
+    notifications,
+    treasury,
+    reports,
+    organizationSettings,
+    myDues,
+    duesCollect,
+    reminders,
+    profileEdit,
+    changePassword,
+  };
+
+  /// Destination d'une notification, ou `null` si elle n'est pas exploitable.
+  ///
+  /// Le chemin vient du serveur : il est confronté aux routes réelles avant
+  /// toute navigation. Sans ce filtre, une route obsolète ou mal formée
+  /// déposerait l'utilisateur sur la page d'erreur de go_router — et les
+  /// routes publiques le sortiraient de sa session.
+  static String? resolveDeepLink(String? route) {
+    final String path = (route ?? '').trim();
+    if (path.isEmpty || !path.startsWith('/') || publicRoutes.contains(path)) {
+      return null;
+    }
+    if (_privateRoutes.contains(path)) {
+      return path;
+    }
+    return _matchesPattern(Uri.parse(path).pathSegments) ? path : null;
+  }
+
+  static bool _matchesPattern(List<String> segments) => switch (segments) {
+    <String>['tontine', final String tontineId] => tontineId.isNotEmpty,
+    <String>[
+      'tontine',
+      final String tontineId,
+      'draw' || 'cycle' || 'beneficiary',
+      final String cycleId,
+    ] =>
+      tontineId.isNotEmpty && cycleId.isNotEmpty,
+    <String>['member', final String memberId] => memberId.isNotEmpty,
+    _ => false,
+  };
 }

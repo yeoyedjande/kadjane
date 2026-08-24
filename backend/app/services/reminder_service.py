@@ -45,6 +45,9 @@ from app.schemas import serializers as out
 # Au-delà de ce retard, la relance passe en escalade.
 ESCALATION_DAYS = 7
 
+# Écran des cotisations dues, côté application mobile.
+MY_DUES_ROUTE = "/my-dues"
+
 
 class ReminderService:
     def __init__(self, db: Session) -> None:
@@ -235,6 +238,9 @@ class ReminderService:
                 title=organization.name,
                 body=message,
                 organization_id=organization.id,
+                # La relance n'a d'intérêt que si elle mène à l'écran où le
+                # membre voit — et règle — ce qu'il doit.
+                target_route=MY_DUES_ROUTE,
             )
             recipients.append(member.user_id)
 
@@ -259,7 +265,12 @@ class ReminderService:
             recipients,
             title=organization.name,
             body="Vous avez une cotisation à régler.",
-            data={"type": NotificationType.CONTRIBUTION_LATE.value},
+            data={
+                "type": NotificationType.CONTRIBUTION_LATE.value,
+                # Reprise par le client au moment où l'utilisateur touche la
+                # notification : même destination que la version in-app.
+                "targetRoute": MY_DUES_ROUTE,
+            },
         )
         self.db.commit()
         self.db.refresh(campaign)

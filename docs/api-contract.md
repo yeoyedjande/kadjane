@@ -452,7 +452,8 @@ plus.
 | GET | `/notifications/unread-count` | `{ "count": 3 }` |
 | POST | `/notifications/{id}/read` | — |
 | POST | `/notifications/read-all` | — |
-| POST | `/notifications/devices` | — |
+| POST | `/notifications/devices` | `{ "registered": true, "deviceId": "…" }` |
+| POST | `/notifications/devices/unregister` | `{ "unregistered": true }` |
 | GET | `/organizations/{id}/treasury` | `treasurySnapshot` |
 | POST | `/organizations/{id}/transactions` | `transaction` |
 | GET | `/organizations/{id}/dashboard?memberId=` | `dashboardSnapshot` |
@@ -586,6 +587,5 @@ plus.
 | Sujet | État |
 |---|---|
 | Justificatifs (upload) | `LocalFileStorage` ; `S3FileStorage` à écrire (URL pré-signées) |
-| Notifications push | route `/notifications/devices` prête, SDK Firebase à intégrer |
 | Passerelles de relance | SMS / WhatsApp / e-mail : le contrat est prêt, les envois restent à brancher |
 | Cache hors ligne | `NetworkInfo` en place, persistance locale à ajouter |
