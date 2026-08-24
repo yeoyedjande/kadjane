@@ -111,6 +111,28 @@ export const routes: Routes = [
           import('./features/treasury/treasury.component').then((m) => m.TreasuryPage),
       },
       {
+        path: 'cashboxes',
+        canActivate: [permissionGuard('cashbox.view')],
+        loadComponent: () =>
+          import('./features/treasury/cashboxes.component').then(
+            (m) => m.CashboxesPage,
+          ),
+      },
+      {
+        path: 'contributions/campaigns',
+        canActivate: [permissionGuard('contribution.view')],
+        loadComponent: () =>
+          import('./features/treasury/campaigns.component').then(
+            (m) => m.CampaignsPage,
+          ),
+      },
+      {
+        path: 'unpaid',
+        canActivate: [permissionGuard('contribution.view')],
+        loadComponent: () =>
+          import('./features/treasury/unpaid.component').then((m) => m.UnpaidPage),
+      },
+      {
         path: 'reminders',
         canActivate: [permissionGuard('reminder.view')],
         loadComponent: () =>
@@ -136,6 +158,20 @@ export const routes: Routes = [
         canActivate: [permissionGuard('organization.view')],
         loadComponent: () =>
           import('./features/settings/settings.component').then((m) => m.SettingsPage),
+      },
+      {
+        path: 'settings/roles',
+        canActivate: [permissionGuard('role.view')],
+        loadComponent: () =>
+          import('./features/settings/roles.component').then((m) => m.RolesPage),
+      },
+      {
+        path: 'settings/permissions',
+        canActivate: [permissionGuard('permission.view')],
+        loadComponent: () =>
+          import('./features/settings/permissions.component').then(
+            (m) => m.PermissionsPage,
+          ),
       },
       {
         path: 'platform',

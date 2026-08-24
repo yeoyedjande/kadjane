@@ -934,6 +934,143 @@ class AppLocalizationsFr extends AppLocalizations {
   String get treasurySaved => 'Opération enregistrée';
 
   @override
+  String get treasuryCashboxes => 'Caisses';
+
+  @override
+  String get treasuryCashboxCreate => 'Créer une caisse';
+
+  @override
+  String get treasuryCashboxName => 'Nom de la caisse';
+
+  @override
+  String get treasuryOpeningBalance => 'Solde d\'ouverture';
+
+  @override
+  String get treasuryCashboxSaved => 'Caisse ouverte';
+
+  @override
+  String get treasuryMonthFlows => 'Ce mois-ci';
+
+  @override
+  String get treasuryExpected => 'Attendu';
+
+  @override
+  String get treasuryCollected => 'Encaissé';
+
+  @override
+  String get treasuryRemaining => 'Reste à encaisser';
+
+  @override
+  String get treasuryLate => 'En retard';
+
+  @override
+  String get treasuryRecoveryRate => 'Recouvrement';
+
+  @override
+  String get campaignsTitle => 'Cotisations';
+
+  @override
+  String get campaignsCreate => 'Nouvelle cotisation';
+
+  @override
+  String get campaignsEmpty =>
+      'Aucune cotisation. Une cotisation est un engagement : la caisse n\'augmente que lorsqu\'un membre paie.';
+
+  @override
+  String get campaignTitleField => 'Titre';
+
+  @override
+  String get campaignType => 'Nature';
+
+  @override
+  String get campaignTypeAssociation => 'Associative';
+
+  @override
+  String get campaignTypeExceptional => 'Exceptionnelle';
+
+  @override
+  String get campaignTypeVoluntary => 'Volontaire';
+
+  @override
+  String get campaignAmountMode => 'Montant';
+
+  @override
+  String get campaignAmountFixed => 'Montant fixe';
+
+  @override
+  String get campaignAmountFree => 'Montant libre';
+
+  @override
+  String get campaignAmountPerMember => 'Montant par membre';
+
+  @override
+  String get campaignDueDate => 'Date limite';
+
+  @override
+  String get campaignCashbox => 'Caisse destinataire';
+
+  @override
+  String get campaignMembers => 'Membres concernés';
+
+  @override
+  String get campaignAllMembers => 'Tous les membres actifs';
+
+  @override
+  String get campaignMandatory => 'Obligatoire';
+
+  @override
+  String get campaignCreated => 'Cotisation créée';
+
+  @override
+  String campaignMembersCount(int count) {
+    return '$count membre(s)';
+  }
+
+  @override
+  String get campaignPay => 'Enregistrer un paiement';
+
+  @override
+  String get campaignPaymentAmount => 'Montant reçu';
+
+  @override
+  String get campaignPaymentMethod => 'Moyen de paiement';
+
+  @override
+  String get campaignPaymentReference => 'Référence';
+
+  @override
+  String get campaignPaymentSaved => 'Paiement enregistré et porté en caisse';
+
+  @override
+  String get campaignExempt => 'Exempter';
+
+  @override
+  String get campaignExemptReason => 'Motif de l\'exemption';
+
+  @override
+  String get campaignExempted => 'Membre exempté';
+
+  @override
+  String campaignPaidOf(String paid, String expected) {
+    return '$paid sur $expected';
+  }
+
+  @override
+  String get unpaidTitle => 'Impayés';
+
+  @override
+  String get unpaidEmpty =>
+      'Aucun impayé. Tout ce qui était attendu a été encaissé.';
+
+  @override
+  String unpaidDaysLate(int days) {
+    return '$days jour(s) de retard';
+  }
+
+  @override
+  String get roleLabel => 'Rôle';
+
+  @override
   String get reportsTitle => 'Rapports';
 
   @override

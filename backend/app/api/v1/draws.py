@@ -13,7 +13,7 @@ from app.core.responses import success
 from app.models.draw import DrawSession
 from app.schemas import serializers as out
 from app.schemas.tontine import DrawClose, DrawRequest
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.draw_service import DrawService
 from app.services.tontine_service import TontineService
 
@@ -79,7 +79,7 @@ def run_cycle_draw(
     summary="Tirer l'ordre de passage complet",
 )
 def run_order_draw(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "draw.run")
+    PermissionService(db).require(context.membership, "draw.run")
     session = DrawService(db).generate_full_order(
         tontine=context.tontine, actor=context.membership
     )
@@ -91,7 +91,7 @@ def run_order_draw(db: DbSession, context: TontineCtx) -> dict[str, Any]:
 
 @router.get("/tontines/{tontine_id}/draws", summary="Historique des tirages")
 def draw_history(db: DbSession, context: TontineCtx) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "draw.view")
+    PermissionService(db).require(context.membership, "draw.view")
     sessions = DrawService(db).history(context.tontine.id)
     return success([out.draw_session(session) for session in sessions])
 
@@ -106,7 +106,7 @@ def read_draw(db: DbSession, user: CurrentUser, draw_id: uuid.UUID) -> dict[str,
 def read_cycle_draw(
     db: DbSession, context: CycleCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "draw.view")
+    PermissionService(db).require(context.membership, "draw.view")
     session = DrawService(db).completed_draw_of(cycle_id)
     return success(out.draw_session(session) if session else None)
 
@@ -137,7 +137,7 @@ def invalidate_draw(
 def _eligibility(
     db: DbSession, context: TontineCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "draw.view")
+    PermissionService(db).require(context.membership, "draw.view")
     cycle = TontineService(db).cycle(cycle_id, context.organization_id)
     evaluation = DrawService(db).evaluate(context.tontine, cycle)
     return success(out.eligibility(evaluation, tontine_model=context.tontine))
@@ -181,5 +181,5 @@ def _guarded_draw(
     if session is None:
         raise NotFoundError("Tirage introuvable.", code="draw_not_found")
     context = get_organization_context(db, user, session.organization_id)
-    permission_service.require(context.membership.role_enum, permission)
+    PermissionService(db).require(context.membership, permission)
     return session, context

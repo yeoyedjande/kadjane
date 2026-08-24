@@ -47,6 +47,14 @@ class AppRoutes {
 
   static String memberDetail(String memberId) => '/member/$memberId';
 
+  // Cotisations de l'association (hors tontine)
+  static const String campaigns = '/contributions-campaigns';
+  static const String campaignDetailPattern = '/campaign/:campaignId';
+  static const String unpaid = '/unpaid';
+  static const String cashboxes = '/cashboxes';
+
+  static String campaignDetail(String campaignId) => '/campaign/$campaignId';
+
   // Divers
   static const String notifications = '/notifications';
   static const String treasury = '/treasury';
@@ -85,6 +93,9 @@ class AppRoutes {
     myDues,
     duesCollect,
     reminders,
+    campaigns,
+    unpaid,
+    cashboxes,
     profileEdit,
     changePassword,
   };
@@ -116,6 +127,7 @@ class AppRoutes {
     ] =>
       tontineId.isNotEmpty && cycleId.isNotEmpty,
     <String>['member', final String memberId] => memberId.isNotEmpty,
+    <String>['campaign', final String campaignId] => campaignId.isNotEmpty,
     _ => false,
   };
 }

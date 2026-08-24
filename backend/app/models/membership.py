@@ -44,8 +44,15 @@ class OrganizationMember(Base, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Étiquette du membre : elle porte la hiérarchie, donc l'anti-escalade.
+    # Les droits, eux, viennent de `role_id`.
     role: Mapped[str] = mapped_column(
         String(32), nullable=False, default=OrgRole.MEMBER.value, index=True
+    )
+    # Nul pour tout l'existant : la résolution retombe alors sur le rôle
+    # système de même code, ce qui évite une reprise de données.
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("roles.id", ondelete="SET NULL"), nullable=True, index=True
     )
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=MemberStatus.ACTIVE.value, index=True
@@ -60,4 +67,13 @@ class OrganizationMember(Base, TimestampMixin):
 
     @property
     def role_enum(self) -> OrgRole:
-        return OrgRole(self.role)
+        """Étiquette du membre, pour la hiérarchie et l'affichage.
+
+        Un rôle sur mesure n'a pas d'équivalent système : il se range au niveau
+        `MEMBER`, le plus bas, pour qu'une permission `role.assign` ne serve
+        jamais à se hisser au-dessus de son propre niveau.
+        """
+        try:
+            return OrgRole(self.role)
+        except ValueError:
+            return OrgRole.MEMBER

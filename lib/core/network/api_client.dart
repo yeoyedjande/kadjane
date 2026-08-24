@@ -178,6 +178,45 @@ class ApiRoutes {
   static String reminderRead(String reminderId) =>
       '/reminders/$reminderId/read';
 
+  static const String myPermissions = '/me/permissions';
+
+  // --- Caisses et cotisations de l'association ---
+
+  static String cashboxes(String organizationId) =>
+      '/organizations/$organizationId/cashboxes';
+
+  static String cashbox(String cashboxId) => '/cashboxes/$cashboxId';
+
+  static String cashboxTransactions(String cashboxId) =>
+      '/cashboxes/$cashboxId/transactions';
+
+  static String cashTransactionCancel(String transactionId) =>
+      '/cash-transactions/$transactionId/cancel';
+
+  static String financialDashboard(String organizationId) =>
+      '/organizations/$organizationId/financial-dashboard';
+
+  static String campaigns(String organizationId) =>
+      '/organizations/$organizationId/contribution-campaigns';
+
+  static String campaign(String campaignId) =>
+      '/contribution-campaigns/$campaignId';
+
+  static String campaignEntries(String campaignId) =>
+      '/contribution-campaigns/$campaignId/entries';
+
+  static String campaignEntry(String entryId) =>
+      '/contribution-entries/$entryId';
+
+  static String campaignEntryPayments(String entryId) =>
+      '/contribution-entries/$entryId/payments';
+
+  static String campaignEntryExempt(String entryId) =>
+      '/contribution-entries/$entryId/exempt';
+
+  static String unpaid(String organizationId) =>
+      '/organizations/$organizationId/unpaid';
+
   // --- Transverse ---
   static const String notifications = '/notifications';
 

@@ -12,7 +12,7 @@ from app.schemas import serializers as out
 from app.schemas.reminder import ReminderCampaignCreate
 from app.services.organization_service import OrganizationService
 from app.core.responses import success
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.reminder_service import ReminderService
 from app.services.tontine_service import TontineService
 
@@ -31,7 +31,7 @@ def list_reminder_targets(
 
     Un ancien bénéficiaire y figure : il continue de cotiser.
     """
-    permission_service.require(context.membership.role_enum, "reminder.view")
+    PermissionService(db).require(context.membership, "reminder.view")
     targets = ReminderService(db).targets(context.organization, tontine_id=tontine_id)
     return success(targets, meta={"total": len(targets)})
 
@@ -43,7 +43,7 @@ def list_reminder_targets(
 def list_cycle_reminder_targets(
     db: DbSession, context: TontineCtx, cycle_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "reminder.view")
+    PermissionService(db).require(context.membership, "reminder.view")
     TontineService(db).cycle(cycle_id, context.organization_id)
     targets = ReminderService(db).targets(
         context.organization, tontine_id=context.tontine.id, cycle_id=cycle_id
@@ -56,7 +56,7 @@ def list_cycle_reminder_targets(
     summary="Campagnes de relance",
 )
 def list_reminder_campaigns(db: DbSession, context: OrgContext) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "reminder.view")
+    PermissionService(db).require(context.membership, "reminder.view")
     service = ReminderService(db)
     return success(
         [
@@ -84,7 +84,7 @@ def send_reminder_campaign(
     # au nom d'un tiers. 404 plutôt que 403, pour ne rien révéler.
     if membership is None or membership.user_id != user.id:
         raise NotFoundError("Adhésion introuvable.", code="member_not_found")
-    permission_service.require(membership.role_enum, "reminder.send")
+    PermissionService(db).require(membership, "reminder.send")
 
     organization = OrganizationService(db).get(membership.organization_id)
     service = ReminderService(db)
@@ -114,7 +114,7 @@ def send_reminder_campaign(
 def list_member_reminders(
     db: DbSession, context: OrgContext, member_id: uuid.UUID
 ) -> dict[str, Any]:
-    permission_service.require(context.membership.role_enum, "reminder.view")
+    PermissionService(db).require(context.membership, "reminder.view")
     return success(
         [
             _reminder_payload(reminder)

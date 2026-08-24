@@ -43,7 +43,7 @@ from app.models.enums import (
 from app.models.membership import OrganizationMember
 from app.models.payout import Beneficiary
 from app.models.tontine import Tontine, TontineCycle, TontineParticipant
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.audit_service import AuditService
 from app.services.contribution_service import ContributionService
 from app.services.notification_service import NotificationService
@@ -182,7 +182,7 @@ class DrawService:
         override_reason: str | None = None,
     ) -> DrawSession:
         """Exécute le tirage du cycle. Transactionnel de bout en bout."""
-        permission_service.require(actor.role_enum, "draw.run")
+        PermissionService(self.db).require(actor, "draw.run")
 
         # Verrou de ligne : deux requêtes simultanées se sérialisent ici.
         locked = self.db.scalars(
@@ -458,7 +458,7 @@ class DrawService:
         self, session: DrawSession, reason: str, actor: OrganizationMember
     ) -> DrawSession:
         """Le tirage est conservé, marqué invalidé ; le cycle repart en collecte."""
-        permission_service.require(actor.role_enum, "draw.invalidate")
+        PermissionService(self.db).require(actor, "draw.invalidate")
         if session.status_enum is not DrawStatus.COMPLETED:
             raise ConflictError(
                 "Seul un tirage validé peut être invalidé.", code="draw_not_completed"
@@ -564,7 +564,7 @@ class DrawService:
                 code="override_disabled",
                 details=details,
             )
-        permission_service.require(actor.role_enum, "draw.override")
+        PermissionService(self.db).require(actor, "draw.override")
         if not reason or not reason.strip():
             raise ConflictError(
                 "Une justification est obligatoire pour forcer le tirage.",

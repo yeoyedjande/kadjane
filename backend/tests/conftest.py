@@ -20,6 +20,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models import User  # noqa: F401 - peuple les métadonnées
+from app.rbac.seed import sync_rbac
 
 
 # Coût bcrypt minimal : la suite teste le mécanisme, pas sa lenteur.
@@ -36,6 +37,10 @@ def db_session() -> Iterator[Session]:
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     session = factory()
+    # Le catalogue et les six rôles système : ce que le démarrage de l'API
+    # pose en production, posé ici aussi pour que les tests exercent le
+    # chemin réel plutôt que le repli statique.
+    sync_rbac(session)
     try:
         yield session
     finally:

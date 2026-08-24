@@ -1,0 +1,77 @@
+<k-page-header
+  title="Impayés"
+  subtitle="Ce qui reste dû. Les exemptions n'y figurent pas : elles ne sont plus attendues."
+>
+  <k-search placeholder="Membre, cotisation…" (search)="search.set($event)" />
+</k-page-header>
+
+<k-state [loading]="loading()" [error]="error()" (retry)="load()" />
+
+@if (!loading() && !error()) {
+  <section class="k-grid k-grid--3">
+    <k-stat label="Reste à encaisser" [value]="outstanding() | money" [accent]="true" />
+    <k-stat label="Lignes impayées" [value]="total().toString()" />
+    <k-stat label="Dont en retard" [value]="lateCount().toString()" />
+  </section>
+
+  <article class="k-card">
+    <div class="k-table-wrap">
+      <table class="k-table">
+        <thead>
+          <tr>
+            <th>Membre</th>
+            <th>Cotisation</th>
+            <th style="text-align: right">Montant dû</th>
+            <th style="text-align: right">Montant payé</th>
+            <th style="text-align: right">Reste</th>
+            <th>Échéance</th>
+            <th style="text-align: right">Retard</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of filtered(); track row.id) {
+            <tr>
+              <td>
+                <div class="k-row" style="gap: 8px; align-items: center">
+                  <k-avatar [name]="row.memberName" />
+                  <span>{{ row.memberName }}</span>
+                </div>
+              </td>
+              <td>{{ row.campaignTitle ?? '—' }}</td>
+              <td style="text-align: right">{{ row.expectedAmount | money }}</td>
+              <td style="text-align: right">{{ row.paidAmount | money }}</td>
+              <td style="text-align: right">
+                <strong>{{ row.remainingAmount | money }}</strong>
+              </td>
+              <td>{{ row.dueDate ? (row.dueDate | frDate) : '—' }}</td>
+              <td style="text-align: right">
+                {{ row.daysLate > 0 ? row.daysLate + ' j' : '—' }}
+              </td>
+              <td><k-badge [value]="row.status" /></td>
+            </tr>
+          }
+          @if (!filtered().length) {
+            <tr>
+              <td colspan="8" class="k-muted">
+                Aucun impayé. Tout ce qui était attendu a été encaissé.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (total() > pageSize) {
+      <div class="k-card__footer">
+        <k-pagination
+          [page]="page()"
+          [pageSize]="pageSize"
+          [total]="total()"
+          [hasMore]="(page() + 1) * pageSize < total()"
+          (go)="goToPage($event)"
+        />
+      </div>
+    }
+  </article>
+}

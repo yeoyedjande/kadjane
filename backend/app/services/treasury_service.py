@@ -21,6 +21,8 @@ from app.models.contribution import Contribution, Payment
 from app.models.dues import DuesPayment
 from app.models.enums import (
     AuditAction,
+    CashTransactionStatus,
+    ContributionStatus,
     PaymentStatus,
     PayoutStatus,
     TontineStatus,
@@ -30,6 +32,7 @@ from app.models.enums import (
 from app.models.membership import OrganizationMember
 from app.models.payout import Beneficiary, Payout
 from app.models.tontine import Tontine, TontineCycle, TontineParticipant
+from app.models.campaign import CampaignEntry
 from app.models.treasury import CashTransaction
 from app.schemas import serializers as out
 from app.services.audit_service import AuditService
@@ -172,8 +175,15 @@ class TreasuryService:
             raise ValidationError(
                 "Le montant doit être supérieur à zéro.", code="invalid_amount"
             )
+        # Route historique, conservée : elle ne nomme pas de caisse, alors on
+        # vise celle par défaut. Sans ce rattachement, le mouvement compterait
+        # dans la trésorerie consolidée mais dans le solde d'aucune caisse.
+        from app.services.cashbox_service import CashboxService
+
+        cashbox = CashboxService(self.db).default_for(organization_id, actor=actor)
         transaction = CashTransaction(
             organization_id=organization_id,
+            cashbox_id=cashbox.id,
             tontine_id=tontine_id,
             type=type_.value,
             category=category.value,
@@ -216,6 +226,11 @@ class TreasuryService:
             "createdAt": out.iso(transaction.created_at),
             "description": transaction.description,
             "attachmentId": transaction.proof_url,
+            "status": transaction.status,
+            "cashboxId": str(transaction.cashbox_id)
+            if transaction.cashbox_id
+            else None,
+            "reference": transaction.reference,
             "tontineId": str(transaction.tontine_id)
             if transaction.tontine_id
             else None,
@@ -224,6 +239,94 @@ class TreasuryService:
             else None,
             "source": "manual",
         }
+
+    # --- Tableau de bord financier -------------------------------------------
+
+    def financial_dashboard(
+        self, organization_id: uuid.UUID, *, limit: int = 20
+    ) -> dict[str, Any]:
+        """Ce que le trésorier doit voir d'un coup d'œil.
+
+        Attendu, encaissé et reste à encaisser sont trois nombres distincts, et
+        le solde en est un quatrième : l'association peut attendre 60 000 FCFA,
+        n'en avoir encaissé que 40 000, et détenir autre chose encore une fois
+        les dépenses passées. Les confondre donne un tableau de bord flatteur
+        et faux.
+        """
+        from app.services.cashbox_service import CashboxService
+
+        cashboxes = CashboxService(self.db)
+        boxes = [
+            cashboxes.serialize(cashbox)
+            for cashbox in cashboxes.list_for(organization_id)
+        ]
+        cash_balance = sum(
+            (Decimal(str(box["currentBalance"])) for box in boxes), Decimal("0")
+        )
+
+        month_start = datetime.now(timezone.utc).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        month_in, month_out = self._manual_totals(organization_id, since=month_start)
+
+        expected, collected, late = self._campaign_totals(organization_id)
+
+        return {
+            "cashBalance": out.money(cash_balance),
+            "cashboxes": boxes,
+            "cashboxCount": len(boxes),
+            "monthInflows": out.money(month_in),
+            "monthOutflows": out.money(month_out),
+            # Les quatre nombres qui ne doivent jamais se confondre.
+            "expected": out.money(expected),
+            "collected": out.money(collected),
+            "remaining": out.money(max(Decimal("0"), expected - collected)),
+            "lateAmount": out.money(late),
+            "recoveryRate": (
+                round(float(collected / expected) * 100, 2) if expected > 0 else None
+            ),
+            "treasury": self.snapshot(organization_id, limit=limit),
+        }
+
+    def _campaign_totals(
+        self, organization_id: uuid.UUID
+    ) -> tuple[Decimal, Decimal, Decimal]:
+        """Attendu, encaissé et montant en retard des campagnes de cotisation.
+
+        Les lignes exemptées et annulées sortent de l'attendu : elles ne sont
+        plus dues, et les y laisser ferait chuter un taux de recouvrement pour
+        une décision qui n'a rien d'un impayé.
+        """
+        owed_statuses = [
+            status.value
+            for status in ContributionStatus
+            if status.is_owed
+        ]
+        expected = self._decimal(
+            select(func.coalesce(func.sum(CampaignEntry.expected_amount), 0)).where(
+                CampaignEntry.organization_id == organization_id,
+                CampaignEntry.status.in_(owed_statuses),
+            )
+        )
+        collected = self._decimal(
+            select(func.coalesce(func.sum(CampaignEntry.paid_amount), 0)).where(
+                CampaignEntry.organization_id == organization_id
+            )
+        )
+        late = self._decimal(
+            select(
+                func.coalesce(
+                    func.sum(
+                        CampaignEntry.expected_amount - CampaignEntry.paid_amount
+                    ),
+                    0,
+                )
+            ).where(
+                CampaignEntry.organization_id == organization_id,
+                CampaignEntry.status == ContributionStatus.LATE.value,
+            )
+        )
+        return expected, collected, late
 
     # --- Rapports ------------------------------------------------------------
 
@@ -337,17 +440,26 @@ class TreasuryService:
             )
         )
 
-    def _manual_totals(self, organization_id: uuid.UUID) -> tuple[Decimal, Decimal]:
-        income = self._decimal(
-            select(func.coalesce(func.sum(CashTransaction.amount), 0)).where(
+    def _manual_totals(
+        self, organization_id: uuid.UUID, *, since: datetime | None = None
+    ) -> tuple[Decimal, Decimal]:
+        """Entrées et sorties de caisse, annulations exclues.
+
+        Le filtre sur le statut n'est pas une précaution : sans lui, une
+        écriture annulée continuerait de peser sur le solde affiché alors
+        qu'elle a disparu de celui de la caisse.
+        """
+
+        def total(type_: TransactionType) -> Decimal:
+            statement = select(
+                func.coalesce(func.sum(CashTransaction.amount), 0)
+            ).where(
                 CashTransaction.organization_id == organization_id,
-                CashTransaction.type == TransactionType.INCOME.value,
+                CashTransaction.type == type_.value,
+                CashTransaction.status == CashTransactionStatus.CONFIRMED.value,
             )
-        )
-        expense = self._decimal(
-            select(func.coalesce(func.sum(CashTransaction.amount), 0)).where(
-                CashTransaction.organization_id == organization_id,
-                CashTransaction.type == TransactionType.EXPENSE.value,
-            )
-        )
-        return income, expense
+            if since is not None:
+                statement = statement.where(CashTransaction.date >= since)
+            return self._decimal(statement)
+
+        return total(TransactionType.INCOME), total(TransactionType.EXPENSE)

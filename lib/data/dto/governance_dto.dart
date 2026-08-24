@@ -1,5 +1,6 @@
 import 'package:kadjane/core/network/api_client.dart';
 import 'package:kadjane/data/dto/json_reader.dart';
+import 'package:kadjane/domain/entities/member_permissions.dart';
 import 'package:kadjane/domain/entities/reminder.dart';
 import 'package:kadjane/domain/entities/role_definition.dart';
 import 'package:kadjane/domain/enums/org_role.dart';
@@ -118,5 +119,23 @@ class DunningTargetDto {
     daysLate: Json.integer(json, 'daysLate'),
     reminderCount: Json.integer(json, 'reminderCount'),
     lastReminderAt: Json.dateOrNull(json, 'lastReminderAt'),
+  );
+}
+
+/// Droits du membre connecté, servis par `/me/permissions`.
+abstract final class MemberPermissionsDto {
+  static MemberPermissions fromJson(JsonMap json) => MemberPermissions(
+    organizationId: Json.stringOr(json, 'organizationId', ''),
+    memberId: Json.stringOr(json, 'memberId', ''),
+    roleCode: Json.stringOr(json, 'role', 'member'),
+    roleName: Json.stringOr(json, 'roleName', ''),
+    roleId: Json.stringOrNull(json, 'roleId'),
+    // Un code inconnu de cette version du client est ignoré plutôt que
+    // rabattu sur un autre droit : mieux vaut masquer un bouton que d'en
+    // afficher un que le backend refusera.
+    permissions: Json.strings(json, 'permissions')
+        .map(Permission.tryFromCode)
+        .whereType<Permission>()
+        .toSet(),
   );
 }

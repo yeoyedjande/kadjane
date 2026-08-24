@@ -500,6 +500,55 @@ membre ne voit que sa propre situation. Définir une cotisation
 (`dues.manage`) reste en revanche une opération de back-office — c'est du
 paramétrage, pas de l'encaissement.
 
+### Cotisation ≠ paiement ≠ caisse
+
+Trois notions distinctes, et les confondre fausse tous les tableaux de bord :
+
+| Notion | Ce que c'est |
+|---|---|
+| **Cotisation** | un **engagement** : ce que l'association attend |
+| **Paiement** | une **transaction réelle** : ce qu'elle a reçu |
+| **Caisse** | les **fonds détenus** |
+
+```text
+Attendu : 60 000 FCFA   ≠   Encaissé : 40 000 FCFA   ≠   Solde de caisse
+```
+
+La caisse n'augmente que lorsqu'un paiement est enregistré. Les écrans
+affichent donc quatre nombres séparés — attendu, encaissé, reste à encaisser,
+en retard — jamais un seul chiffre qui les résumerait.
+
+Quatre natures de cotisation, qui ne vont pas au même endroit :
+
+| Nature | Destination des fonds |
+|---|---|
+| **Tontine** | la cagnotte du cycle, versée au bénéficiaire |
+| **Associative** | une caisse |
+| **Exceptionnelle** | une caisse |
+| **Volontaire** (montant libre) | une caisse |
+
+Les fonds de tontine ne se mélangent **jamais** à la caisse de l'association.
+Détail : **[`docs/treasury.md`](docs/treasury.md)**.
+
+### Une saisie, sept effets
+
+Le trésorier saisit une fois « YEO a payé 10 000 FCFA ». Le backend enchaîne,
+dans la **même transaction** : règlement enregistré, suivi du membre à jour,
+reste et statut recalculés, écriture de caisse créée, solde modifié, audit
+tracé, notification envoyée. Si une étape échoue, aucune ne subsiste.
+
+### Rôles : des permissions, pas des noms
+
+Les droits ne sont pas attachés à un nom de rôle mais à un **ensemble de
+permissions** composé depuis le back-office. Un administrateur crée
+« Responsable Cotisations » avec quatre droits, l'attribue, et les écrans du
+membre changent à sa reconnexion.
+
+`organization_members.role` reste l'**étiquette** — elle porte la hiérarchie,
+donc l'anti-escalade ; `role_id` porte les **droits**. Détail :
+**[`docs/rbac.md`](docs/rbac.md)**, matrice complète dans
+**[`docs/permissions.md`](docs/permissions.md)**.
+
 ### Modes d'attribution
 
 | Mode | Fonctionnement |
@@ -768,7 +817,9 @@ Aucun écran ne change entre les deux modes.
 ### Contrat attendu
 
 Le détail des routes et des payloads est dans
-**[`docs/api-contract.md`](docs/api-contract.md)**. Si le backend diffère
+**[`docs/api-contract.md`](docs/api-contract.md)** — complété par
+**[`docs/rbac.md`](docs/rbac.md)**, **[`docs/permissions.md`](docs/permissions.md)**
+et **[`docs/treasury.md`](docs/treasury.md)**. Si le backend diffère
 (snake_case, autres noms de routes), seuls `ApiRoutes` et `lib/data/dto/`
 changent.
 
@@ -1138,20 +1189,27 @@ sans quoi l'interface s'affiche mais tous ses appels échouent en 400.
 - Dashboard, membres, tontines, cotisations
 - Moteur de tirage (3 modes), bénéficiaires, versements
 - Historique, audit, notifications, caisse, rapports
-- Couche REST complète (client HTTP, DTO, 14 repositories)
+- Couche REST complète (client HTTP, DTO, 15 repositories)
 - Console web d'administration (pilotage, membres, rôles, relances, audit)
 - Moteur de relances multi-canal avec escalade et historique audité
+- Notifications push Firebase (jeton lié à la session, lien profond)
+- **RBAC administrable** : 61 permissions persistées, six rôles système,
+  rôles sur mesure par organisation, anti-escalade
+- **Caisses multiples** à solde calculé, écritures jamais supprimées
+- **Cotisations associatives, exceptionnelles et volontaires** : membres
+  choisis, paiements partiels, exemptions, impayés, tableau de bord financier
 
 **Prochaines étapes**
 
+- Responsables par caisse (le modèle est prêt, l'attribution reste à ouvrir)
 - Passerelles de relance réelles (SMS, WhatsApp Business, e-mail)
 - Relances automatiques planifiées (J-3, J+1, J+7)
 - Synchronisation hors ligne et cache local
 - Mobile Money (Wave, Orange Money, MTN MoMo, Moov Money)
-- Notifications push (FCM), SMS et WhatsApp
+- SMS et WhatsApp
 - Invitations par lien / QR Code, biométrie
 - Documents, réunions, événements, aides sociales
-- Console web d'administration, analytics
+- Analytics
 - Abonnements Kadjane et marketplace de services
 
 ---

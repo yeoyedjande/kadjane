@@ -15,6 +15,7 @@ class PermissionService {
     Permission.memberView,
     Permission.tontineView,
     Permission.contributionView,
+    Permission.paymentView,
     Permission.drawView,
     Permission.payoutView,
     Permission.reminderView,
@@ -23,6 +24,7 @@ class PermissionService {
 
   static const Set<Permission> _auditorPermissions = <Permission>{
     ..._memberPermissions,
+    Permission.cashboxView,
     Permission.treasuryView,
     Permission.reportView,
     Permission.auditView,
@@ -30,10 +32,24 @@ class PermissionService {
 
   static const Set<Permission> _treasurerPermissions = <Permission>{
     ..._auditorPermissions,
+    Permission.contributionCreate,
+    Permission.contributionUpdate,
     Permission.contributionRecord,
+    Permission.contributionMarkPaid,
+    Permission.contributionMarkLate,
     Permission.contributionConfirm,
     Permission.contributionCancel,
+    Permission.paymentCreate,
+    Permission.paymentConfirm,
+    Permission.paymentReject,
+    Permission.paymentCancel,
+    Permission.cashboxCreate,
+    Permission.cashboxUpdate,
+    Permission.cashTransactionCreate,
+    Permission.cashTransactionUpdate,
+    Permission.cashTransactionCancel,
     Permission.payoutRecord,
+    Permission.payoutConfirm,
     Permission.treasuryManage,
     Permission.duesRecord,
     Permission.reminderSend,
@@ -42,9 +58,13 @@ class PermissionService {
   static const Set<Permission> _presidentPermissions = <Permission>{
     ..._auditorPermissions,
     Permission.tontineValidate,
+    Permission.tontineSuspend,
     Permission.drawRun,
     Permission.memberInvite,
     Permission.reminderSend,
+    Permission.roleView,
+    Permission.userView,
+    Permission.permissionView,
   };
 
   static final Set<Permission> _adminPermissions = <Permission>{
@@ -60,6 +80,16 @@ class PermissionService {
     Permission.tontineEdit,
     Permission.drawOverride,
     Permission.drawInvalidate,
+    Permission.memberDisable,
+    Permission.payoutCancel,
+    Permission.cashboxClose,
+    Permission.contributionExempt,
+    Permission.userCreate,
+    Permission.userUpdate,
+    Permission.roleCreate,
+    Permission.roleUpdate,
+    Permission.roleAssign,
+    Permission.permissionAssign,
   };
 
   static final Map<OrgRole, Set<Permission>> _matrix =

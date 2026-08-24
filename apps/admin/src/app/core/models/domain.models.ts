@@ -589,3 +589,244 @@ export interface Attachment {
   mimeType: string;
   sizeBytes: number;
 }
+
+// --- Phase 7 : RBAC, caisses, campagnes de cotisation ------------------------
+
+/** Une entrée de `/me/permissions` : le rôle **dépend** de l'organisation. */
+export interface MyPermissions {
+  organizationId: string;
+  memberId: string;
+  role: OrgRole | string;
+  roleId: string | null;
+  roleName: string;
+  permissions: string[];
+}
+
+export interface Permission {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  category: string;
+}
+
+export type RoleStatus = 'active' | 'disabled';
+
+export interface Role {
+  id: string;
+  organizationId: string;
+  /** Code du rôle. `role` est conservé pour les gardes historiques. */
+  code: string;
+  role: string;
+  name: string;
+  description: string;
+  isSystem: boolean;
+  /** Vrai quand l'organisation a pris la main sur le gabarit partagé. */
+  isCustomized: boolean;
+  status: RoleStatus;
+  permissions: string[];
+  permissionCount: number;
+  memberCount: number;
+  updatedAt: string | null;
+}
+
+export interface RolePayload {
+  name: string;
+  description?: string;
+  code?: string | null;
+  permissions: string[];
+}
+
+export type CashboxStatus = 'open' | 'closed' | 'suspended';
+
+export interface Cashbox {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string | null;
+  currency: string;
+  openingBalance: number;
+  /** Calculé par le backend : il n'existe pas de colonne de solde. */
+  currentBalance: number;
+  inflows: number;
+  outflows: number;
+  status: CashboxStatus;
+  isDefault: boolean;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+}
+
+export interface CashboxPayload {
+  name: string;
+  description?: string | null;
+  currency?: string;
+  openingBalance?: number;
+  isDefault?: boolean;
+}
+
+export type CashTransactionStatus = 'confirmed' | 'cancelled' | 'reversed';
+
+export type CashMovementType = 'income' | 'expense' | 'transfer' | 'adjustment';
+
+export interface CashboxTransaction {
+  id: string;
+  organizationId: string;
+  cashboxId: string | null;
+  type: CashMovementType;
+  category: string;
+  status: CashTransactionStatus;
+  amount: number;
+  date: string;
+  createdAt: string;
+  description: string | null;
+  reference: string | null;
+  attachmentId: string | null;
+  tontineId: string | null;
+  createdBy: string | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
+  source: string;
+}
+
+export interface CashTransactionPayload {
+  type: CashMovementType;
+  category: string;
+  amount: number;
+  date?: string | null;
+  description?: string | null;
+  reference?: string | null;
+}
+
+export type ContributionType =
+  | 'tontine'
+  | 'association'
+  | 'exceptional'
+  | 'voluntary';
+
+export type AmountMode = 'fixed' | 'free';
+
+export type CampaignStatus = 'draft' | 'active' | 'closed' | 'cancelled';
+
+export interface CampaignSummary {
+  membersCount: number;
+  expected: number;
+  collected: number;
+  remaining: number;
+  /** `null` pour une cotisation à montant libre : le taux n'a pas de sens. */
+  recoveryRate: number | null;
+  paidCount: number;
+  partialCount: number;
+  pendingCount: number;
+  lateCount: number;
+  exemptedCount: number;
+}
+
+export interface ContributionCampaign {
+  id: string;
+  organizationId: string;
+  tontineId: string | null;
+  cashboxId: string | null;
+  title: string;
+  description: string | null;
+  contributionType: ContributionType;
+  amount: number;
+  amountMode: AmountMode;
+  currency: string;
+  startDate: string | null;
+  dueDate: string | null;
+  mandatory: boolean;
+  penaltyEnabled: boolean;
+  penaltyAmount: number;
+  status: CampaignStatus;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+  summary?: CampaignSummary;
+  entries?: CampaignEntry[];
+}
+
+export interface CampaignPayload {
+  title: string;
+  description?: string | null;
+  contributionType: ContributionType;
+  amount: number;
+  amountMode: AmountMode;
+  dueDate?: string | null;
+  memberIds?: string[] | null;
+  cashboxId?: string | null;
+  mandatory?: boolean;
+  penaltyEnabled?: boolean;
+  penaltyAmount?: number;
+}
+
+export type CampaignEntryStatus =
+  | 'pending'
+  | 'partial'
+  | 'paid'
+  | 'late'
+  | 'exempted'
+  | 'cancelled';
+
+export interface CampaignEntry {
+  id: string;
+  organizationId: string;
+  campaignId: string;
+  memberId: string;
+  memberName: string;
+  expectedAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  dueDate: string | null;
+  status: CampaignEntryStatus;
+  lastPaymentAt: string | null;
+  exemptionReason: string | null;
+  daysLate: number;
+  payments?: CampaignPaymentRecord[];
+  /** Présents seulement dans la vue « Impayés ». */
+  campaignTitle?: string;
+  contributionType?: ContributionType;
+}
+
+export interface CampaignPaymentRecord {
+  id: string;
+  organizationId: string;
+  entryId: string;
+  cashTransactionId: string | null;
+  amount: number;
+  paymentMethod: string;
+  reference: string | null;
+  comment: string | null;
+  attachmentId: string | null;
+  status: string;
+  recordedBy: string | null;
+  paidAt: string | null;
+  confirmedAt: string | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
+}
+
+export interface CampaignPaymentPayload {
+  amount: number;
+  paymentMethod: string;
+  reference?: string | null;
+  comment?: string | null;
+  paidAt?: string | null;
+}
+
+/** Les quatre nombres qui ne doivent jamais se confondre, plus les caisses. */
+export interface FinancialDashboard {
+  cashBalance: number;
+  cashboxes: Cashbox[];
+  cashboxCount: number;
+  monthInflows: number;
+  monthOutflows: number;
+  expected: number;
+  collected: number;
+  remaining: number;
+  lateAmount: number;
+  recoveryRate: number | null;
+  treasury: TreasurySnapshot;
+}

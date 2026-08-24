@@ -17,7 +17,7 @@ from app.schemas.organization import (
     OrganizationRead,
     OrganizationUpdate,
 )
-from app.services import permission_service
+from app.services.permission_service import PermissionService
 from app.services.dashboard_service import DashboardService
 from app.services.organization_service import OrganizationService
 
@@ -79,7 +79,7 @@ def read_membership(
     if user_id is None or user_id == context.user.id:
         return success(dump(MemberRead.model_validate(context.membership)))
 
-    permission_service.require(context.membership.role_enum, "member.view")
+    PermissionService(db).require(context.membership, "member.view")
     membership = MemberRepository(db).membership(context.organization_id, user_id)
     if membership is None:
         raise NotFoundError("Appartenance introuvable.", code="membership_not_found")
@@ -90,28 +90,6 @@ def read_membership(
 def read_officers(db: DbSession, context: OrgContext) -> dict[str, Any]:
     officers = MemberRepository(db).officers(context.organization_id)
     return success(dump_all([MemberRead.model_validate(m) for m in officers]))
-
-
-@router.get("/{organization_id}/roles", summary="Matrice des droits par rôle")
-def read_roles(context: OrgContext) -> dict[str, Any]:
-    """Matrice appliquée par l'application mobile.
-
-    TODO(roles): renvoyer les surcharges de l'organisation quand la console
-    d'administration permettra de les définir.
-    """
-    definitions = [
-        {
-            "id": f"rol_{context.organization_id}_{role.value}",
-            "organizationId": str(context.organization_id),
-            "role": role.value,
-            "permissions": sorted(permission_service.permissions_of(role)),
-            "isCustomized": False,
-            "updatedAt": None,
-            "updatedByMemberId": None,
-        }
-        for role in OrgRole
-    ]
-    return success(definitions)
 
 
 @router.get("/{organization_id}/dashboard", summary="Tableau de bord")
@@ -130,6 +108,6 @@ def read_dashboard(
 
 
 def _update(db: DbSession, context: OrgContext, payload: OrganizationUpdate):
-    permission_service.require(context.membership.role_enum, "organization.edit")
+    PermissionService(db).require(context.membership, "organization.edit")
     organization = OrganizationService(db).update(context.organization, payload)
     return success(dump(OrganizationRead.model_validate(organization)))

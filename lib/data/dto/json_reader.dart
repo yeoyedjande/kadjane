@@ -48,6 +48,21 @@ class Json {
     return fallback;
   }
 
+  /// Nombre décimal **facultatif**, `null` conservé tel quel.
+  ///
+  /// Un taux de recouvrement absent — cotisation à montant libre — n'est pas
+  /// zéro : le remplacer par 0 laisserait croire que personne n'a payé.
+  static double? doubleOrNull(JsonMap json, String key) {
+    final Object? value = json[key];
+    if (value == null) {
+      return null;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value.toString());
+  }
+
   static int integer(JsonMap json, String key, [int fallback = 0]) {
     final Object? value = json[key];
     if (value is num) {
