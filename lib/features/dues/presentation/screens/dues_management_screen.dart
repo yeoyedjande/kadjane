@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kadjane/app/di/providers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/app/state/session_controller.dart';
-import 'package:kadjane/core/error/error_mapper.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/core/utils/money_formatter.dart';
+import 'package:kadjane/design_system/labels.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
+import 'package:kadjane/design_system/widgets/k_badge.dart';
 import 'package:kadjane/design_system/widgets/k_states.dart';
+import 'package:kadjane/design_system/widgets/k_text_field.dart';
 import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/enums/currency.dart';
-import 'package:kadjane/domain/enums/payment_enums.dart';
-import 'package:kadjane/domain/repositories/dues_repository.dart';
+import 'package:kadjane/domain/enums/permission.dart';
+import 'package:kadjane/features/dues/presentation/providers/dues_providers.dart';
+import 'package:kadjane/features/dues/presentation/widgets/dues_plan_form_sheet.dart';
+import 'package:kadjane/features/dues/presentation/widgets/record_dues_payment_sheet.dart';
 
 /// Encaissement des cotisations de caisse, pour le trésorier.
 ///
 /// Le trésorier détient l'argent : il doit pouvoir pointer et encaisser depuis
-/// son téléphone, sans passer par le back-office.
+/// son téléphone. La définition des cotisations elle-même se fait sur l'écran
+/// de gestion, accessible depuis la barre du haut.
 class DuesManagementScreen extends ConsumerStatefulWidget {
   const DuesManagementScreen({super.key});
 
@@ -27,183 +33,245 @@ class DuesManagementScreen extends ConsumerStatefulWidget {
 
 class _DuesManagementScreenState extends ConsumerState<DuesManagementScreen> {
   String? _planId;
+  int? _period;
   bool _onlyUnpaid = true;
-  String? _settlingId;
-
-  Future<({List<DuesPlan> plans, List<DuesEntry> entries})> _load() async {
-    final String? organizationId = await ref.read(
-      activeOrganizationIdProvider.future,
-    );
-    if (organizationId == null) {
-      return (plans: <DuesPlan>[], entries: <DuesEntry>[]);
-    }
-
-    final DuesRepository repository = ref.read(duesRepositoryProvider);
-    final List<DuesPlan> plans = await repository.plans(organizationId);
-    if (plans.isEmpty) {
-      return (plans: plans, entries: <DuesEntry>[]);
-    }
-
-    // On garde la cotisation choisie tant qu'elle existe encore.
-    final String planId = plans.any((DuesPlan p) => p.id == _planId)
-        ? _planId!
-        : plans.first.id;
-    _planId = planId;
-    return (
-      plans: plans,
-      entries: await repository.entries(organizationId, planId),
-    );
-  }
-
-  late Future<({List<DuesPlan> plans, List<DuesEntry> entries})> _future =
-      _load();
-
-  void _reload() => setState(() => _future = _load());
-
-  Future<void> _settle(DuesEntry entry) async {
-    setState(() => _settlingId = entry.id);
-    try {
-      await ref
-          .read(duesRepositoryProvider)
-          .recordPayment(
-            entryId: entry.id,
-            amount: entry.remainingAmount,
-            method: PaymentMethod.cash,
-          );
-      if (mounted) {
-        context.showMessage(context.l10n.duesPaymentRecorded);
-      }
-      _reload();
-    } on Object catch (error) {
-      if (mounted) {
-        context.showMessage(
-          ErrorMapper.message(context.l10n, error),
-          isError: true,
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _settlingId = null);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final bool canManage = ref.watch(canProvider(Permission.duesManage));
+    final AsyncValue<List<DuesPlan>> plans = ref.watch(duesPlansProvider);
+
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.duesCollectTitle)),
-      body: RefreshIndicator(
-        onRefresh: () async => _reload(),
-        child:
-            FutureBuilder<({List<DuesPlan> plans, List<DuesEntry> entries})>(
-              future: _future,
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return KErrorState(
-                    error: snapshot.error!,
-                    onRetry: _reload,
-                  );
-                }
-
-                final ({List<DuesPlan> plans, List<DuesEntry> entries}) data =
-                    snapshot.data!;
-                if (data.plans.isEmpty) {
-                  return _Empty(message: context.l10n.duesNoPlan);
-                }
-
-                final List<DuesEntry> rows = _onlyUnpaid
-                    ? data.entries
-                          .where((DuesEntry e) => !e.isSettled)
-                          .toList(growable: false)
-                    : data.entries;
-
-                return ListView(
-                  padding: const EdgeInsets.all(KSpacing.lg),
-                  children: <Widget>[
-                    if (data.plans.length > 1) ...<Widget>[
-                      _PlanSelector(
-                        plans: data.plans,
-                        selectedId: _planId,
-                        onChanged: (String id) {
-                          _planId = id;
-                          _reload();
-                        },
-                      ),
-                      KSpacing.gapLg,
-                    ],
-                    _Summary(
-                      plan: data.plans.firstWhere(
-                        (DuesPlan p) => p.id == _planId,
-                      ),
-                    ),
-                    KSpacing.gapMd,
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      value: _onlyUnpaid,
-                      title: Text(context.l10n.duesOnlyUnpaid),
-                      onChanged: (bool value) =>
-                          setState(() => _onlyUnpaid = value),
-                    ),
-                    KSpacing.gapSm,
-                    if (rows.isEmpty)
-                      _Empty(message: context.l10n.duesNothingToCollect)
-                    else
-                      for (final DuesEntry entry in rows) ...<Widget>[
-                        _EntryRow(
-                          entry: entry,
-                          isBusy: _settlingId == entry.id,
-                          onSettle: () => _settle(entry),
-                        ),
-                        KSpacing.gapSm,
-                      ],
-                  ],
-                );
-              },
+      appBar: AppBar(
+        title: Text(context.l10n.duesCollectTitle),
+        actions: <Widget>[
+          if (canManage)
+            IconButton(
+              tooltip: context.l10n.duesManageTitle,
+              icon: const Icon(Icons.tune_outlined),
+              onPressed: () => context.push(AppRoutes.duesPlans),
             ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async => refreshDues(ref),
+        child: plans.when(
+          loading: () => const KLoadingView(),
+          error: (Object error, _) => KErrorState(
+            error: error,
+            onRetry: () => ref.invalidate(duesPlansProvider),
+          ),
+          data: (List<DuesPlan> rows) {
+            if (rows.isEmpty) {
+              return ListView(
+                children: <Widget>[
+                  const SizedBox(height: KSpacing.xxl),
+                  KEmptyState(
+                    icon: Icons.savings_outlined,
+                    title: context.l10n.duesTitle,
+                    message: canManage
+                        ? context.l10n.duesPlansEmpty
+                        : context.l10n.duesNoPlan,
+                    actionLabel: canManage ? context.l10n.duesPlanNew : null,
+                    onAction: canManage
+                        ? () => DuesPlanFormSheet.show(context)
+                        : null,
+                  ),
+                ],
+              );
+            }
+
+            // La cotisation choisie survit à un rafraîchissement tant qu'elle
+            // existe encore ; sinon on retombe sur la première.
+            final DuesPlan plan = rows.firstWhere(
+              (DuesPlan p) => p.id == _planId,
+              orElse: () => rows.first,
+            );
+            if (plan.id != _planId) {
+              _planId = plan.id;
+              _period = null;
+            }
+
+            return _Collection(
+              plans: rows,
+              plan: plan,
+              period: _period,
+              onlyUnpaid: _onlyUnpaid,
+              onPlanChanged: (String id) => setState(() {
+                _planId = id;
+                _period = null;
+              }),
+              onPeriodChanged: (int? period) =>
+                  setState(() => _period = period),
+              onUnpaidChanged: (bool value) =>
+                  setState(() => _onlyUnpaid = value),
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class _PlanSelector extends StatelessWidget {
-  const _PlanSelector({
+class _Collection extends ConsumerWidget {
+  const _Collection({
     required this.plans,
-    required this.selectedId,
-    required this.onChanged,
+    required this.plan,
+    required this.period,
+    required this.onlyUnpaid,
+    required this.onPlanChanged,
+    required this.onPeriodChanged,
+    required this.onUnpaidChanged,
   });
 
   final List<DuesPlan> plans;
-  final String? selectedId;
-  final ValueChanged<String> onChanged;
+  final DuesPlan plan;
+  final int? period;
+  final bool onlyUnpaid;
+  final ValueChanged<String> onPlanChanged;
+  final ValueChanged<int?> onPeriodChanged;
+  final ValueChanged<bool> onUnpaidChanged;
 
   @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      initialValue: selectedId,
-      decoration: InputDecoration(labelText: context.l10n.duesTitle),
-      items: <DropdownMenuItem<String>>[
-        for (final DuesPlan plan in plans)
-          DropdownMenuItem<String>(value: plan.id, child: Text(plan.name)),
-      ],
-      onChanged: (String? value) {
-        if (value != null) {
-          onChanged(value);
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool canRecord = ref.watch(canProvider(Permission.duesRecord));
+    // Les échéances sont toujours chargées en entier : le filtre par période
+    // se fait à l'affichage, ce qui évite un aller-retour à chaque changement.
+    final AsyncValue<List<DuesEntry>> entries = ref.watch(
+      duesEntriesProvider(DuesEntriesQuery(plan.id)),
+    );
+
+    return entries.when(
+      loading: () => const KLoadingView(),
+      error: (Object error, _) => KErrorState(
+        error: error,
+        onRetry: () => ref.invalidate(duesEntriesProvider),
+      ),
+      data: (List<DuesEntry> all) {
+        final List<DuesEntry> rows = all
+            .where(
+              (DuesEntry e) =>
+                  (period == null || e.sequenceNumber == period) &&
+                  (!onlyUnpaid || !e.isSettled),
+            )
+            .toList(growable: false);
+
+        return ListView(
+          padding: const EdgeInsets.all(KSpacing.lg),
+          children: <Widget>[
+            if (plans.length > 1) ...<Widget>[
+              KDropdownField<String>(
+                label: context.l10n.duesTitle,
+                value: plan.id,
+                items: plans.map((DuesPlan p) => p.id).toList(growable: false),
+                itemLabel: (String id) =>
+                    plans.firstWhere((DuesPlan p) => p.id == id).name,
+                onChanged: (String? value) {
+                  if (value != null) {
+                    onPlanChanged(value);
+                  }
+                },
+              ),
+              KSpacing.gapLg,
+            ],
+            _Summary(plan: plan, rows: rows),
+            KSpacing.gapMd,
+            _PeriodSelector(
+              entries: all,
+              period: period,
+              onChanged: onPeriodChanged,
+            ),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: onlyUnpaid,
+              title: Text(context.l10n.duesOnlyUnpaid),
+              onChanged: onUnpaidChanged,
+            ),
+            KSpacing.gapSm,
+            if (rows.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(KSpacing.xl),
+                child: Text(
+                  context.l10n.duesNothingToCollect,
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                ),
+              )
+            else
+              for (final DuesEntry entry in rows) ...<Widget>[
+                _EntryRow(entry: entry, canRecord: canRecord),
+                KSpacing.gapSm,
+              ],
+          ],
+        );
       },
     );
   }
 }
 
-class _Summary extends StatelessWidget {
-  const _Summary({required this.plan});
+/// Filtre par période, construit à partir des échéances déjà chargées.
+class _PeriodSelector extends StatelessWidget {
+  const _PeriodSelector({
+    required this.entries,
+    required this.period,
+    required this.onChanged,
+  });
 
-  final DuesPlan plan;
+  final List<DuesEntry> entries;
+  final int? period;
+  final ValueChanged<int?> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final Map<int, String> periods = <int, String>{
+      for (final DuesEntry entry in entries)
+        entry.sequenceNumber: entry.periodLabel,
+    };
+    if (periods.length < 2) {
+      return const SizedBox.shrink();
+    }
+    final List<int> sequences = periods.keys.toList()
+      ..sort((int a, int b) => b.compareTo(a));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KSpacing.md),
+      child: KDropdownField<int>(
+        label: context.l10n.duesPeriodFilter,
+        // 0 tient lieu de « toutes » : le sélecteur n'accepte pas de valeur
+        // nulle dans sa liste.
+        value: period ?? 0,
+        items: <int>[0, ...sequences],
+        itemLabel: (int value) =>
+            value == 0 ? context.l10n.duesAllPeriods : periods[value]!,
+        onChanged: (int? value) =>
+            onChanged(value == null || value == 0 ? null : value),
+      ),
+    );
+  }
+}
+
+class _Summary extends StatelessWidget {
+  const _Summary({required this.plan, required this.rows});
+
+  final DuesPlan plan;
+  final List<DuesEntry> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    // Les totaux suivent le filtre affiché : le trésorier lit ce qu'il voit.
+    double expected = 0;
+    double collected = 0;
+    int unpaid = 0;
+    for (final DuesEntry entry in rows) {
+      expected += entry.expectedAmount;
+      collected += entry.paidAmount;
+      if (!entry.isSettled) {
+        unpaid++;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(KSpacing.lg),
       decoration: BoxDecoration(
@@ -213,10 +281,22 @@ class _Summary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(plan.name, style: context.text.titleMedium),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(plan.name, style: context.text.titleMedium),
+              ),
+              KBadge(
+                label: Labels.duesPlanStatus(context.l10n, plan.status),
+                tone: StatusTone.duesPlan(context.colors, plan.status),
+                compact: true,
+              ),
+            ],
+          ),
           KSpacing.gapXs,
           Text(
-            '${MoneyFormatter.format(plan.amount, Currency.xof)} · ${context.l10n.duesPerMember}',
+            '${MoneyFormatter.format(plan.amount, Currency.xof)} · '
+            '${context.l10n.duesPerMember}',
             style: context.text.bodySmall,
           ),
           KSpacing.gapMd,
@@ -224,17 +304,20 @@ class _Summary extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: _Metric(
+                  label: context.l10n.duesExpected,
+                  value: MoneyFormatter.compact(expected, Currency.xof),
+                ),
+              ),
+              Expanded(
+                child: _Metric(
                   label: context.l10n.duesCollected,
-                  value: MoneyFormatter.compact(
-                    plan.collectedTotal,
-                    Currency.xof,
-                  ),
+                  value: MoneyFormatter.compact(collected, Currency.xof),
                 ),
               ),
               Expanded(
                 child: _Metric(
                   label: context.l10n.duesUnpaidLabel,
-                  value: '${plan.unpaidCount}',
+                  value: '$unpaid',
                 ),
               ),
             ],
@@ -265,15 +348,10 @@ class _Metric extends StatelessWidget {
 }
 
 class _EntryRow extends StatelessWidget {
-  const _EntryRow({
-    required this.entry,
-    required this.isBusy,
-    required this.onSettle,
-  });
+  const _EntryRow({required this.entry, required this.canRecord});
 
   final DuesEntry entry;
-  final bool isBusy;
-  final VoidCallback onSettle;
+  final bool canRecord;
 
   @override
   Widget build(BuildContext context) {
@@ -298,46 +376,40 @@ class _EntryRow extends StatelessWidget {
                 ),
                 const SizedBox(height: KSpacing.xxs),
                 Text(
-                  '${entry.periodLabel} · ${DateFormatter.date(entry.dueDate)}',
+                  '${entry.periodLabel} · '
+                  '${context.l10n.duesDueOn(DateFormatter.date(entry.dueDate))}',
                   style: context.text.bodySmall?.copyWith(
                     color: entry.isLate
                         ? context.colors.danger
                         : context.colors.textSecondary,
                   ),
                 ),
+                if (entry.paidAmount > 0 && !entry.isSettled) ...<Widget>[
+                  const SizedBox(height: KSpacing.xxs),
+                  Text(
+                    '${context.l10n.duesRemaining} : '
+                    '${MoneyFormatter.format(entry.remainingAmount, Currency.xof)}',
+                    style: context.text.labelSmall,
+                  ),
+                ],
               ],
             ),
           ),
           if (entry.isSettled)
             Icon(Icons.check_circle, color: context.colors.success)
-          else
+          else if (canRecord)
             TextButton(
-              onPressed: isBusy ? null : onSettle,
+              onPressed: () => RecordDuesPaymentSheet.show(context, entry),
               child: Text(
                 MoneyFormatter.compact(entry.remainingAmount, Currency.xof),
               ),
+            )
+          else
+            Text(
+              MoneyFormatter.compact(entry.remainingAmount, Currency.xof),
+              style: context.text.titleSmall,
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(KSpacing.xl),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: context.text.bodyMedium?.copyWith(
-          color: context.colors.textSecondary,
-        ),
       ),
     );
   }

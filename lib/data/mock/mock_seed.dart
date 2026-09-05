@@ -7,6 +7,7 @@ import 'package:kadjane/domain/entities/beneficiary.dart';
 import 'package:kadjane/domain/entities/cash_transaction.dart';
 import 'package:kadjane/domain/entities/contribution.dart';
 import 'package:kadjane/domain/entities/draw_session.dart';
+import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/entities/organization.dart';
 import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/entities/payout.dart';
@@ -314,6 +315,7 @@ class MockSeed {
     );
 
     _seedTreasury(db, solidarite, currentMonth, mAwa);
+    _seedDues(db, solidarite, currentMonth);
 
     // --- Seconde organisation (multi-organisation) -------------------------
     final Organization amicale = Organization(
@@ -1277,6 +1279,41 @@ class MockSeed {
         body: 'L\'assemblée générale se tiendra le 30 du mois à 15h00.',
         createdAt: now.subtract(const Duration(days: 9)),
         readAt: now.subtract(const Duration(days: 8)),
+      ),
+    ]);
+  }
+
+  /// Cotisations de caisse de démonstration.
+  ///
+  /// Seuls les plans sont posés : les échéances sont engendrées à la lecture
+  /// par le repository, exactement comme le fait le backend.
+  static void _seedDues(
+    MockDatabase db,
+    Organization organization,
+    DateTime currentMonth,
+  ) {
+    db.duesPlans.addAll(<DuesPlan>[
+      DuesPlan(
+        id: db.nextId('dpl'),
+        organizationId: organization.id,
+        name: 'Caisse de solidarité',
+        description: 'Fonds d\'entraide en cas de coup dur.',
+        amount: 5000,
+        frequency: TontineFrequency.monthly,
+        dueDay: 5,
+        startDate: DateTime(currentMonth.year, currentMonth.month - 2),
+        status: DuesPlanStatus.active,
+      ),
+      DuesPlan(
+        id: db.nextId('dpl'),
+        organizationId: organization.id,
+        name: 'Fonds événement',
+        description: 'Cotisation ouverte pour l\'assemblée générale.',
+        amount: 2000,
+        frequency: TontineFrequency.monthly,
+        dueDay: 15,
+        startDate: DateTime(currentMonth.year, currentMonth.month - 1),
+        status: DuesPlanStatus.paused,
       ),
     ]);
   }

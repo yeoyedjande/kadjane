@@ -1,8 +1,8 @@
 """Cotisations de caisse.
 
 Distinctes des tontines : l'association encaisse et garde, elle ne redistribue
-pas. Le trésorier encaisse, l'administrateur définit les plans, chaque membre
-voit ce qu'il doit.
+pas. Le trésorier tient la caisse — il définit les plans et encaisse —, chaque
+membre voit ce qu'il doit.
 """
 
 from __future__ import annotations
@@ -282,6 +282,37 @@ def test_un_montant_negatif_est_refuse(client: TestClient) -> None:
 
 
 # --- Droits ------------------------------------------------------------------
+
+
+def test_le_tresorier_cree_un_plan(client: TestClient) -> None:
+    """Le trésorier tient la caisse : il n'attend pas le back-office."""
+    headers, org = setup_org(client)
+    register(client, MEMBER)
+    add_member(client, headers, org, role="treasurer")
+    treasurer_headers = auth_headers(
+        client.post(
+            "/api/v1/auth/login",
+            json={"identifier": MEMBER, "password": "motdepasse123"},
+        ).json()["data"]
+    )
+
+    response = client.post(
+        f"/api/v1/organizations/{org}/dues-plans",
+        json={"name": "Caisse du trésorier", "amount": "5000"},
+        headers=treasurer_headers,
+    )
+
+    assert response.status_code == 201, response.text
+
+    # Et il l'ajuste : suspendre une cotisation relève du même geste.
+    plan_id = response.json()["data"]["id"]
+    update = client.patch(
+        f"/api/v1/organizations/{org}/dues-plans/{plan_id}",
+        json={"status": "paused"},
+        headers=treasurer_headers,
+    )
+    assert update.status_code == 200, update.text
+    assert update.json()["data"]["status"] == "paused"
 
 
 def test_un_simple_membre_ne_cree_pas_de_plan(client: TestClient) -> None:

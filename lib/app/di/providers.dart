@@ -219,7 +219,11 @@ final Provider<NotificationRepository> notificationRepositoryProvider =
 final Provider<DuesRepository> duesRepositoryProvider =
     Provider<DuesRepository>(
       (Ref ref) => ref.watch(useMockDataProvider)
-          ? MockDuesRepository(ref.watch(mockDatabaseProvider))
+          ? MockDuesRepository(
+              ref.watch(mockDatabaseProvider),
+              ref.watch(auditRepositoryProvider),
+              ref.watch(keyValueStoreProvider),
+            )
           : RestDuesRepository(ref.watch(apiClientProvider)),
     );
 

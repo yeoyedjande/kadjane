@@ -1,9 +1,11 @@
 import 'package:kadjane/core/config/app_config.dart';
+import 'package:kadjane/core/storage/key_value_store.dart';
 import 'package:kadjane/core/utils/random_source.dart';
 import 'package:kadjane/data/mock/mock_database.dart';
 import 'package:kadjane/data/repositories/mock_audit_repository.dart';
 import 'package:kadjane/data/repositories/mock_contribution_repository.dart';
 import 'package:kadjane/data/repositories/mock_draw_repository.dart';
+import 'package:kadjane/data/repositories/mock_dues_repository.dart';
 import 'package:kadjane/data/repositories/mock_payout_repository.dart';
 import 'package:kadjane/data/repositories/mock_tontine_repository.dart';
 import 'package:kadjane/domain/entities/organization_member.dart';
@@ -31,6 +33,8 @@ class TestContext {
     contributions = MockContributionRepository(db, audit);
     draws = MockDrawRepository(db, audit, SeededRandomSource(seed));
     payouts = MockPayoutRepository(db, audit);
+    store = InMemoryKeyValueStore();
+    dues = MockDuesRepository(db, audit, store);
   }
 
   late final MockDatabase db;
@@ -39,6 +43,8 @@ class TestContext {
   late final MockContributionRepository contributions;
   late final MockDrawRepository draws;
   late final MockPayoutRepository payouts;
+  late final InMemoryKeyValueStore store;
+  late final MockDuesRepository dues;
 
   /// Tontine de démonstration en mode « tirage à chaque période ».
   Tontine get monthlyDrawTontine => db.tontines.firstWhere(

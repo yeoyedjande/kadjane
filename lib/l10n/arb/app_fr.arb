@@ -672,5 +672,66 @@
   "duesPerMember": "par membre",
   "duesCollected": "Encaissé",
   "duesUnpaidLabel": "Impayés",
-  "duesPaymentRecorded": "Règlement enregistré"
+  "duesPaymentRecorded": "Règlement enregistré",
+  "duesManageTitle": "Gérer les cotisations",
+  "duesPlansEmpty": "Aucune cotisation de caisse n'est encore définie. Créez-en une pour commencer à collecter.",
+  "duesPlanNew": "Nouvelle cotisation",
+  "duesPlanEditTitle": "Modifier la cotisation",
+  "duesPlanName": "Nom",
+  "duesPlanNameHint": "Caisse de solidarité",
+  "duesPlanAmount": "Montant par membre",
+  "duesPlanAmountHint": "Identique pour tous les membres.",
+  "duesPlanAmountFutureOnly": "Un nouveau montant ne s'applique qu'aux périodes à venir.",
+  "duesPlanFrequency": "Périodicité",
+  "duesPlanCustomDays": "Durée de la période (jours)",
+  "duesPlanDueDay": "Jour d'échéance",
+  "duesPlanDueDayHint": "Passé ce jour, l'échéance bascule en retard.",
+  "duesPlanStartDate": "Début de la première période",
+  "duesPlanStartDateLocked": "La date de début ne change plus une fois la cotisation ouverte.",
+  "duesPlanDescription": "Description",
+  "duesPlanStatusActive": "Active",
+  "duesPlanStatusPaused": "Suspendue",
+  "duesPlanStatusClosed": "Clôturée",
+  "duesPlanClosedNotice": "Cotisation clôturée : plus aucune échéance n'est engendrée.",
+  "duesPlanPausedNotice": "Cotisation suspendue : les impayés restent dus.",
+  "duesPlanCreated": "Cotisation « {name} » créée.",
+  "@duesPlanCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "duesPlanUpdated": "Cotisation mise à jour.",
+  "duesPlanPause": "Suspendre",
+  "duesPlanResume": "Réactiver",
+  "duesPlanClose": "Clôturer",
+  "duesPlanPauseConfirmTitle": "Suspendre la cotisation ?",
+  "duesPlanPauseConfirmMessage": "Aucune nouvelle échéance ne sera engendrée. Les impayés en cours restent dus.",
+  "duesPlanCloseConfirmTitle": "Clôturer la cotisation ?",
+  "duesPlanCloseConfirmMessage": "La cotisation ne sera plus réactivable. Les échéances déjà engendrées restent consultables.",
+  "duesPlanExists": "Une cotisation porte déjà ce nom.",
+  "duesInvalidAmount": "Le montant doit être supérieur à zéro.",
+  "duesOutstandingLabel": "Reste dû",
+  "duesExpected": "Attendu",
+  "duesRecordTitle": "Encaisser",
+  "duesRemaining": "Reste à payer",
+  "duesAllPeriods": "Toutes les périodes",
+  "duesPeriodFilter": "Période",
+  "duesDueDayValue": "Échéance le {day} de chaque période",
+  "@duesDueDayValue": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "duesPlanCount": "{count, plural, =0{aucune cotisation} =1{1 cotisation} other{{count} cotisations}}",
+  "@duesPlanCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

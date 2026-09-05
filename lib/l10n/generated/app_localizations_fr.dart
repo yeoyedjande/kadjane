@@ -1520,4 +1520,145 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get duesPaymentRecorded => 'Règlement enregistré';
+
+  @override
+  String get duesManageTitle => 'Gérer les cotisations';
+
+  @override
+  String get duesPlansEmpty =>
+      'Aucune cotisation de caisse n\'est encore définie. Créez-en une pour commencer à collecter.';
+
+  @override
+  String get duesPlanNew => 'Nouvelle cotisation';
+
+  @override
+  String get duesPlanEditTitle => 'Modifier la cotisation';
+
+  @override
+  String get duesPlanName => 'Nom';
+
+  @override
+  String get duesPlanNameHint => 'Caisse de solidarité';
+
+  @override
+  String get duesPlanAmount => 'Montant par membre';
+
+  @override
+  String get duesPlanAmountHint => 'Identique pour tous les membres.';
+
+  @override
+  String get duesPlanAmountFutureOnly =>
+      'Un nouveau montant ne s\'applique qu\'aux périodes à venir.';
+
+  @override
+  String get duesPlanFrequency => 'Périodicité';
+
+  @override
+  String get duesPlanCustomDays => 'Durée de la période (jours)';
+
+  @override
+  String get duesPlanDueDay => 'Jour d\'échéance';
+
+  @override
+  String get duesPlanDueDayHint =>
+      'Passé ce jour, l\'échéance bascule en retard.';
+
+  @override
+  String get duesPlanStartDate => 'Début de la première période';
+
+  @override
+  String get duesPlanStartDateLocked =>
+      'La date de début ne change plus une fois la cotisation ouverte.';
+
+  @override
+  String get duesPlanDescription => 'Description';
+
+  @override
+  String get duesPlanStatusActive => 'Active';
+
+  @override
+  String get duesPlanStatusPaused => 'Suspendue';
+
+  @override
+  String get duesPlanStatusClosed => 'Clôturée';
+
+  @override
+  String get duesPlanClosedNotice =>
+      'Cotisation clôturée : plus aucune échéance n\'est engendrée.';
+
+  @override
+  String get duesPlanPausedNotice =>
+      'Cotisation suspendue : les impayés restent dus.';
+
+  @override
+  String duesPlanCreated(String name) {
+    return 'Cotisation « $name » créée.';
+  }
+
+  @override
+  String get duesPlanUpdated => 'Cotisation mise à jour.';
+
+  @override
+  String get duesPlanPause => 'Suspendre';
+
+  @override
+  String get duesPlanResume => 'Réactiver';
+
+  @override
+  String get duesPlanClose => 'Clôturer';
+
+  @override
+  String get duesPlanPauseConfirmTitle => 'Suspendre la cotisation ?';
+
+  @override
+  String get duesPlanPauseConfirmMessage =>
+      'Aucune nouvelle échéance ne sera engendrée. Les impayés en cours restent dus.';
+
+  @override
+  String get duesPlanCloseConfirmTitle => 'Clôturer la cotisation ?';
+
+  @override
+  String get duesPlanCloseConfirmMessage =>
+      'La cotisation ne sera plus réactivable. Les échéances déjà engendrées restent consultables.';
+
+  @override
+  String get duesPlanExists => 'Une cotisation porte déjà ce nom.';
+
+  @override
+  String get duesInvalidAmount => 'Le montant doit être supérieur à zéro.';
+
+  @override
+  String get duesOutstandingLabel => 'Reste dû';
+
+  @override
+  String get duesExpected => 'Attendu';
+
+  @override
+  String get duesRecordTitle => 'Encaisser';
+
+  @override
+  String get duesRemaining => 'Reste à payer';
+
+  @override
+  String get duesAllPeriods => 'Toutes les périodes';
+
+  @override
+  String get duesPeriodFilter => 'Période';
+
+  @override
+  String duesDueDayValue(int day) {
+    return 'Échéance le $day de chaque période';
+  }
+
+  @override
+  String duesPlanCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cotisations',
+      one: '1 cotisation',
+      zero: 'aucune cotisation',
+    );
+    return '$_temp0';
+  }
 }

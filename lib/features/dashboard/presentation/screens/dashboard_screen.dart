@@ -361,6 +361,14 @@ class _DashboardBody extends ConsumerWidget {
               label: context.l10n.duesTitle,
               onTap: () => context.push(AppRoutes.myDues),
             ),
+            // La gestion des cotisations est un geste de trésorier : elle
+            // n'apparaît que pour qui en a le droit.
+            if (ref.watch(canProvider(Permission.duesManage)))
+              KAction(
+                icon: Icons.tune_outlined,
+                label: context.l10n.duesManageTitle,
+                onTap: () => context.push(AppRoutes.duesPlans),
+              ),
             KAction(
               icon: Icons.account_balance_wallet_outlined,
               label: context.l10n.treasuryTitle,

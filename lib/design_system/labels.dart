@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/design_system/theme/app_colors.dart';
+import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/enums/draw_enums.dart';
 import 'package:kadjane/domain/enums/member_enums.dart';
 import 'package:kadjane/domain/enums/notification_type.dart';
@@ -75,6 +76,17 @@ class Labels {
         return l10n.tontineStatusCompleted;
       case TontineStatus.cancelled:
         return l10n.tontineStatusCancelled;
+    }
+  }
+
+  static String duesPlanStatus(AppLocalizations l10n, DuesPlanStatus status) {
+    switch (status) {
+      case DuesPlanStatus.active:
+        return l10n.duesPlanStatusActive;
+      case DuesPlanStatus.paused:
+        return l10n.duesPlanStatusPaused;
+      case DuesPlanStatus.closed:
+        return l10n.duesPlanStatusClosed;
     }
   }
 
@@ -405,6 +417,17 @@ class StatusTone {
       case DrawStatus.cancelled:
       case DrawStatus.invalidated:
         return StatusTone(colors.danger, colors.dangerSurface);
+    }
+  }
+
+  static StatusTone duesPlan(KadjaneColors colors, DuesPlanStatus status) {
+    switch (status) {
+      case DuesPlanStatus.active:
+        return StatusTone(colors.success, colors.successSurface);
+      case DuesPlanStatus.paused:
+        return StatusTone(colors.warning, colors.warningSurface);
+      case DuesPlanStatus.closed:
+        return StatusTone(colors.textSecondary, colors.surfaceMuted);
     }
   }
 

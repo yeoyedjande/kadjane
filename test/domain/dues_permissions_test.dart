@@ -6,8 +6,8 @@ import 'package:kadjane/domain/services/permission_service.dart';
 
 /// Qui fait quoi sur la caisse de l'association.
 ///
-/// Le trésorier détient l'argent : lui seul encaisse depuis le mobile. Les
-/// plans, eux, se définissent dans le back-office par l'administrateur.
+/// Le trésorier tient la caisse : il définit les cotisations **et** les
+/// encaisse. Le simple membre, lui, ne fait que consulter ce qu'il doit.
 void main() {
   group('droits sur la caisse', () {
     test('tout membre consulte ce qu\'il doit', () {
@@ -35,16 +35,18 @@ void main() {
       );
     });
 
-    test('seul l\'administrateur définit les cotisations', () {
-      expect(
-        const PermissionService().defaultPermissionsOf(
-          OrgRole.admin,
-        ).contains(Permission.duesManage),
-        isTrue,
-      );
+    test('le trésorier définit les cotisations, l\'administrateur aussi', () {
+      for (final OrgRole role in <OrgRole>[OrgRole.treasurer, OrgRole.admin]) {
+        expect(
+          const PermissionService().defaultPermissionsOf(role).contains(Permission.duesManage),
+          isTrue,
+          reason: '$role doit pouvoir ouvrir une cotisation',
+        );
+      }
+      // Ni le membre, ni le contrôleur, ni le président ne touchent aux plans :
+      // c'est un geste de trésorerie, pas de gouvernance ni de consultation.
       for (final OrgRole role in <OrgRole>[
         OrgRole.member,
-        OrgRole.treasurer,
         OrgRole.auditor,
         OrgRole.president,
       ]) {

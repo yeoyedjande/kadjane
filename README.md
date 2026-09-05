@@ -493,12 +493,21 @@ sans ouvrir le back-office.
 | Trésorerie — solde et mouvements | `treasury.view` / `treasury.manage` |
 | Encaisser une cotisation de tontine | `contribution.record` |
 | **Encaisser les cotisations de caisse** | `dues.record` |
+| **Gérer les cotisations de caisse** | `dues.manage` |
 | **Centre de relance** | `reminder.send` |
 
-Les deux derniers écrans n'apparaissent qu'aux rôles concernés : un simple
-membre ne voit que sa propre situation. Définir une cotisation
-(`dues.manage`) reste en revanche une opération de back-office — c'est du
-paramétrage, pas de l'encaissement.
+Ces écrans n'apparaissent qu'aux rôles concernés : un simple membre ne voit que
+sa propre situation.
+
+C'est le trésorier qui tient la caisse : il ouvre une cotisation, en ajuste le
+montant ou le jour d'échéance, la suspend ou la clôture — depuis
+*Cotisations → Gérer les cotisations*, sans passer par le back-office. La
+console d'administration expose les mêmes gestes ; elle ne les monopolise pas.
+
+Deux réglages se figent une fois la cotisation ouverte : la **périodicité** et
+la **date de début**. Les échéances déjà engendrées en découlent, et les
+rejouer changerait le passé. La suspension arrête la génération sans effacer
+les impayés ; la clôture est définitive.
 
 ### Cotisation ≠ paiement ≠ caisse
 

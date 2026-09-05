@@ -62,6 +62,7 @@ class AppRoutes {
   static const String organizationSettings = '/organization';
   static const String myDues = '/my-dues';
   static const String duesCollect = '/dues-collect';
+  static const String duesPlans = '/dues-plans';
   static const String reminders = '/reminders';
   static const String profileEdit = '/profile-edit';
   static const String changePassword = '/change-password';
@@ -92,6 +93,7 @@ class AppRoutes {
     organizationSettings,
     myDues,
     duesCollect,
+    duesPlans,
     reminders,
     campaigns,
     unpaid,

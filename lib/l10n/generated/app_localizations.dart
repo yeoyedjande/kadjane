@@ -2929,6 +2929,246 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Règlement enregistré'**
   String get duesPaymentRecorded;
+
+  /// No description provided for @duesManageTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer les cotisations'**
+  String get duesManageTitle;
+
+  /// No description provided for @duesPlansEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune cotisation de caisse n\'est encore définie. Créez-en une pour commencer à collecter.'**
+  String get duesPlansEmpty;
+
+  /// No description provided for @duesPlanNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle cotisation'**
+  String get duesPlanNew;
+
+  /// No description provided for @duesPlanEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la cotisation'**
+  String get duesPlanEditTitle;
+
+  /// No description provided for @duesPlanName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get duesPlanName;
+
+  /// No description provided for @duesPlanNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caisse de solidarité'**
+  String get duesPlanNameHint;
+
+  /// No description provided for @duesPlanAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant par membre'**
+  String get duesPlanAmount;
+
+  /// No description provided for @duesPlanAmountHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identique pour tous les membres.'**
+  String get duesPlanAmountHint;
+
+  /// No description provided for @duesPlanAmountFutureOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un nouveau montant ne s\'applique qu\'aux périodes à venir.'**
+  String get duesPlanAmountFutureOnly;
+
+  /// No description provided for @duesPlanFrequency.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périodicité'**
+  String get duesPlanFrequency;
+
+  /// No description provided for @duesPlanCustomDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée de la période (jours)'**
+  String get duesPlanCustomDays;
+
+  /// No description provided for @duesPlanDueDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour d\'échéance'**
+  String get duesPlanDueDay;
+
+  /// No description provided for @duesPlanDueDayHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passé ce jour, l\'échéance bascule en retard.'**
+  String get duesPlanDueDayHint;
+
+  /// No description provided for @duesPlanStartDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Début de la première période'**
+  String get duesPlanStartDate;
+
+  /// No description provided for @duesPlanStartDateLocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date de début ne change plus une fois la cotisation ouverte.'**
+  String get duesPlanStartDateLocked;
+
+  /// No description provided for @duesPlanDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get duesPlanDescription;
+
+  /// No description provided for @duesPlanStatusActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Active'**
+  String get duesPlanStatusActive;
+
+  /// No description provided for @duesPlanStatusPaused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendue'**
+  String get duesPlanStatusPaused;
+
+  /// No description provided for @duesPlanStatusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturée'**
+  String get duesPlanStatusClosed;
+
+  /// No description provided for @duesPlanClosedNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation clôturée : plus aucune échéance n\'est engendrée.'**
+  String get duesPlanClosedNotice;
+
+  /// No description provided for @duesPlanPausedNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation suspendue : les impayés restent dus.'**
+  String get duesPlanPausedNotice;
+
+  /// No description provided for @duesPlanCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation « {name} » créée.'**
+  String duesPlanCreated(String name);
+
+  /// No description provided for @duesPlanUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cotisation mise à jour.'**
+  String get duesPlanUpdated;
+
+  /// No description provided for @duesPlanPause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre'**
+  String get duesPlanPause;
+
+  /// No description provided for @duesPlanResume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver'**
+  String get duesPlanResume;
+
+  /// No description provided for @duesPlanClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer'**
+  String get duesPlanClose;
+
+  /// No description provided for @duesPlanPauseConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre la cotisation ?'**
+  String get duesPlanPauseConfirmTitle;
+
+  /// No description provided for @duesPlanPauseConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune nouvelle échéance ne sera engendrée. Les impayés en cours restent dus.'**
+  String get duesPlanPauseConfirmMessage;
+
+  /// No description provided for @duesPlanCloseConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer la cotisation ?'**
+  String get duesPlanCloseConfirmTitle;
+
+  /// No description provided for @duesPlanCloseConfirmMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'La cotisation ne sera plus réactivable. Les échéances déjà engendrées restent consultables.'**
+  String get duesPlanCloseConfirmMessage;
+
+  /// No description provided for @duesPlanExists.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une cotisation porte déjà ce nom.'**
+  String get duesPlanExists;
+
+  /// No description provided for @duesInvalidAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant doit être supérieur à zéro.'**
+  String get duesInvalidAmount;
+
+  /// No description provided for @duesOutstandingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reste dû'**
+  String get duesOutstandingLabel;
+
+  /// No description provided for @duesExpected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attendu'**
+  String get duesExpected;
+
+  /// No description provided for @duesRecordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaisser'**
+  String get duesRecordTitle;
+
+  /// No description provided for @duesRemaining.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reste à payer'**
+  String get duesRemaining;
+
+  /// No description provided for @duesAllPeriods.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les périodes'**
+  String get duesAllPeriods;
+
+  /// No description provided for @duesPeriodFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période'**
+  String get duesPeriodFilter;
+
+  /// No description provided for @duesDueDayValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance le {day} de chaque période'**
+  String duesDueDayValue(int day);
+
+  /// No description provided for @duesPlanCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{aucune cotisation} =1{1 cotisation} other{{count} cotisations}}'**
+  String duesPlanCount(int count);
 }
 
 class _AppLocalizationsDelegate
