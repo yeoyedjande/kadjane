@@ -147,6 +147,10 @@ export interface Tontine {
   allocationMode: AllocationMode;
   startDate: string;
   dueDayOfPeriod: number;
+  /** Jour d'ouverture du tirage, jour d'échéance à défaut. */
+  drawDayOfPeriod: number;
+  /** Réglage explicite ; `null` signifie « comme le jour d'échéance ». */
+  drawDay: number | null;
   customPeriodDays: number | null;
   status: TontineStatus;
   requireAllContributionsBeforeDraw: boolean;
@@ -210,6 +214,7 @@ export interface TontinePayload {
   allocationMode: AllocationMode;
   startDate: string;
   dueDayOfPeriod: number;
+  drawDayOfPeriod?: number;
   memberIds: string[];
   manualOrder?: string[];
   requireAllContributionsBeforeDraw: boolean;

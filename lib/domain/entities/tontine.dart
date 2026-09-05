@@ -17,8 +17,11 @@ class Tontine {
     required this.createdBy,
     this.description,
     this.dueDayOfPeriod = 5,
+    this.drawDay,
     this.customPeriodDays,
     this.closedAt,
+    this.requireAllContributionsBeforeDraw = true,
+    this.allowDrawOverride = true,
   });
 
   final String id;
@@ -36,12 +39,28 @@ class Tontine {
   /// Jour d'échéance dans la période (1..28 pour le mensuel).
   final int dueDayOfPeriod;
 
+  /// Jour de la période où le tirage s'ouvre. `null` = le jour d'échéance :
+  /// on tire quand tout le monde était censé avoir cotisé.
+  final int? drawDay;
+
+  /// Jour d'ouverture effectif du tirage.
+  int get drawDayOfPeriod => drawDay ?? dueDayOfPeriod;
+
   /// Durée en jours quand [frequency] vaut `custom`.
   final int? customPeriodDays;
   final TontineStatus status;
   final DateTime createdAt;
   final String createdBy;
   final DateTime? closedAt;
+
+  /// Bloque le tirage tant qu'une cotisation du cycle reste due.
+  ///
+  /// Règle propre à la tontine : elle est initialisée depuis les réglages de
+  /// l'organisation à la création, puis vit sa vie.
+  final bool requireAllContributionsBeforeDraw;
+
+  /// Autorise un administrateur à passer outre, avec motif et trace d'audit.
+  final bool allowDrawOverride;
 
   /// Cagnotte pour un nombre de participants donné.
   double potFor(int participantCount) => contributionAmount * participantCount;
@@ -57,9 +76,12 @@ class Tontine {
     AllocationMode? allocationMode,
     DateTime? startDate,
     int? dueDayOfPeriod,
+    int? drawDay,
     int? customPeriodDays,
     TontineStatus? status,
     DateTime? closedAt,
+    bool? requireAllContributionsBeforeDraw,
+    bool? allowDrawOverride,
   }) => Tontine(
     id: id,
     organizationId: organizationId,
@@ -74,7 +96,12 @@ class Tontine {
     createdBy: createdBy,
     description: description ?? this.description,
     dueDayOfPeriod: dueDayOfPeriod ?? this.dueDayOfPeriod,
+    drawDay: drawDay ?? this.drawDay,
     customPeriodDays: customPeriodDays ?? this.customPeriodDays,
     closedAt: closedAt ?? this.closedAt,
+    requireAllContributionsBeforeDraw:
+        requireAllContributionsBeforeDraw ??
+        this.requireAllContributionsBeforeDraw,
+    allowDrawOverride: allowDrawOverride ?? this.allowDrawOverride,
   );
 }

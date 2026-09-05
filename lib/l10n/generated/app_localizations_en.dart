@@ -1654,4 +1654,22 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get drawTontineNotActive =>
+      'The tontine is not active: the draw is suspended.';
+
+  @override
+  String drawOpensOn(String date) {
+    return 'This period\'s draw opens on $date.';
+  }
+
+  @override
+  String get tontinesDrawDay => 'Draw day';
+
+  @override
+  String get tontinesDrawDayHint => 'The draw opens on that day, every period.';
+
+  @override
+  String get tontinesDrawDaySameAsDue => 'Same as the due day';
 }

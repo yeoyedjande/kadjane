@@ -733,5 +733,17 @@
         "type": "int"
       }
     }
-  }
+  },
+  "drawTontineNotActive": "The tontine is not active: the draw is suspended.",
+  "drawOpensOn": "This period's draw opens on {date}.",
+  "@drawOpensOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tontinesDrawDay": "Draw day",
+  "tontinesDrawDayHint": "The draw opens on that day, every period.",
+  "tontinesDrawDaySameAsDue": "Same as the due day"
 }

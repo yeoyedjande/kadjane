@@ -28,7 +28,7 @@ from app.models.membership import OrganizationMember
 from app.models.organization import Organization
 from app.models.tontine import Tontine, TontineCycle, TontineParticipant
 from app.services.audit_service import AuditService
-from app.services.period_service import build_periods
+from app.services.period_service import build_periods, compute_draw_opening
 
 # Transitions autorisées : aucune tontine ne saute d'un état à l'autre.
 ALLOWED_TRANSITIONS: dict[TontineStatus, set[TontineStatus]] = {
@@ -172,15 +172,29 @@ class TontineService:
         start_date,
         due_day: int,
         member_ids: list[uuid.UUID],
+        draw_day: int | None = None,
         description: str | None = None,
         custom_period_days: int | None = None,
-        require_all_contributions_before_draw: bool = True,
-        allow_draw_override: bool = True,
+        require_all_contributions_before_draw: bool | None = None,
+        allow_draw_override: bool | None = None,
         manual_order: list[uuid.UUID] | None = None,
         activate: bool = True,
     ) -> Tontine:
-        """Crée la tontine, inscrit ses participants et l'active par défaut."""
+        """Crée la tontine, inscrit ses participants et l'active par défaut.
+
+        Les deux règles de tirage non précisées sont héritées des réglages de
+        l'organisation : sans cet héritage, le réglage « exiger le paiement
+        complet avant le tirage » n'avait aucun effet, chaque tontine repartant
+        sur un `True` en dur.
+        """
         members = self._validate_members(organization.id, member_ids)
+        settings = organization.settings or {}
+        if require_all_contributions_before_draw is None:
+            require_all_contributions_before_draw = bool(
+                settings.get("requireFullPaymentBeforeDraw", True)
+            )
+        if allow_draw_override is None:
+            allow_draw_override = bool(settings.get("allowDrawOverride", True))
 
         tontine = Tontine(
             organization_id=organization.id,
@@ -191,6 +205,7 @@ class TontineService:
             frequency=frequency.value,
             start_date=start_date,
             due_day=due_day,
+            draw_day=draw_day,
             custom_period_days=custom_period_days,
             attribution_mode=attribution_mode.value,
             status=TontineStatus.DRAFT.value,
@@ -343,6 +358,11 @@ class TontineService:
                 continue
             setattr(tontine, field, getattr(value, "value", value))
 
+        # Déplacer le jour de tirage doit déplacer les tirages à venir, sinon
+        # le réglage affiché et la date qui fait foi divergeraient.
+        if "draw_day" in data or "due_day" in data:
+            self._resync_draw_dates(tontine)
+
         self.audit.record(
             organization_id=tontine.organization_id,
             action=AuditAction.TONTINE_UPDATED,
@@ -356,6 +376,29 @@ class TontineService:
         self.db.commit()
         self.db.refresh(tontine)
         return tontine
+
+    def _resync_draw_dates(self, tontine: Tontine) -> None:
+        """Réaligne la date d'ouverture des cycles non encore tirés.
+
+        Les cycles déjà attribués gardent la leur : on ne réécrit pas l'histoire
+        d'un tirage qui a eu lieu.
+        """
+        cycles = list(
+            self.db.scalars(
+                select(TontineCycle)
+                .where(TontineCycle.tontine_id == tontine.id)
+                .order_by(TontineCycle.sequence_number)
+            )
+        )
+        settled = {CycleStatus.DRAWN.value, CycleStatus.PAID_OUT.value}
+        for cycle in cycles:
+            if cycle.status in settled:
+                continue
+            cycle.draw_scheduled_at = compute_draw_opening(
+                period_start=cycle.start_date,
+                period_end=cycle.end_date,
+                draw_day=tontine.effective_draw_day,
+            )
 
     def set_manual_order(
         self,
@@ -415,6 +458,7 @@ class TontineService:
             count=len(participants),
             due_day=tontine.due_day,
             custom_period_days=tontine.custom_period_days,
+            draw_day=tontine.effective_draw_day,
         )
 
         now = datetime.now(timezone.utc)
@@ -427,6 +471,7 @@ class TontineService:
                 start_date=period.start,
                 end_date=period.end,
                 due_date=period.due,
+                draw_scheduled_at=period.draw,
                 expected_amount=expected,
                 collected_amount=Decimal("0"),
                 status=(

@@ -52,6 +52,12 @@
             <label class="k-field">
               <span class="k-label">Jour d'échéance</span>
               <input class="k-input" type="number" min="1" max="31" formControlName="dueDayOfPeriod" />
+              <span class="k-hint">Passé ce jour, la cotisation est en retard.</span>
+            </label>
+            <label class="k-field">
+              <span class="k-label">Jour du tirage</span>
+              <input class="k-input" type="number" min="1" max="31" formControlName="drawDayOfPeriod" />
+              <span class="k-hint">Le tirage s'ouvre ce jour-là, à chaque période.</span>
             </label>
           </div>
         }

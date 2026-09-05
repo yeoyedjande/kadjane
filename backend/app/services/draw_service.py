@@ -47,8 +47,16 @@ from app.services.permission_service import PermissionService
 from app.services.audit_service import AuditService
 from app.services.contribution_service import ContributionService
 from app.services.notification_service import NotificationService
+from app.services.period_service import compute_draw_opening
 
 RANDOM_SOURCE = "server_secrets_choice"
+
+# Refus qu'un administrateur peut lever en forçant le tirage, avec motif et
+# trace d'audit. Les autres — tontine suspendue, tirage déjà fait, plus aucun
+# éligible — ne se forcent pas : ce sont des impossibilités, pas des délais.
+OVERRIDABLE_REASONS: frozenset[str] = frozenset(
+    {"missingContributions", "drawNotOpenYet"}
+)
 
 
 @dataclass(slots=True)
@@ -62,6 +70,10 @@ class Eligibility:
     can_override: bool
     participants_count: int
     eligible: list[TontineParticipant]
+
+    # Date à partir de laquelle le tirage s'ouvre, pour que l'application
+    # annonce l'échéance au lieu d'un refus sans explication.
+    draw_opens_at: datetime | None = None
 
 
 class DrawService:
@@ -107,6 +119,23 @@ class DrawService:
             return expected or participants
         return participants
 
+    def draw_opens_at(self, tontine: Tontine, cycle: TontineCycle) -> datetime:
+        """Date d'ouverture du tirage pour ce cycle.
+
+        La valeur posée à la génération fait foi. Les cycles engendrés avant
+        l'introduction de cette date la voient recalculée : on ne veut pas
+        qu'une tontine ancienne se retrouve sans règle.
+        """
+        if cycle.draw_scheduled_at is not None:
+            # SQLite rend des instants naïfs là où PostgreSQL les rend situés :
+            # sans cette normalisation, la comparaison lève.
+            return _as_utc(cycle.draw_scheduled_at)
+        return compute_draw_opening(
+            period_start=cycle.start_date,
+            period_end=cycle.end_date,
+            draw_day=tontine.effective_draw_day,
+        )
+
     def evaluate(self, tontine: Tontine, cycle: TontineCycle) -> Eligibility:
         participants_count = int(
             self.db.scalar(
@@ -124,6 +153,8 @@ class DrawService:
         missing_count, remaining = self.contributions.missing_for_cycle(cycle.id)
         can_override = bool(tontine.allow_draw_override)
 
+        opens_at = self.draw_opens_at(tontine, cycle)
+
         def result(allowed: bool, reason: str) -> Eligibility:
             return Eligibility(
                 allowed=allowed,
@@ -133,6 +164,7 @@ class DrawService:
                 can_override=can_override,
                 participants_count=participants_count,
                 eligible=eligible,
+                draw_opens_at=opens_at,
             )
 
         if tontine.status_enum is not TontineStatus.ACTIVE:
@@ -141,6 +173,10 @@ class DrawService:
             return result(False, "alreadyDrawn")
         if not eligible:
             return result(False, "noEligibleParticipant")
+        # La date d'abord : avant le jour convenu, réclamer les cotisations
+        # manquantes n'apprendrait rien — elles ne sont pas encore en retard.
+        if datetime.now(timezone.utc) < opens_at:
+            return result(False, "drawNotOpenYet")
         if tontine.require_all_contributions_before_draw and missing_count > 0:
             return result(False, "missingContributions")
         return result(True, "none")
@@ -207,7 +243,7 @@ class DrawService:
                 code="noEligibleParticipant",
             )
 
-        if evaluation.reason == "missingContributions":
+        if evaluation.reason in OVERRIDABLE_REASONS:
             self._authorize_override(
                 tontine=tontine,
                 actor=actor,
@@ -234,10 +270,12 @@ class DrawService:
             period_label=cycle.period_label,
             winner_participant_id=winner.id,
             drawn_by=actor.id,
-            override_used=bool(override and evaluation.reason == "missingContributions"),
+            override_used=bool(
+                override and evaluation.reason in OVERRIDABLE_REASONS
+            ),
             override_reason=(
                 override_reason
-                if override and evaluation.reason == "missingContributions"
+                if override and evaluation.reason in OVERRIDABLE_REASONS
                 else None
             ),
             proof_reference=_proof_reference(),
@@ -551,11 +589,16 @@ class DrawService:
             "remaining_count": evaluation.missing_contributions,
             "remaining_amount": float(evaluation.remaining_amount),
             "missingContributions": evaluation.missing_contributions,
+            "drawOpensAt": (
+                evaluation.draw_opens_at.isoformat()
+                if evaluation.draw_opens_at
+                else None
+            ),
         }
         if not override:
             raise ConflictError(
-                _missing_message(evaluation.missing_contributions),
-                code="missingContributions",
+                _blocked_message(evaluation),
+                code=evaluation.reason,
                 details=details,
             )
         if not tontine.allow_draw_override:
@@ -584,6 +627,20 @@ class DrawService:
                     return participant
         # Générateur cryptographique : imprévisible et non influençable.
         return secrets.choice(eligible)
+
+
+def _as_utc(value: datetime) -> datetime:
+    """Instant situé en UTC, qu'il soit déjà situé ou non."""
+    return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+
+
+def _blocked_message(evaluation: Eligibility) -> str:
+    """Message du refus, avant tout forçage."""
+    if evaluation.reason == "drawNotOpenYet":
+        opens = evaluation.draw_opens_at
+        when = opens.strftime("%d/%m/%Y") if opens else "la date convenue"
+        return f"Le tirage de cette période s'ouvre le {when}."
+    return _missing_message(evaluation.missing_contributions)
 
 
 def _missing_message(count: int) -> str:

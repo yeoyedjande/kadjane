@@ -117,8 +117,20 @@ class TontineSettingsTab extends ConsumerWidget {
                 value: '${data.tontine.dueDayOfPeriod}',
               ),
               KDetailRow(
+                label: context.l10n.tontinesDrawDay,
+                value: '${data.tontine.drawDayOfPeriod}',
+              ),
+              KDetailRow(
                 label: context.l10n.commonStatus,
                 value: Labels.tontineStatus(context.l10n, data.tontine.status),
+              ),
+              // La règle qui gouverne l'ouverture du tirage : sans elle à
+              // l'écran, un tirage bloqué reste inexplicable.
+              KDetailRow(
+                label: context.l10n.orgRequireFullPayment,
+                value: data.tontine.requireAllContributionsBeforeDraw
+                    ? context.l10n.commonYes
+                    : context.l10n.commonNo,
               ),
             ],
           ),

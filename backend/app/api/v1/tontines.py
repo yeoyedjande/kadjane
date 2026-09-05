@@ -65,6 +65,7 @@ def create_tontine(
         attribution_mode=payload.attribution_mode,
         start_date=payload.start_date,
         due_day=payload.due_day,
+        draw_day=payload.draw_day,
         member_ids=payload.participant_ids,
         description=payload.description,
         custom_period_days=payload.custom_period_days,

@@ -1661,4 +1661,23 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get drawTontineNotActive =>
+      'La tontine n\'est pas active : le tirage est suspendu.';
+
+  @override
+  String drawOpensOn(String date) {
+    return 'Le tirage de cette période s\'ouvre le $date.';
+  }
+
+  @override
+  String get tontinesDrawDay => 'Jour du tirage';
+
+  @override
+  String get tontinesDrawDayHint =>
+      'Le tirage s\'ouvre ce jour-là, à chaque période.';
+
+  @override
+  String get tontinesDrawDaySameAsDue => 'Comme le jour d\'échéance';
 }

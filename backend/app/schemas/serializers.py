@@ -60,6 +60,8 @@ def tontine(model: Tontine) -> dict[str, Any]:
         "startDate": _date_iso(model.start_date),
         "dueDayOfPeriod": model.due_day,
         "dueDay": model.due_day,
+        "drawDayOfPeriod": model.effective_draw_day,
+        "drawDay": model.draw_day,
         "customPeriodDays": model.custom_period_days,
         "status": model.status,
         "requireAllContributionsBeforeDraw": model.require_all_contributions_before_draw,
@@ -314,6 +316,7 @@ def eligibility(evaluation: Any, *, tontine_model: Tontine) -> dict[str, Any]:
         "reason": evaluation.reason,
         "missingContributions": evaluation.missing_contributions,
         "canOverride": evaluation.can_override,
+        "drawOpensAt": iso(evaluation.draw_opens_at),
         # Cahier des charges backend
         "can_draw": evaluation.allowed,
         "participants_count": evaluation.participants_count,

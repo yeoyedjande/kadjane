@@ -579,9 +579,42 @@ donc l'anti-escalade ; `role_id` porte les **droits**. Détail :
 
 ### Conditions de tirage
 
-Par défaut, le tirage exige que toutes les cotisations du cycle soient réglées.
-Un administrateur peut forcer l'opération si l'organisation l'autorise ; le
-forçage est systématiquement historisé (`AuditAction.drawOverridden`).
+Le tirage s'ouvre quand cinq conditions sont réunies : la tontine est active,
+le cycle n'a pas déjà son bénéficiaire, au moins un participant reste à servir,
+le jour de tirage convenu est arrivé, et — si la règle est active — toutes les
+cotisations du cycle sont réglées.
+
+Cette dernière règle appartient à la **tontine**, pas à l'organisation :
+`requireAllContributionsBeforeDraw` et `allowDrawOverride` sont initialisés à la
+création depuis `Organization.settings`, puis se règlent tontine par tontine
+(*Paramètres* dans la console d'administration, à tout moment — même après
+activation, contrairement au montant et à la périodicité).
+
+Décocher « exiger toutes les cotisations avant le tirage » ouvre le tirage dès
+la période en cours. Le **forçage** reste une exception : il exige un motif et
+laisse une trace (`AuditAction.drawOverridden`) ; il ne doit pas devenir le
+chemin ordinaire parce qu'une règle est mal réglée.
+
+Deux jours distincts rythment une période, et les confondre embrouille tout :
+
+| Réglage | Rôle |
+|---|---|
+| `dueDayOfPeriod` | Passé ce jour, une cotisation est **en retard** |
+| `drawDayOfPeriod` | À partir de ce jour, le **tirage s'ouvre** |
+
+Le jour de tirage est facultatif : omis, il suit le jour d'échéance — on tire
+quand tout le monde était censé avoir cotisé. Il est figé dans
+`TontineCycle.draw_scheduled_at` à la génération des cycles ; le déplacer
+réaligne les cycles **non encore tirés**, jamais ceux déjà attribués.
+
+Avant ce jour, le tirage est refusé avec `drawNotOpenYet` et la date voyage avec
+le refus (`drawOpensAt`) : l'application annonce l'échéance au lieu d'un refus
+sec. Un administrateur peut avancer un tirage, mais par la voie du forçage —
+motif obligatoire et trace d'audit.
+
+Quand le tirage est refusé, l'application dit toujours pourquoi
+(`Labels.drawBlockReason`) : un bouton « Tirage indisponible » muet se lit comme
+une panne.
 
 ### Montants collectés
 

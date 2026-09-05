@@ -733,5 +733,17 @@
         "type": "int"
       }
     }
-  }
+  },
+  "drawTontineNotActive": "La tontine n'est pas active : le tirage est suspendu.",
+  "drawOpensOn": "Le tirage de cette période s'ouvre le {date}.",
+  "@drawOpensOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tontinesDrawDay": "Jour du tirage",
+  "tontinesDrawDayHint": "Le tirage s'ouvre ce jour-là, à chaque période.",
+  "tontinesDrawDaySameAsDue": "Comme le jour d'échéance"
 }

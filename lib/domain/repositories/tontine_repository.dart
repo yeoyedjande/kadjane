@@ -16,6 +16,7 @@ class TontineDraft {
     required this.memberIds,
     this.description,
     this.dueDayOfPeriod = 5,
+    this.drawDayOfPeriod,
     this.customPeriodDays,
 
     /// Ordre manuel : identifiants de membres dans l'ordre de passage.
@@ -30,6 +31,10 @@ class TontineDraft {
   final AllocationMode allocationMode;
   final DateTime startDate;
   final int dueDayOfPeriod;
+
+  /// Jour d'ouverture du tirage. `null` : le serveur retient le jour
+  /// d'échéance.
+  final int? drawDayOfPeriod;
   final int? customPeriodDays;
   final List<String> memberIds;
   final List<String> manualOrder;

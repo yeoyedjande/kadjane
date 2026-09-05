@@ -58,6 +58,32 @@ class PeriodCalculator {
     );
   }
 
+  /// Ouverture du tirage à l'intérieur d'une période déjà découpée.
+  ///
+  /// Sert aux cycles engendrés avant que la date d'ouverture ne soit stockée.
+  /// `due` marque la fin d'un délai, l'ouverture marque le début d'un droit :
+  /// d'où le début de journée. Un jour au-delà de la période retombe sur son
+  /// dernier jour.
+  DateTime drawOpeningFor({
+    required DateTime periodStart,
+    required DateTime periodEnd,
+    required int drawDay,
+  }) {
+    final DateTime first = DateTime(
+      periodStart.year,
+      periodStart.month,
+      periodStart.day,
+    );
+    final DateTime last = DateTime(
+      periodEnd.year,
+      periodEnd.month,
+      periodEnd.day,
+    );
+    final int length = last.difference(first).inDays + 1;
+    final int offset = drawDay.clamp(1, length < 1 ? 1 : length) - 1;
+    return DateTime(first.year, first.month, first.day + offset);
+  }
+
   PeriodBounds _monthly(DateTime startDate, int index, int dueDay) {
     final DateTime start = DateTime(startDate.year, startDate.month + index);
     final DateTime end = DateTime(start.year, start.month + 1, 0, 23, 59, 59);
