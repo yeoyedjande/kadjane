@@ -4,6 +4,7 @@ import 'package:kadjane/domain/entities/tontine.dart';
 import 'package:kadjane/domain/entities/tontine_cycle.dart';
 import 'package:kadjane/domain/entities/tontine_participant.dart';
 import 'package:kadjane/domain/enums/tontine_enums.dart';
+import 'package:kadjane/domain/services/period_calculator.dart';
 
 /// Raison pour laquelle un tirage est bloqué.
 enum DrawBlockReason {
@@ -13,6 +14,9 @@ enum DrawBlockReason {
   missingContributions,
   noEligibleParticipant,
   orderAlreadyDefined,
+
+  /// Le jour de tirage convenu n'est pas encore arrivé.
+  drawNotOpenYet,
 }
 
 /// Résultat de l'évaluation des conditions d'un tirage.
@@ -22,9 +26,10 @@ class DrawEligibility {
     required this.reason,
     required this.missingContributions,
     required this.canOverride,
+    this.drawOpensAt,
   });
 
-  const DrawEligibility.allowed()
+  const DrawEligibility.allowed({this.drawOpensAt})
     : allowed = true,
       reason = DrawBlockReason.none,
       missingContributions = 0,
@@ -36,6 +41,9 @@ class DrawEligibility {
 
   /// Vrai si un administrateur peut forcer le tirage (avec audit).
   final bool canOverride;
+
+  /// Date d'ouverture du tirage pour la période en cours.
+  final DateTime? drawOpensAt;
 }
 
 /// Situation financière d'un cycle.
@@ -167,21 +175,46 @@ class TontineRulesService {
         canOverride: false,
       );
     }
+    // Le tirage s'ouvre à une date convenue : c'est le rythme d'une tontine,
+    // un bénéficiaire par période. Réclamer les cotisations avant ce jour
+    // n'apprendrait rien — elles ne sont pas encore en retard.
+    final DateTime opensAt =
+        cycle.drawScheduledAt ??
+        const PeriodCalculator().drawOpeningFor(
+          periodStart: cycle.periodStart,
+          periodEnd: cycle.periodEnd,
+          drawDay: tontine.drawDayOfPeriod,
+        );
+    if (DateTime.now().isBefore(opensAt)) {
+      return DrawEligibility(
+        allowed: false,
+        reason: DrawBlockReason.drawNotOpenYet,
+        missingContributions: 0,
+        canOverride: tontine.allowDrawOverride && settings.allowDrawOverride,
+        drawOpensAt: opensAt,
+      );
+    }
+
     final CycleFinancials financials = financialsFor(
       tontine: tontine,
       cycle: cycle,
       participants: participants,
       contributions: contributions,
     );
-    if (settings.requireFullPaymentBeforeDraw && financials.unpaidMembers > 0) {
+    // La règle de la tontine prime : elle est initialisée depuis les réglages
+    // de l'organisation à la création, puis se règle tontine par tontine.
+    // [settings] ne fait plus que borner ce que l'organisation autorise.
+    if (tontine.requireAllContributionsBeforeDraw &&
+        financials.unpaidMembers > 0) {
       return DrawEligibility(
         allowed: false,
         reason: DrawBlockReason.missingContributions,
         missingContributions: financials.unpaidMembers,
-        canOverride: settings.allowDrawOverride,
+        canOverride: tontine.allowDrawOverride && settings.allowDrawOverride,
+        drawOpensAt: opensAt,
       );
     }
-    return const DrawEligibility.allowed();
+    return DrawEligibility.allowed(drawOpensAt: opensAt);
   }
 
   /// Position d'un membre dans une tontine à ordre prédéfini (modes B et C).

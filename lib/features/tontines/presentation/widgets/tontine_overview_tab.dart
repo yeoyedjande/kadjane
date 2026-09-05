@@ -6,6 +6,7 @@ import 'package:kadjane/app/state/session_controller.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/core/utils/money_formatter.dart';
+import 'package:kadjane/design_system/labels.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
 import 'package:kadjane/design_system/widgets/k_button.dart';
 import 'package:kadjane/design_system/widgets/k_card.dart';
@@ -16,6 +17,7 @@ import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/entities/tontine_cycle.dart';
 import 'package:kadjane/domain/entities/tontine_participant.dart';
 import 'package:kadjane/domain/enums/tontine_enums.dart';
+import 'package:kadjane/domain/services/tontine_rules_service.dart';
 import 'package:kadjane/features/tontines/presentation/providers/tontine_providers.dart';
 
 /// Onglet « Vue d'ensemble » : cagnotte, progression, position du membre.
@@ -33,6 +35,14 @@ class TontineOverviewTab extends ConsumerWidget {
     final OrganizationMember? membership = ref
         .watch(currentMembershipProvider)
         .valueOrNull;
+    final DrawEligibility? eligibility = data.eligibility;
+    final String? blockReason = eligibility == null
+        ? null
+        : Labels.drawBlockReason(
+            context.l10n,
+            eligibility,
+            locale: context.localeCode,
+          );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -150,6 +160,29 @@ class TontineOverviewTab extends ConsumerWidget {
                       AppRoutes.tontineDraw(data.tontine.id, current.id),
                     ),
                   ),
+                  // Dire pourquoi : un refus muet passe pour une panne.
+                  if (blockReason != null) ...<Widget>[
+                    KSpacing.gapSm,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Icon(
+                          Icons.info_outline,
+                          size: KSizes.iconSm,
+                          color: context.colors.textTertiary,
+                        ),
+                        const SizedBox(width: KSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            blockReason,
+                            style: context.text.bodySmall?.copyWith(
+                              color: context.colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ] else
                   Text(
                     context.l10n.allocationFullOrderDesc,

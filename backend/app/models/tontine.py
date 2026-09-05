@@ -57,6 +57,9 @@ class Tontine(Base, TimestampMixin):
     )
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     due_day: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
+    # Jour de la période où le tirage s'ouvre. `None` = le jour d'échéance :
+    # on tire quand tout le monde était censé avoir cotisé.
+    draw_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
     custom_period_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
     attribution_mode: Mapped[str] = mapped_column(
         String(32), nullable=False, default=AllocationMode.MONTHLY_DRAW.value
@@ -93,6 +96,11 @@ class Tontine(Base, TimestampMixin):
         cascade="all, delete-orphan",
         order_by="TontineCycle.sequence_number",
     )
+
+    @property
+    def effective_draw_day(self) -> int:
+        """Jour d'ouverture du tirage, jour d'échéance à défaut."""
+        return self.draw_day or self.due_day
 
     @property
     def status_enum(self) -> TontineStatus:

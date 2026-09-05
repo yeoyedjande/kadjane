@@ -45,14 +45,19 @@ class TontineCreate(CamelModel):
     due_day: int = Field(
         default=5, ge=1, le=31, validation_alias="dueDayOfPeriod"
     )
+    # Jour d'ouverture du tirage. Omis, c'est le jour d'échéance.
+    draw_day: int | None = Field(default=None, ge=1, le=31)
     description: str | None = None
     custom_period_days: int | None = Field(default=None, ge=1, le=365)
     participant_ids: list[uuid.UUID] = Field(
         default_factory=list, validation_alias="memberIds"
     )
     manual_order: list[uuid.UUID] = Field(default_factory=list)
-    require_all_contributions_before_draw: bool = True
-    allow_draw_override: bool = True
+    # `None` = « non précisé » : les règles de tirage sont alors héritées des
+    # réglages de l'organisation. Un défaut en dur ici rendait ces réglages
+    # inopérants — toute tontine exigeait le paiement complet.
+    require_all_contributions_before_draw: bool | None = None
+    allow_draw_override: bool | None = None
     activate: bool = True
 
     _normalize_enums = field_validator(
@@ -70,6 +75,8 @@ class TontineCreate(CamelModel):
             ("start_date", "startDate"),
             ("due_day", "dueDayOfPeriod"),
             ("due_day", "due_day"),
+            ("draw_day", "drawDayOfPeriod"),
+            ("draw_day", "drawDay"),
             ("attribution_mode", "allocationMode"),
             ("attribution_mode", "attribution_mode"),
             ("participant_ids", "memberIds"),
@@ -90,6 +97,7 @@ class TontineUpdate(CamelModel):
     name: str | None = Field(default=None, min_length=2, max_length=180)
     description: str | None = None
     due_day: int | None = Field(default=None, ge=1, le=31)
+    draw_day: int | None = Field(default=None, ge=1, le=31)
     status: TontineStatus | None = None
     require_all_contributions_before_draw: bool | None = None
     allow_draw_override: bool | None = None
@@ -105,6 +113,7 @@ class TontineUpdate(CamelModel):
         merged = dict(data)
         aliases = {
             "due_day": "dueDayOfPeriod",
+            "draw_day": "drawDayOfPeriod",
             "contribution_amount": "contributionAmount",
             "require_all_contributions_before_draw": "requireAllContributionsBeforeDraw",
             "allow_draw_override": "allowDrawOverride",

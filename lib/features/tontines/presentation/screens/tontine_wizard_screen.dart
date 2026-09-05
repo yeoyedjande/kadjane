@@ -44,6 +44,9 @@ class _TontineWizardScreenState extends ConsumerState<TontineWizardScreen> {
   AllocationMode _mode = AllocationMode.monthlyDraw;
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month + 1);
   int _dueDay = 5;
+
+  /// `null` : le tirage s'ouvre le jour de l'échéance.
+  int? _drawDay;
   final List<String> _selected = <String>[];
   bool _isSaving = false;
 
@@ -100,6 +103,7 @@ class _TontineWizardScreenState extends ConsumerState<TontineWizardScreen> {
               allocationMode: _mode,
               startDate: _startDate,
               dueDayOfPeriod: _dueDay,
+              drawDayOfPeriod: _drawDay,
               memberIds: List<String>.of(_selected),
               manualOrder: _mode == AllocationMode.manualOrder
                   ? List<String>.of(_selected)
@@ -276,6 +280,26 @@ class _StepInfo extends StatelessWidget {
           itemLabel: (int day) => '$day',
           onChanged: (int? value) =>
               state.update(() => state._dueDay = value ?? 5),
+        ),
+        KSpacing.gapLg,
+        // Le tirage s'ouvre à date fixe : c'est le rythme d'une tontine, un
+        // bénéficiaire par période. 0 tient lieu de « comme l'échéance ».
+        KDropdownField<int>(
+          label: context.l10n.tontinesDrawDay,
+          value: state._drawDay ?? 0,
+          items: <int>[0, ...List<int>.generate(28, (int index) => index + 1)],
+          itemLabel: (int day) =>
+              day == 0 ? context.l10n.tontinesDrawDaySameAsDue : '$day',
+          onChanged: (int? value) => state.update(
+            () => state._drawDay = value == null || value == 0 ? null : value,
+          ),
+        ),
+        const SizedBox(height: KSpacing.xs),
+        Text(
+          context.l10n.tontinesDrawDayHint,
+          style: context.text.bodySmall?.copyWith(
+            color: context.colors.textSecondary,
+          ),
         ),
       ],
     );
@@ -478,6 +502,10 @@ class _StepSummary extends ConsumerWidget {
           KDetailRow(
             label: context.l10n.tontinesDueDay,
             value: '${state._dueDay}',
+          ),
+          KDetailRow(
+            label: context.l10n.tontinesDrawDay,
+            value: '${state._drawDay ?? state._dueDay}',
           ),
           KDetailRow(
             label: context.l10n.tontinesParticipants,

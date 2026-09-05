@@ -3169,6 +3169,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =0{aucune cotisation} =1{1 cotisation} other{{count} cotisations}}'**
   String duesPlanCount(int count);
+
+  /// No description provided for @drawTontineNotActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'La tontine n\'est pas active : le tirage est suspendu.'**
+  String get drawTontineNotActive;
+
+  /// No description provided for @drawOpensOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le tirage de cette période s\'ouvre le {date}.'**
+  String drawOpensOn(String date);
+
+  /// No description provided for @tontinesDrawDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour du tirage'**
+  String get tontinesDrawDay;
+
+  /// No description provided for @tontinesDrawDayHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le tirage s\'ouvre ce jour-là, à chaque période.'**
+  String get tontinesDrawDayHint;
+
+  /// No description provided for @tontinesDrawDaySameAsDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comme le jour d\'échéance'**
+  String get tontinesDrawDaySameAsDue;
 }
 
 class _AppLocalizationsDelegate

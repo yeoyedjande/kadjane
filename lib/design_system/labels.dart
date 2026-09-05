@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
+import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/design_system/theme/app_colors.dart';
 import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/enums/draw_enums.dart';
@@ -11,6 +12,7 @@ import 'package:kadjane/domain/enums/permission.dart';
 import 'package:kadjane/domain/enums/reminder_enums.dart';
 import 'package:kadjane/domain/enums/tontine_enums.dart';
 import 'package:kadjane/domain/enums/transaction_enums.dart';
+import 'package:kadjane/domain/services/tontine_rules_service.dart';
 import 'package:kadjane/l10n/generated/app_localizations.dart';
 
 /// Traduction des énumérations métier.
@@ -76,6 +78,39 @@ class Labels {
         return l10n.tontineStatusCompleted;
       case TontineStatus.cancelled:
         return l10n.tontineStatusCancelled;
+    }
+  }
+
+  /// Pourquoi le tirage est refusé, en une phrase. `null` s'il est ouvert.
+  ///
+  /// Un bouton « Tirage indisponible » muet laisse croire à une panne ou à une
+  /// erreur de date : la raison doit voyager avec le refus.
+  static String? drawBlockReason(
+    AppLocalizations l10n,
+    DrawEligibility eligibility, {
+    String locale = 'fr',
+  }) {
+    if (eligibility.allowed) {
+      return null;
+    }
+    switch (eligibility.reason) {
+      case DrawBlockReason.drawNotOpenYet:
+        final DateTime? opensAt = eligibility.drawOpensAt;
+        return opensAt == null
+            ? l10n.drawUnavailable
+            : l10n.drawOpensOn(DateFormatter.date(opensAt, locale));
+      case DrawBlockReason.missingContributions:
+        return l10n.drawUnavailableReason(eligibility.missingContributions);
+      case DrawBlockReason.noEligibleParticipant:
+        return l10n.drawNoEligible;
+      case DrawBlockReason.alreadyDrawn:
+        return l10n.drawAlreadyDone;
+      case DrawBlockReason.tontineNotActive:
+        return l10n.drawTontineNotActive;
+      case DrawBlockReason.orderAlreadyDefined:
+        return l10n.allocationFullOrderDesc;
+      case DrawBlockReason.none:
+        return null;
     }
   }
 

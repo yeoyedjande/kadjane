@@ -192,6 +192,58 @@ def test_summary_reports_real_aggregates(client: TestClient) -> None:
     assert summary["currentCycle"]["periodLabel"] == "Août 2026"
 
 
+def test_les_regles_de_tirage_suivent_l_organisation(client: TestClient) -> None:
+    """Le réglage de l'organisation doit gouverner les tontines créées ensuite.
+
+    Sans cet héritage, la case « exiger le paiement complet avant le tirage »
+    n'avait aucun effet : chaque tontine repartait sur un `True` en dur, et le
+    tirage ne s'ouvrait plus que par un passage en force.
+    """
+    context = build_organization(client, members=3, prefix="71")
+    client.patch(
+        f"/api/v1/organizations/{context['organization']['id']}",
+        json={"settings": {"requireFullPaymentBeforeDraw": False}},
+        headers=context["headers"],
+    )
+
+    response = client.post(
+        f"/api/v1/organizations/{context['organization']['id']}/tontines",
+        json={
+            "name": "Tontine héritée",
+            "contributionAmount": 50000,
+            "currency": "XOF",
+            "frequency": "monthly",
+            "allocationMode": "monthly_draw",
+            "startDate": "2026-08-01",
+            "dueDayOfPeriod": 5,
+            "memberIds": [member["id"] for member in context["members"]],
+        },
+        headers=context["headers"],
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["data"]["requireAllContributionsBeforeDraw"] is False
+
+
+def test_la_regle_de_tirage_reste_modifiable_apres_activation(
+    client: TestClient,
+) -> None:
+    """Verrouiller le montant, oui ; verrouiller les règles du tirage, non."""
+    context = build_organization(client, members=3, prefix="72")
+    tontine = create_tontine(client, context, require_all=True)
+
+    response = client.patch(
+        f"/api/v1/tontines/{tontine['id']}",
+        json={"requireAllContributionsBeforeDraw": False, "dueDayOfPeriod": 10},
+        headers=context["headers"],
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()["data"]
+    assert body["requireAllContributionsBeforeDraw"] is False
+    assert body["dueDayOfPeriod"] == 10
+
+
 def test_locked_settings_after_activation(client: TestClient) -> None:
     context = build_organization(client, members=12)
     tontine = create_tontine(client, context)

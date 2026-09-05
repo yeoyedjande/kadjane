@@ -59,6 +59,7 @@ class DrawEligibilityDto {
     reason: _reason(Json.stringOr(json, 'reason', 'none')),
     missingContributions: Json.integer(json, 'missingContributions'),
     canOverride: Json.boolean(json, 'canOverride'),
+    drawOpensAt: Json.dateOrNull(json, 'drawOpensAt'),
   );
 
   static DrawBlockReason _reason(String value) {

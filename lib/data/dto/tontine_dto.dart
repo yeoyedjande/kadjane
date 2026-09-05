@@ -31,10 +31,17 @@ class TontineDto {
     createdBy: Json.stringOr(json, 'createdBy'),
     description: Json.stringOrNull(json, 'description'),
     dueDayOfPeriod: Json.integer(json, 'dueDayOfPeriod', 5),
+    drawDay: json['drawDay'] == null ? null : Json.integer(json, 'drawDay'),
     customPeriodDays: json['customPeriodDays'] == null
         ? null
         : Json.integer(json, 'customPeriodDays'),
     closedAt: Json.dateOrNull(json, 'closedAt'),
+    requireAllContributionsBeforeDraw: Json.boolean(
+      json,
+      'requireAllContributionsBeforeDraw',
+      true,
+    ),
+    allowDrawOverride: Json.boolean(json, 'allowDrawOverride', true),
   );
 
   static JsonMap toJson(Tontine tontine) => <String, dynamic>{
@@ -48,8 +55,12 @@ class TontineDto {
     'allocationMode': tontine.allocationMode.code,
     'startDate': Json.iso(tontine.startDate),
     'dueDayOfPeriod': tontine.dueDayOfPeriod,
+    'drawDay': tontine.drawDay,
     'customPeriodDays': tontine.customPeriodDays,
     'status': tontine.status.code,
+    'requireAllContributionsBeforeDraw':
+        tontine.requireAllContributionsBeforeDraw,
+    'allowDrawOverride': tontine.allowDrawOverride,
   };
 
   static JsonMap draftToJson(TontineDraft draft) => <String, dynamic>{
@@ -61,6 +72,7 @@ class TontineDto {
     'allocationMode': draft.allocationMode.code,
     'startDate': Json.iso(draft.startDate),
     'dueDayOfPeriod': draft.dueDayOfPeriod,
+    'drawDayOfPeriod': draft.drawDayOfPeriod,
     'customPeriodDays': draft.customPeriodDays,
     'memberIds': draft.memberIds,
     'manualOrder': draft.manualOrder,

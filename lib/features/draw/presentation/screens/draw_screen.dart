@@ -9,6 +9,7 @@ import 'package:kadjane/core/error/error_mapper.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/core/utils/money_formatter.dart';
+import 'package:kadjane/design_system/labels.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
 import 'package:kadjane/design_system/widgets/k_button.dart';
 import 'package:kadjane/design_system/widgets/k_dialogs.dart';
@@ -362,10 +363,41 @@ class _DrawScreenState extends ConsumerState<DrawScreen>
                     ],
                   ),
                 )
+              else if (!eligibility.allowed &&
+                  eligibility.reason == DrawBlockReason.drawNotOpenYet)
+                _LockedBanner(
+                  title: context.l10n.drawUnavailable,
+                  message:
+                      Labels.drawBlockReason(
+                        context.l10n,
+                        eligibility,
+                        locale: context.localeCode,
+                      ) ??
+                      context.l10n.drawUnavailable,
+                  // Avancer un tirage reste possible, mais comme une exception
+                  // motivée : jamais comme le chemin ordinaire.
+                  action: canOverride && eligibility.canOverride
+                      ? KButton.ghost(
+                          label: context.l10n.drawOverrideTitle,
+                          icon: Icons.gpp_maybe_outlined,
+                          expanded: true,
+                          onPressed: () => _forceAndRun(cycle, amountLabel),
+                        )
+                      : null,
+                )
               else if (!eligibility.allowed)
                 _LockedBanner(
                   title: context.l10n.drawUnavailable,
-                  message: context.l10n.allocationFullOrderDesc,
+                  // Chaque refus a sa raison : tontine suspendue, plus aucun
+                  // participant à tirer… Le message générique précédent parlait
+                  // d'ordre de passage, sans rapport avec la plupart des cas.
+                  message:
+                      Labels.drawBlockReason(
+                        context.l10n,
+                        eligibility,
+                        locale: context.localeCode,
+                      ) ??
+                      context.l10n.commonErrorGeneric,
                 ),
             ],
           );

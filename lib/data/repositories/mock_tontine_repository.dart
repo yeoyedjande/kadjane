@@ -2,6 +2,7 @@ import 'package:kadjane/core/error/app_exception.dart';
 import 'package:kadjane/data/mock/mock_database.dart';
 import 'package:kadjane/domain/entities/beneficiary.dart';
 import 'package:kadjane/domain/entities/contribution.dart';
+import 'package:kadjane/domain/entities/organization.dart';
 import 'package:kadjane/domain/entities/tontine.dart';
 import 'package:kadjane/domain/entities/tontine_cycle.dart';
 import 'package:kadjane/domain/entities/tontine_participant.dart';
@@ -65,6 +66,11 @@ class MockTontineRepository implements TontineRepository {
       throw const ValidationException('min_two_participants');
     }
     final Tontine tontine = await _db.withLatency(() {
+      // Les règles du tirage sont héritées des réglages de l'organisation :
+      // même contrat que le serveur, sinon le mode démo mentirait.
+      final OrganizationSettings settings = _db
+          .organizationById(organizationId)
+          .settings;
       final Tontine created = Tontine(
         id: _db.nextId('ton'),
         organizationId: organizationId,
@@ -76,10 +82,14 @@ class MockTontineRepository implements TontineRepository {
         allocationMode: draft.allocationMode,
         startDate: draft.startDate,
         dueDayOfPeriod: draft.dueDayOfPeriod,
+        drawDay: draft.drawDayOfPeriod,
         customPeriodDays: draft.customPeriodDays,
         status: TontineStatus.active,
         createdAt: DateTime.now(),
         createdBy: actorMemberId,
+        requireAllContributionsBeforeDraw:
+            settings.requireFullPaymentBeforeDraw,
+        allowDrawOverride: settings.allowDrawOverride,
       );
       _db.tontines.add(created);
 
@@ -123,6 +133,11 @@ class MockTontineRepository implements TontineRepository {
             periodStart: bounds[i].start,
             periodEnd: bounds[i].end,
             dueDate: bounds[i].dueDate,
+            drawScheduledAt: _periods.drawOpeningFor(
+              periodStart: bounds[i].start,
+              periodEnd: bounds[i].end,
+              drawDay: created.drawDayOfPeriod,
+            ),
             expectedAmount: expected,
             status: i == 0 ? CycleStatus.collecting : CycleStatus.upcoming,
           ),

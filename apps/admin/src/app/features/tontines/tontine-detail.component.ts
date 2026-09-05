@@ -158,6 +158,26 @@ export class TontineDetailPage {
   readonly proofName = signal<string | null>(null);
   private proofUrl: string | null = null;
 
+  /// Réglages modifiables d'une tontine déjà créée.
+  ///
+  /// Le montant, la fréquence et la date de début restent verrouillés après
+  /// activation — les cycles déjà engendrés en dépendent. Les règles du tirage,
+  /// elles, se changent à tout moment : c'est ce qui permet d'ouvrir un tirage
+  /// sans attendre le règlement de toutes les cotisations.
+  readonly settingsForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    description: [''],
+    dueDay: [5, [Validators.required, Validators.min(1), Validators.max(31)]],
+    drawDay: [5, [Validators.required, Validators.min(1), Validators.max(31)]],
+    contributionAmount: [0, [Validators.required, Validators.min(1)]],
+    requireAllContributionsBeforeDraw: [true],
+    allowDrawOverride: [true],
+  });
+
+  readonly savingSettings = signal(false);
+
+  readonly isDraft = computed(() => this.tontine()?.status === 'draft');
+
   constructor() {
     queueMicrotask(() => this.load());
   }
@@ -189,6 +209,7 @@ export class TontineDetailPage {
         this.beneficiaryList.set(result.beneficiaries);
         this.payoutList.set(result.payouts);
         this.activity.set(result.activity);
+        this.fillSettingsForm(result.summary.tontine);
         this.loading.set(false);
 
         const current =
@@ -454,6 +475,77 @@ export class TontineDetailPage {
 
   pendingPayment(line: ContributionLine): boolean {
     return line.payments.some((payment) => payment.status === 'pending');
+  }
+
+  invalidSetting(
+    field: 'name' | 'dueDay' | 'drawDay' | 'contributionAmount',
+  ): boolean {
+    const control = this.settingsForm.controls[field];
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  resetSettings(): void {
+    const tontine = this.tontine();
+    if (tontine) {
+      this.fillSettingsForm(tontine);
+    }
+  }
+
+  submitSettings(): void {
+    const tontine = this.tontine();
+    if (!tontine || this.settingsForm.invalid || this.savingSettings()) {
+      this.settingsForm.markAllAsTouched();
+      return;
+    }
+
+    const raw = this.settingsForm.getRawValue();
+    const changes: Record<string, unknown> = {
+      name: raw.name.trim(),
+      description: raw.description.trim() || null,
+      dueDayOfPeriod: raw.dueDay,
+      drawDayOfPeriod: raw.drawDay,
+      requireAllContributionsBeforeDraw: raw.requireAllContributionsBeforeDraw,
+      allowDrawOverride: raw.allowDrawOverride,
+    };
+    // Le serveur refuse un montant sur une tontine activée : ne l'envoyer que
+    // tant qu'elle est en brouillon, plutôt que d'essuyer un 409.
+    if (this.isDraft()) {
+      changes['contributionAmount'] = raw.contributionAmount;
+    }
+
+    this.savingSettings.set(true);
+    this.tontines.update(tontine.id, changes).subscribe({
+      next: () => {
+        this.savingSettings.set(false);
+        this.toast.success('Tontine mise à jour.');
+        this.load();
+      },
+      error: (error: unknown) => {
+        this.savingSettings.set(false);
+        this.toast.fromError(error);
+      },
+    });
+  }
+
+  private fillSettingsForm(tontine: Tontine): void {
+    this.settingsForm.reset({
+      name: tontine.name,
+      description: tontine.description ?? '',
+      dueDay: tontine.dueDayOfPeriod,
+      drawDay: tontine.drawDayOfPeriod,
+      contributionAmount: tontine.contributionAmount,
+      requireAllContributionsBeforeDraw:
+        tontine.requireAllContributionsBeforeDraw,
+      allowDrawOverride: tontine.allowDrawOverride,
+    });
+    // Désactiver le contrôle plutôt que l'attribut HTML : c'est le formulaire
+    // qui fait foi, et Angular avertit quand les deux divergent.
+    const amount = this.settingsForm.controls.contributionAmount;
+    if (tontine.status === 'draft') {
+      amount.enable({ emitEvent: false });
+    } else {
+      amount.disable({ emitEvent: false });
+    }
   }
 }
 

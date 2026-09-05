@@ -311,6 +311,9 @@ class MockSeed {
         status: TontineStatus.draft,
         createdAt: now.subtract(const Duration(days: 4)),
         createdBy: mYeo.id,
+        requireAllContributionsBeforeDraw:
+            solidarite.settings.requireFullPaymentBeforeDraw,
+        allowDrawOverride: solidarite.settings.allowDrawOverride,
       ),
     );
 
@@ -419,6 +422,9 @@ class MockSeed {
       status: TontineStatus.active,
       createdAt: start.subtract(const Duration(days: 10)),
       createdBy: creator.id,
+      requireAllContributionsBeforeDraw:
+          organization.settings.requireFullPaymentBeforeDraw,
+      allowDrawOverride: organization.settings.allowDrawOverride,
     );
     db.tontines.add(tontine);
 
@@ -552,12 +558,7 @@ class MockSeed {
       // Salif OUATTARA n'a pas encore payé : 11 / 12.
       skipMemberIds: <String>{participants[10].memberId},
     );
-    db.replaceCycle(
-      current.copyWith(
-        status: CycleStatus.collecting,
-        drawScheduledAt: current.dueDate.add(const Duration(days: 2)),
-      ),
-    );
+    db.replaceCycle(current.copyWith(status: CycleStatus.collecting));
 
     // Une première relance a déjà été envoyée au membre en retard.
     _seedReminder(
@@ -598,6 +599,9 @@ class MockSeed {
       status: TontineStatus.active,
       createdAt: start.subtract(const Duration(days: 6)),
       createdBy: creator.id,
+      requireAllContributionsBeforeDraw:
+          organization.settings.requireFullPaymentBeforeDraw,
+      allowDrawOverride: organization.settings.allowDrawOverride,
     );
     db.tontines.add(tontine);
 
@@ -784,6 +788,9 @@ class MockSeed {
       status: TontineStatus.active,
       createdAt: start.subtract(const Duration(days: 3)),
       createdBy: creator.id,
+      requireAllContributionsBeforeDraw:
+          organization.settings.requireFullPaymentBeforeDraw,
+      allowDrawOverride: organization.settings.allowDrawOverride,
     );
     db.tontines.add(tontine);
 
@@ -1029,6 +1036,11 @@ class MockSeed {
         periodStart: bounds[i].start,
         periodEnd: bounds[i].end,
         dueDate: bounds[i].dueDate,
+        drawScheduledAt: _periods.drawOpeningFor(
+          periodStart: bounds[i].start,
+          periodEnd: bounds[i].end,
+          drawDay: tontine.drawDayOfPeriod,
+        ),
         expectedAmount: expectedAmount,
         status: CycleStatus.upcoming,
       );

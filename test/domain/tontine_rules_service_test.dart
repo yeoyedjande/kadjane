@@ -13,7 +13,10 @@ void main() {
   const TontineRulesService rules = TontineRulesService();
   final DateTime periodStart = DateTime(2026, 8);
 
-  Tontine buildTontine() => Tontine(
+  Tontine buildTontine({
+    bool requireAllContributionsBeforeDraw = true,
+    bool allowDrawOverride = true,
+  }) => Tontine(
     id: 'ton_1',
     organizationId: 'org_1',
     name: 'Tontine Solidarité',
@@ -25,15 +28,23 @@ void main() {
     status: TontineStatus.active,
     createdAt: periodStart,
     createdBy: 'mbr_1',
+    requireAllContributionsBeforeDraw: requireAllContributionsBeforeDraw,
+    allowDrawOverride: allowDrawOverride,
   );
 
-  TontineCycle buildCycle({double expected = 150000}) => TontineCycle(
+  TontineCycle buildCycle({
+    double expected = 150000,
+    DateTime? drawScheduledAt,
+  }) => TontineCycle(
     id: 'cyc_1',
     tontineId: 'ton_1',
     index: 1,
     periodStart: periodStart,
     periodEnd: DateTime(2026, 8, 31),
     dueDate: DateTime(2026, 8, 5),
+    // Août 2026 est derrière nous : le tirage est ouvert, sauf mention
+    // contraire dans le test.
+    drawScheduledAt: drawScheduledAt ?? DateTime(2026, 8, 5),
     expectedAmount: expected,
     status: CycleStatus.collecting,
   );
@@ -199,18 +210,66 @@ void main() {
       expect(eligibility.reason, DrawBlockReason.alreadyDrawn);
     });
 
-    test('la règle « paiement complet » peut être désactivée', () {
+    test('le tirage reste fermé avant le jour convenu', () {
+      // Le rythme d'une tontine est celui d'une date : un bénéficiaire par
+      // période, tiré le jour dit — pas dès que la caisse est pleine.
       final DrawEligibility eligibility = rules.evaluateDraw(
-        tontine: buildTontine(),
-        cycle: buildCycle(),
-        settings: const OrganizationSettings(
-          requireFullPaymentBeforeDraw: false,
+        tontine: buildTontine(requireAllContributionsBeforeDraw: false),
+        cycle: buildCycle(
+          drawScheduledAt: DateTime.now().add(const Duration(days: 3)),
         ),
+        settings: const OrganizationSettings(),
+        participants: buildParticipants(),
+        contributions: const <Contribution>[],
+      );
+
+      expect(eligibility.allowed, isFalse);
+      expect(eligibility.reason, DrawBlockReason.drawNotOpenYet);
+      expect(eligibility.drawOpensAt, isNotNull);
+    });
+
+    test('le jour venu, le tirage s\'ouvre', () {
+      final DrawEligibility eligibility = rules.evaluateDraw(
+        tontine: buildTontine(requireAllContributionsBeforeDraw: false),
+        cycle: buildCycle(
+          drawScheduledAt: DateTime.now().subtract(const Duration(hours: 1)),
+        ),
+        settings: const OrganizationSettings(),
         participants: buildParticipants(),
         contributions: const <Contribution>[],
       );
 
       expect(eligibility.allowed, isTrue);
+    });
+
+    test('la règle « paiement complet » peut être désactivée', () {
+      // La règle appartient à la tontine : elle est héritée des réglages de
+      // l'organisation à la création, puis se règle tontine par tontine.
+      final DrawEligibility eligibility = rules.evaluateDraw(
+        tontine: buildTontine(requireAllContributionsBeforeDraw: false),
+        cycle: buildCycle(),
+        settings: const OrganizationSettings(),
+        participants: buildParticipants(),
+        contributions: const <Contribution>[],
+      );
+
+      expect(eligibility.allowed, isTrue);
+    });
+
+    test('l\'organisation peut retirer le passage en force', () {
+      // Deux verrous : la tontine propose, l'organisation dispose. Il suffit
+      // que l'une des deux refuse pour qu'aucun tirage ne soit forçable.
+      final DrawEligibility eligibility = rules.evaluateDraw(
+        tontine: buildTontine(),
+        cycle: buildCycle(),
+        settings: const OrganizationSettings(allowDrawOverride: false),
+        participants: buildParticipants(),
+        contributions: const <Contribution>[],
+      );
+
+      expect(eligibility.allowed, isFalse);
+      expect(eligibility.reason, DrawBlockReason.missingContributions);
+      expect(eligibility.canOverride, isFalse);
     });
   });
 }

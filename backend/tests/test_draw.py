@@ -8,6 +8,7 @@ reste dans la tontine et continue de cotiser.**
 from __future__ import annotations
 
 import uuid
+from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
@@ -480,3 +481,123 @@ def test_dashboard_reflects_the_real_state_after_the_draw(
     # Le cycle courant est tiré : on annonce le suivant, sans le gagnant.
     assert dashboard["nextDraw"]["eligibleCount"] == 11
     assert dashboard["nextDraw"]["isUnlocked"] is False
+
+
+# --- Date d'ouverture du tirage ----------------------------------------------
+
+
+def _first_of_next_month() -> str:
+    """Premier jour du mois prochain, pour un cycle assurément à venir."""
+    today = date.today()
+    year = today.year + (1 if today.month == 12 else 0)
+    month = 1 if today.month == 12 else today.month + 1
+    return str(date(year, month, 1))
+
+
+def test_le_tirage_est_ferme_avant_le_jour_convenu(client: TestClient) -> None:
+    """Le tirage s'ouvre à une date, pas dès que la caisse est complète."""
+    context = build_organization(client, members=3, prefix="80")
+    tontine = create_tontine(
+        client, context, require_all=False, start_date=_first_of_next_month()
+    )
+    cycle = cycles_of(client, context, tontine["id"])[0]
+
+    eligibility = client.get(
+        f"/api/v1/tontines/{tontine['id']}/cycles/{cycle['id']}/draw-eligibility",
+        headers=context["headers"],
+    ).json()["data"]
+
+    assert eligibility["allowed"] is False
+    assert eligibility["reason"] == "drawNotOpenYet"
+    # La date voyage avec le refus : l'application annonce l'échéance.
+    assert eligibility["drawOpensAt"] is not None
+
+    response = client.post(
+        f"/api/v1/tontines/{tontine['id']}/draws",
+        json={"cycleId": cycle["id"]},
+        headers=context["headers"],
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "drawNotOpenYet"
+
+
+def test_le_tirage_s_ouvre_le_jour_convenu(client: TestClient) -> None:
+    """Cycle dont le jour de tirage est passé : la roue tourne."""
+    context = build_organization(client, members=3, prefix="81")
+    tontine = create_tontine(
+        client, context, require_all=False, start_date="2026-08-01"
+    )
+    cycle = cycles_of(client, context, tontine["id"])[0]
+
+    eligibility = client.get(
+        f"/api/v1/tontines/{tontine['id']}/cycles/{cycle['id']}/draw-eligibility",
+        headers=context["headers"],
+    ).json()["data"]
+
+    assert eligibility["allowed"] is True
+    assert eligibility["drawOpensAt"].startswith("2026-08-05")
+
+
+def test_un_tirage_anticipe_se_force_avec_motif(client: TestClient) -> None:
+    """Tirer avant la date reste possible, mais comme une exception tracée."""
+    context = build_organization(client, members=3, prefix="82")
+    tontine = create_tontine(
+        client,
+        context,
+        require_all=False,
+        allow_override=True,
+        start_date=_first_of_next_month(),
+    )
+    cycle = cycles_of(client, context, tontine["id"])[0]
+
+    without_reason = client.post(
+        f"/api/v1/tontines/{tontine['id']}/draws",
+        json={"cycleId": cycle["id"], "override": True},
+        headers=context["headers"],
+    )
+    assert without_reason.status_code == 409
+    assert without_reason.json()["error"]["code"] == "override_reason_required"
+
+    forced = client.post(
+        f"/api/v1/tontines/{tontine['id']}/draws",
+        json={
+            "cycleId": cycle["id"],
+            "override": True,
+            "overrideReason": "Tirage avancé, décidé en assemblée.",
+        },
+        headers=context["headers"],
+    )
+    assert forced.status_code == 201
+    assert forced.json()["data"]["overrideUsed"] is True
+
+
+def test_deplacer_le_jour_de_tirage_deplace_les_cycles_a_venir(
+    client: TestClient,
+) -> None:
+    """Changer le réglage sans déplacer les dates les ferait diverger."""
+    context = build_organization(client, members=3, prefix="83")
+    tontine = create_tontine(
+        client, context, start_date=_first_of_next_month()
+    )
+
+    response = client.patch(
+        f"/api/v1/tontines/{tontine['id']}",
+        json={"drawDayOfPeriod": 20},
+        headers=context["headers"],
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["drawDayOfPeriod"] == 20
+
+    cycle = cycles_of(client, context, tontine["id"])[0]
+    assert cycle["drawScheduledAt"][8:10] == "20"
+
+
+def test_le_jour_de_tirage_par_defaut_suit_l_echeance(client: TestClient) -> None:
+    """Sans réglage propre, on tire quand tout le monde devait avoir cotisé."""
+    context = build_organization(client, members=3, prefix="84")
+    tontine = create_tontine(client, context, start_date="2026-08-01")
+
+    assert tontine["drawDay"] is None
+    assert tontine["drawDayOfPeriod"] == tontine["dueDayOfPeriod"]
+    cycle = cycles_of(client, context, tontine["id"])[0]
+    assert cycle["drawScheduledAt"][8:10] == "05"

@@ -485,22 +485,134 @@
     }
 
     @case ('settings') {
-      <article class="k-card">
-        <div class="k-card__header"><h2 class="k-card__title">Paramètres</h2></div>
-        <div class="k-card__body">
-          <dl class="facts">
-            <div><dt>Identifiant</dt><dd class="k-tertiary">{{ summary.tontine.id }}</dd></div>
-            <div><dt>Créée le</dt><dd>{{ summary.tontine.createdAt | frDate }}</dd></div>
-            <div><dt>Activée le</dt><dd>{{ summary.tontine.activatedAt | frDate }}</dd></div>
-            <div><dt>Devise</dt><dd>{{ summary.tontine.currency }}</dd></div>
-            <div><dt>Début</dt><dd>{{ summary.tontine.startDate | frDate }}</dd></div>
-          </dl>
-          <p class="k-hint" style="margin-top: 14px">
-            Le montant, la fréquence et la date de début sont verrouillés après
-            activation : les cycles et les cotisations déjà générés en dépendent.
-          </p>
-        </div>
-      </article>
+      <div class="k-stack">
+        @if (session.can('tontine.edit')) {
+          <article class="k-card">
+            <div class="k-card__header"><h2 class="k-card__title">Modifier la tontine</h2></div>
+
+            <form class="k-card__body k-stack" [formGroup]="settingsForm" (ngSubmit)="submitSettings()">
+              <label class="k-field">
+                <span class="k-label">Nom</span>
+                <input class="k-input" formControlName="name" [class.is-invalid]="invalidSetting('name')" />
+                @if (invalidSetting('name')) {
+                  <span class="k-error">Nom requis (2 caractères minimum).</span>
+                }
+              </label>
+
+              <label class="k-field">
+                <span class="k-label">Description</span>
+                <input class="k-input" formControlName="description" />
+              </label>
+
+              <div class="k-grid k-grid--2">
+                <label class="k-field">
+                  <span class="k-label">Jour d'échéance</span>
+                  <input
+                    class="k-input"
+                    type="number"
+                    formControlName="dueDay"
+                    [class.is-invalid]="invalidSetting('dueDay')"
+                  />
+                  <span class="k-hint">
+                    Jour de la période où la cotisation devient exigible.
+                  </span>
+                </label>
+
+                <label class="k-field">
+                  <span class="k-label">Jour du tirage</span>
+                  <input
+                    class="k-input"
+                    type="number"
+                    formControlName="drawDay"
+                    [class.is-invalid]="invalidSetting('drawDay')"
+                  />
+                  <span class="k-hint">
+                    Le tirage s'ouvre ce jour-là, à chaque période.
+                  </span>
+                </label>
+
+                <label class="k-field">
+                  <span class="k-label">Montant par période</span>
+                  <input
+                    class="k-input"
+                    type="number"
+                    formControlName="contributionAmount"
+                  />
+                  <span class="k-hint">
+                    @if (isDraft()) {
+                      Modifiable tant que la tontine est en brouillon.
+                    } @else {
+                      Verrouillé : les cycles déjà générés en dépendent.
+                    }
+                  </span>
+                </label>
+              </div>
+
+              <label class="k-field">
+                <span class="k-label">
+                  <input type="checkbox" formControlName="requireAllContributionsBeforeDraw" />
+                  Exiger toutes les cotisations avant le tirage
+                </span>
+                <span class="k-hint">
+                  Décoché, le tirage s'ouvre dès la période en cours, sans
+                  attendre les règlements — et sans passer par « forcer le
+                  tirage », qui reste une exception tracée.
+                </span>
+              </label>
+
+              <label class="k-field">
+                <span class="k-label">
+                  <input type="checkbox" formControlName="allowDrawOverride" />
+                  Autoriser un administrateur à forcer le tirage
+                </span>
+                <span class="k-hint">
+                  Le passage en force exige un motif et laisse une trace dans le
+                  journal d'audit.
+                </span>
+              </label>
+
+              <div class="k-toolbar">
+                <button type="submit" class="k-btn" [disabled]="savingSettings()">
+                  {{ savingSettings() ? 'Enregistrement…' : 'Enregistrer' }}
+                </button>
+                <button
+                  type="button"
+                  class="k-btn k-btn--ghost"
+                  (click)="resetSettings()"
+                  [disabled]="savingSettings()"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </article>
+        }
+
+        <article class="k-card">
+          <div class="k-card__header"><h2 class="k-card__title">Paramètres</h2></div>
+          <div class="k-card__body">
+            <dl class="facts">
+              <div><dt>Identifiant</dt><dd class="k-tertiary">{{ summary.tontine.id }}</dd></div>
+              <div><dt>Créée le</dt><dd>{{ summary.tontine.createdAt | frDate }}</dd></div>
+              <div><dt>Activée le</dt><dd>{{ summary.tontine.activatedAt | frDate }}</dd></div>
+              <div><dt>Devise</dt><dd>{{ summary.tontine.currency }}</dd></div>
+              <div><dt>Début</dt><dd>{{ summary.tontine.startDate | frDate }}</dd></div>
+              <div>
+                <dt>Jour du tirage</dt>
+                <dd>{{ summary.tontine.drawDayOfPeriod }}</dd>
+              </div>
+              <div>
+                <dt>Tirage conditionné aux cotisations</dt>
+                <dd>{{ summary.tontine.requireAllContributionsBeforeDraw ? 'Oui' : 'Non' }}</dd>
+              </div>
+            </dl>
+            <p class="k-hint" style="margin-top: 14px">
+              Le montant, la fréquence et la date de début sont verrouillés après
+              activation : les cycles et les cotisations déjà générés en dépendent.
+            </p>
+          </div>
+        </article>
+      </div>
     }
   }
 }
