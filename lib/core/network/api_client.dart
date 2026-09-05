@@ -55,6 +55,9 @@ class ApiRoutes {
   static String duesPlans(String organizationId) =>
       '/organizations/$organizationId/dues-plans';
 
+  static String duesPlan(String organizationId, String planId) =>
+      '/organizations/$organizationId/dues-plans/$planId';
+
   static String duesEntries(String organizationId, String planId) =>
       '/organizations/$organizationId/dues-plans/$planId/entries';
 

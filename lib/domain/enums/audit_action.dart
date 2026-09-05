@@ -22,6 +22,10 @@ enum AuditAction {
   payoutRecorded('payout.recorded'),
   payoutConfirmed('payout.confirmed'),
   transactionRecorded('transaction.recorded'),
+  duesPlanCreated('dues.plan_created'),
+  duesPlanUpdated('dues.plan_updated'),
+  duesPaymentRecorded('dues.payment_recorded'),
+  duesPaymentCancelled('dues.payment_cancelled'),
   organizationUpdated('organization.updated'),
   roleUpdated('role.updated'),
   roleReset('role.reset'),
@@ -40,7 +44,9 @@ enum AuditAction {
       this == AuditAction.contributionCancelled ||
       this == AuditAction.payoutRecorded ||
       this == AuditAction.payoutConfirmed ||
-      this == AuditAction.transactionRecorded;
+      this == AuditAction.transactionRecorded ||
+      this == AuditAction.duesPaymentRecorded ||
+      this == AuditAction.duesPaymentCancelled;
 
   static AuditAction fromCode(String value) => AuditAction.values.firstWhere(
     (AuditAction a) => a.code == value,

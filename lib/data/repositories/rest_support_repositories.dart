@@ -265,11 +265,47 @@ class RestDuesRepository implements DuesRepository {
   }
 
   @override
+  Future<DuesPlan> createPlan(
+    String organizationId,
+    DuesPlanDraft draft,
+  ) async {
+    final JsonMap json = await _api.post(
+      ApiRoutes.duesPlans(organizationId),
+      body: DuesPlanDto.createBody(draft),
+    );
+    return DuesPlanDto.fromJson(json);
+  }
+
+  @override
+  Future<DuesPlan> updatePlan(
+    String organizationId,
+    String planId, {
+    String? name,
+    double? amount,
+    String? description,
+    int? dueDay,
+    DuesPlanStatus? status,
+  }) async {
+    final JsonMap json = await _api.patch(
+      ApiRoutes.duesPlan(organizationId, planId),
+      body: DuesPlanDto.updateBody(
+        name: name,
+        amount: amount,
+        description: description,
+        dueDay: dueDay,
+        status: status,
+      ),
+    );
+    return DuesPlanDto.fromJson(json);
+  }
+
+  @override
   Future<void> recordPayment({
     required String entryId,
     required double amount,
     required PaymentMethod method,
     String? reference,
+    DateTime? paidAt,
   }) async {
     await _api.post(
       ApiRoutes.duesPayments(entryId),
@@ -277,6 +313,7 @@ class RestDuesRepository implements DuesRepository {
         'amount': amount,
         'paymentMethod': method.code,
         if (reference != null && reference.isNotEmpty) 'reference': reference,
+        if (paidAt != null) 'paidAt': Json.iso(paidAt),
       },
     );
   }

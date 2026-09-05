@@ -52,6 +52,9 @@ class PermissionService {
     Permission.payoutConfirm,
     Permission.treasuryManage,
     Permission.duesRecord,
+    // Le trésorier tient la caisse : il ouvre et ajuste lui-même les
+    // cotisations qu'il encaisse, sans dépendre du back-office.
+    Permission.duesManage,
     Permission.reminderSend,
   };
 
@@ -75,7 +78,6 @@ class PermissionService {
     Permission.memberCreate,
     Permission.memberEdit,
     Permission.memberDelete,
-    Permission.duesManage,
     Permission.tontineCreate,
     Permission.tontineEdit,
     Permission.drawOverride,

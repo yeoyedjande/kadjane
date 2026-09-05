@@ -8,6 +8,7 @@ import 'package:kadjane/domain/entities/beneficiary.dart';
 import 'package:kadjane/domain/entities/cash_transaction.dart';
 import 'package:kadjane/domain/entities/contribution.dart';
 import 'package:kadjane/domain/entities/draw_session.dart';
+import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/entities/organization.dart';
 import 'package:kadjane/domain/entities/organization_member.dart';
 import 'package:kadjane/domain/entities/payout.dart';
@@ -49,6 +50,8 @@ class MockDatabase {
   final List<Reminder> reminders = <Reminder>[];
   final List<ReminderCampaign> campaigns = <ReminderCampaign>[];
   final List<RoleDefinition> roleDefinitions = <RoleDefinition>[];
+  final List<DuesPlan> duesPlans = <DuesPlan>[];
+  final List<DuesEntry> duesEntries = <DuesEntry>[];
 
   int _sequence = 0;
 
@@ -112,6 +115,31 @@ class MockDatabase {
   List<OrganizationMember> membersOf(String organizationId) => members
       .where((OrganizationMember m) => m.organizationId == organizationId)
       .toList(growable: false);
+
+  List<DuesPlan> duesPlansOf(String organizationId) => duesPlans
+      .where((DuesPlan p) => p.organizationId == organizationId)
+      .toList(growable: false);
+
+  DuesPlan duesPlanById(String id) => duesPlans.firstWhere(
+    (DuesPlan p) => p.id == id,
+    orElse: () => throw NotFoundException('dues_plan:$id'),
+  );
+
+  void replaceDuesPlan(DuesPlan plan) {
+    final int index = duesPlans.indexWhere((DuesPlan p) => p.id == plan.id);
+    if (index == -1) {
+      throw NotFoundException('dues_plan:${plan.id}');
+    }
+    duesPlans[index] = plan;
+  }
+
+  void replaceDuesEntry(DuesEntry entry) {
+    final int index = duesEntries.indexWhere((DuesEntry e) => e.id == entry.id);
+    if (index == -1) {
+      throw NotFoundException('dues_entry:${entry.id}');
+    }
+    duesEntries[index] = entry;
+  }
 
   Tontine tontineById(String id) => tontines.firstWhere(
     (Tontine t) => t.id == id,

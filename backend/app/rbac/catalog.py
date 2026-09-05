@@ -392,6 +392,9 @@ TREASURER_PERMISSIONS: set[str] = AUDITOR_PERMISSIONS | _codes(
     "payout.record",
     "payout.confirm",
     "dues.record",
+    # Le trésorier tient la caisse : il ouvre et ajuste lui-même les
+    # cotisations qu'il encaisse, sans passer par le back-office.
+    "dues.manage",
     "reminder.send",
 )
 
@@ -423,9 +426,6 @@ ADMIN_PERMISSIONS: set[str] = (
         "payout.cancel",
         "cashbox.close",
         "contribution.exempt",
-        # Définir un plan périodique de caisse est un acte de structure :
-        # l'administrateur le pose, le trésorier l'encaisse.
-        "dues.manage",
         "user.",
         "role.",
         "permission.",

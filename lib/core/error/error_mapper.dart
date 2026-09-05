@@ -48,6 +48,10 @@ class ErrorMapper {
         return l10n.authInvalidPhone;
       case 'min_two_participants':
         return l10n.tontinesMinParticipants;
+      case 'invalid_amount':
+        return l10n.duesInvalidAmount;
+      case 'name_required':
+        return l10n.commonRequiredField;
       default:
         return l10n.commonErrorGeneric;
     }
@@ -68,6 +72,8 @@ class ErrorMapper {
         return l10n.drawNoEligible;
       case 'orderAlreadyDefined':
         return l10n.allocationFullOrderDesc;
+      case 'dues_plan_exists':
+        return l10n.duesPlanExists;
       default:
         return l10n.commonErrorGeneric;
     }

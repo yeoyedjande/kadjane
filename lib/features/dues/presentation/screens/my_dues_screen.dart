@@ -1,64 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kadjane/app/di/providers.dart';
 import 'package:kadjane/app/router/app_routes.dart';
 import 'package:kadjane/app/state/session_controller.dart';
-import 'package:kadjane/core/error/error_mapper.dart';
 import 'package:kadjane/core/extensions/context_extensions.dart';
 import 'package:kadjane/core/utils/date_formatter.dart';
 import 'package:kadjane/core/utils/money_formatter.dart';
 import 'package:kadjane/design_system/theme/app_dimensions.dart';
+import 'package:kadjane/design_system/widgets/k_states.dart';
 import 'package:kadjane/domain/entities/dues_entry.dart';
 import 'package:kadjane/domain/enums/currency.dart';
 import 'package:kadjane/domain/enums/permission.dart';
+import 'package:kadjane/features/dues/presentation/providers/dues_providers.dart';
 
 /// Ce que le membre doit à la caisse de son association.
 ///
-/// Lecture seule : c'est le trésorier qui encaisse et enregistre, depuis le
-/// back-office. L'écran sert à savoir où l'on en est.
-class MyDuesScreen extends ConsumerStatefulWidget {
+/// Lecture seule pour lui : c'est le trésorier qui encaisse et enregistre.
+/// Ce dernier accède depuis cette page à l'encaissement et, s'il en a le
+/// droit, à la définition des cotisations.
+class MyDuesScreen extends ConsumerWidget {
   const MyDuesScreen({super.key});
 
   @override
-  ConsumerState<MyDuesScreen> createState() => _MyDuesScreenState();
-}
-
-class _MyDuesScreenState extends ConsumerState<MyDuesScreen> {
-  late Future<List<DuesEntry>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<List<DuesEntry>> _load() async {
-    final String? organizationId = await ref.read(
-      activeOrganizationIdProvider.future,
-    );
-    if (organizationId == null) {
-      return <DuesEntry>[];
-    }
-    return ref.read(duesRepositoryProvider).myOutstanding(organizationId);
-  }
-
-  Future<void> _refresh() async {
-    final Future<List<DuesEntry>> next = _load();
-    setState(() => _future = next);
-    await next;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Le trésorier accède depuis ici à l'encaissement : c'est lui qui détient
-    // l'argent de la caisse.
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool canCollect = ref.watch(canProvider(Permission.duesRecord));
+    final bool canManage = ref.watch(canProvider(Permission.duesManage));
+    final AsyncValue<List<DuesEntry>> dues = ref.watch(myDuesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.duesTitle),
         actions: <Widget>[
+          if (canManage)
+            IconButton(
+              tooltip: context.l10n.duesManageTitle,
+              icon: const Icon(Icons.tune_outlined),
+              onPressed: () => context.push(AppRoutes.duesPlans),
+            ),
           if (canCollect)
             IconButton(
               tooltip: context.l10n.duesCollectTitle,
@@ -68,46 +46,35 @@ class _MyDuesScreenState extends ConsumerState<MyDuesScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<DuesEntry>>(
-          future: _future,
-          builder:
-              (
-                BuildContext context,
-                AsyncSnapshot<List<DuesEntry>> snapshot,
-              ) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return _Message(
-                    text: ErrorMapper.message(context.l10n, snapshot.error!),
-                  );
-                }
+        onRefresh: () async => ref.invalidate(myDuesProvider),
+        child: dues.when(
+          loading: () => const KLoadingView(),
+          error: (Object error, _) => KErrorState(
+            error: error,
+            onRetry: () => ref.invalidate(myDuesProvider),
+          ),
+          data: (List<DuesEntry> entries) {
+            if (entries.isEmpty) {
+              return _Message(text: context.l10n.duesAllSettled);
+            }
 
-                final List<DuesEntry> entries =
-                    snapshot.data ?? <DuesEntry>[];
-                if (entries.isEmpty) {
-                  return _Message(text: context.l10n.duesAllSettled);
+            final double total = entries.fold<double>(
+              0,
+              (double sum, DuesEntry e) => sum + e.remainingAmount,
+            );
+
+            return ListView.separated(
+              padding: const EdgeInsets.all(KSpacing.lg),
+              itemCount: entries.length + 1,
+              separatorBuilder: (_, _) => KSpacing.gapMd,
+              itemBuilder: (BuildContext context, int index) {
+                if (index == 0) {
+                  return _TotalCard(amount: total, count: entries.length);
                 }
-
-                final double total = entries.fold<double>(
-                  0,
-                  (double sum, DuesEntry e) => sum + e.remainingAmount,
-                );
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(KSpacing.lg),
-                  itemCount: entries.length + 1,
-                  separatorBuilder: (_, _) => KSpacing.gapMd,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == 0) {
-                      return _TotalCard(amount: total, count: entries.length);
-                    }
-                    return _EntryTile(entry: entries[index - 1]);
-                  },
-                );
+                return _EntryTile(entry: entries[index - 1]);
               },
+            );
+          },
         ),
       ),
     );

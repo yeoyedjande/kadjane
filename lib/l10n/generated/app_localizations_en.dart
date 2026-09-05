@@ -1514,4 +1514,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get duesPaymentRecorded => 'Payment recorded';
+
+  @override
+  String get duesManageTitle => 'Manage contributions';
+
+  @override
+  String get duesPlansEmpty =>
+      'No fund contribution defined yet. Create one to start collecting.';
+
+  @override
+  String get duesPlanNew => 'New contribution';
+
+  @override
+  String get duesPlanEditTitle => 'Edit contribution';
+
+  @override
+  String get duesPlanName => 'Name';
+
+  @override
+  String get duesPlanNameHint => 'Solidarity fund';
+
+  @override
+  String get duesPlanAmount => 'Amount per member';
+
+  @override
+  String get duesPlanAmountHint => 'The same for every member.';
+
+  @override
+  String get duesPlanAmountFutureOnly =>
+      'A new amount only applies to future periods.';
+
+  @override
+  String get duesPlanFrequency => 'Frequency';
+
+  @override
+  String get duesPlanCustomDays => 'Period length (days)';
+
+  @override
+  String get duesPlanDueDay => 'Due day';
+
+  @override
+  String get duesPlanDueDayHint => 'After this day, the instalment turns late.';
+
+  @override
+  String get duesPlanStartDate => 'First period starts';
+
+  @override
+  String get duesPlanStartDateLocked =>
+      'The start date is fixed once the contribution is open.';
+
+  @override
+  String get duesPlanDescription => 'Description';
+
+  @override
+  String get duesPlanStatusActive => 'Active';
+
+  @override
+  String get duesPlanStatusPaused => 'Paused';
+
+  @override
+  String get duesPlanStatusClosed => 'Closed';
+
+  @override
+  String get duesPlanClosedNotice =>
+      'Contribution closed: no further instalment is generated.';
+
+  @override
+  String get duesPlanPausedNotice =>
+      'Contribution paused: outstanding amounts remain due.';
+
+  @override
+  String duesPlanCreated(String name) {
+    return 'Contribution “$name” created.';
+  }
+
+  @override
+  String get duesPlanUpdated => 'Contribution updated.';
+
+  @override
+  String get duesPlanPause => 'Pause';
+
+  @override
+  String get duesPlanResume => 'Resume';
+
+  @override
+  String get duesPlanClose => 'Close';
+
+  @override
+  String get duesPlanPauseConfirmTitle => 'Pause the contribution?';
+
+  @override
+  String get duesPlanPauseConfirmMessage =>
+      'No new instalment will be generated. Outstanding amounts remain due.';
+
+  @override
+  String get duesPlanCloseConfirmTitle => 'Close the contribution?';
+
+  @override
+  String get duesPlanCloseConfirmMessage =>
+      'The contribution cannot be reopened. Instalments already generated stay visible.';
+
+  @override
+  String get duesPlanExists => 'A contribution already uses this name.';
+
+  @override
+  String get duesInvalidAmount => 'The amount must be greater than zero.';
+
+  @override
+  String get duesOutstandingLabel => 'Outstanding';
+
+  @override
+  String get duesExpected => 'Expected';
+
+  @override
+  String get duesRecordTitle => 'Record payment';
+
+  @override
+  String get duesRemaining => 'Remaining';
+
+  @override
+  String get duesAllPeriods => 'All periods';
+
+  @override
+  String get duesPeriodFilter => 'Period';
+
+  @override
+  String duesDueDayValue(int day) {
+    return 'Due on day $day of each period';
+  }
+
+  @override
+  String duesPlanCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contributions',
+      one: '1 contribution',
+      zero: 'no contribution',
+    );
+    return '$_temp0';
+  }
 }

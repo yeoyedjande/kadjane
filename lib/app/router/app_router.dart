@@ -19,6 +19,7 @@ import 'package:kadjane/features/contributions/presentation/screens/cycle_contri
 import 'package:kadjane/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:kadjane/features/draw/presentation/screens/draw_screen.dart';
 import 'package:kadjane/features/dues/presentation/screens/dues_management_screen.dart';
+import 'package:kadjane/features/dues/presentation/screens/dues_plans_screen.dart';
 import 'package:kadjane/features/dues/presentation/screens/my_dues_screen.dart';
 import 'package:kadjane/features/members/presentation/screens/member_detail_screen.dart';
 import 'package:kadjane/features/members/presentation/screens/member_form_screen.dart';
@@ -243,6 +244,10 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       GoRoute(
         path: AppRoutes.duesCollect,
         builder: (_, _) => const DuesManagementScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.duesPlans,
+        builder: (_, _) => const DuesPlansScreen(),
       ),
       GoRoute(
         path: AppRoutes.campaigns,
